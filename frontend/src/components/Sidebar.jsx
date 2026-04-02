@@ -13,12 +13,16 @@ const navigation = [
   { name: "Paramètres", href: "/settings", icon: Settings },
 ];
 
-export const Sidebar = () => {
+export const Sidebar = ({ onNavigate }) => {
   const pathname = usePathname();
 
+  const handleNavClick = (href) => {
+    onNavigate?.();
+  };
+
   return (
-    <div className="flex h-screen w-64 flex-col bg-slate-900 text-white">
-      <div className="flex h-16 items-center gap-2 border-b border-slate-700 px-6">
+    <div className="flex h-full flex-col bg-slate-900 text-white overflow-y-auto">
+      <div className="hidden md:flex h-16 items-center gap-2 border-b border-slate-700 px-6">
         <PenTool className="h-6 w-6 text-emerald-400" />
         <span className="text-lg">SEO Content AI</span>
       </div>
@@ -32,6 +36,7 @@ export const Sidebar = () => {
             <Link
               key={item.name}
               href={item.href}
+              onClick={() => handleNavClick(item.href)}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
                 isActive
