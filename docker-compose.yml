@@ -1,0 +1,18 @@
+services:
+
+  database:
+    env_file:
+      - .env
+    container_name: database
+    image: mysql:9.1
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ALLOW_EMPTY_PASSWORD: "no"
+    ports:
+      - ${DOCKER_MYSQL_PORT}:3306
+    volumes:
+      - ./db:/var/lib/mysql:delegated
