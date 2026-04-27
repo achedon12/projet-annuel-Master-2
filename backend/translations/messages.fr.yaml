@@ -1,0 +1,6 @@
+actions:
+  create: "Créer"
+  update: "Mettre à jour"
+  delete: "Supprimer"
+  cancel: "Annuler"
+  save: "Enregistrer"
