@@ -16,6 +16,27 @@ services:
       - ${DOCKER_MYSQL_PORT}:3306
     volumes:
       - ./db:/var/lib/mysql:delegated
+    networks:
+      - app-network
+
+  php:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: php
+    restart: always
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      - DATABASE_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@database:3306/${MYSQL_DATABASE}?serverVersion=9.1&charset=utf8mb4
+    depends_on:
+      - database
+    networks:
+      - app-network
+    working_dir: /var/www/html
+    command: php -S 0.0.0.0:8000 -t public
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -30,6 +51,8 @@ services:
       PMA_PASSWORD: ${MYSQL_PASSWORD}
     depends_on:
       - database
+    networks:
+      - app-network
 
   mailer:
     image: mailhog/mailhog
@@ -37,3 +60,9 @@ services:
     ports:
       - "8024:8025"
       - "1025:1025"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
