@@ -12,8 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
  */
 abstract class ApiAbstractController extends AbstractController
 {
-
-    public function __construct(
-    ) {}
+    // Vide intentionnellement pour l'instant
+    // À compléter avec les vérifications d'IP bans si nécessaire
 }
 

@@ -2,12 +2,14 @@
 
 namespace App\Controller\Api;
 
+use App\Controller\ApiAbstractController;
 use App\Entity\User;
+use App\Event\UserRegisteredEvent;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Firebase\JWT\JWT;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/auth')]
-class AuthController extends AbstractController
+class AuthController extends ApiAbstractController
 {
     private string $jwtAlgorithm = 'HS256';
 
@@ -24,6 +26,7 @@ class AuthController extends AbstractController
         private UserRepository $userRepository,
         private ValidatorInterface $validator,
         private ParameterBagInterface $params,
+        private EventDispatcherInterface $eventDispatcher,
     ) {}
 
     // ==================== SIGNUP ====================
@@ -77,6 +80,9 @@ class AuthController extends AbstractController
         // Sauvegarder
         $this->em->persist($user);
         $this->em->flush();
+
+        // Dispatcher l'événement d'enregistrement
+        $this->eventDispatcher->dispatch(new UserRegisteredEvent($user), UserRegisteredEvent::NAME);
 
         // Générer JWT
         $token = $this->generateJWT($user);
@@ -133,6 +139,15 @@ class AuthController extends AbstractController
             'message' => 'Connexion réussie.',
             'token' => $token,
             'user' => $this->serializeUser($user),
+        ], Response::HTTP_OK);
+    }
+
+    // ==================== LOGOUT ====================
+    #[Route('/logout', name: 'api_auth_logout', methods: ['POST'])]
+    public function logout(): JsonResponse
+    {
+        return $this->json([
+            'message' => 'Déconnexion réussie.',
         ], Response::HTTP_OK);
     }
 
