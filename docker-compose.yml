@@ -16,3 +16,10 @@ services:
       - ${DOCKER_MYSQL_PORT}:3306
     volumes:
       - ./db:/var/lib/mysql:delegated
+
+  mailer:
+    image: mailhog/mailhog
+    container_name: mailer
+    ports:
+      - "8024:8025"
+      - "1025:1025"
