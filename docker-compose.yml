@@ -17,6 +17,20 @@ services:
     volumes:
       - ./db:/var/lib/mysql:delegated
 
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: database
+      PMA_PORT: 3306
+      PMA_USER: ${MYSQL_USER}
+      PMA_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      - database
+
   mailer:
     image: mailhog/mailhog
     container_name: mailer
