@@ -2,16 +2,16 @@
 
 namespace App\Controller\Api;
 
+use App\Controller\ApiAbstractController;
 use App\Service\ComposerInfo;
 use App\Service\Translator;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api')]
-class InfoController extends AbstractController
+class InfoController extends ApiAbstractController
 {
     private ComposerInfo $composerInfo;
     private Translator $translator;
