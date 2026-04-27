@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Service\IpBanService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 /**
