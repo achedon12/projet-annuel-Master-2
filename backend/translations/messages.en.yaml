@@ -1,0 +1,6 @@
+actions:
+  create: "Create"
+  update: "Update"
+  delete: "Delete"
+  cancel: "Cancel"
+  save: "Save"

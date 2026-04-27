@@ -1,4 +1,7 @@
 {
+    "version": "1.0.0",
+    "name": "app/projet-annuel",
+    "description": "Projet Annuel Master 2",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
@@ -17,6 +20,7 @@
         "symfony/property-access": "7.1.*",
         "symfony/runtime": "7.1.*",
         "symfony/serializer": "7.1.*",
+        "symfony/translation": "7.1.*",
         "symfony/validator": "7.1.*",
         "symfony/yaml": "7.1.*"
     },
