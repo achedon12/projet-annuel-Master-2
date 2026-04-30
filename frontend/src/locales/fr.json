@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "history": "Historique",
+    "ideas": "Idées",
+    "editor": "Éditeur",
+    "settings": "Paramètres",
+    "logout": "Déconnexion"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subTitle": "Gérez votre compte et vos préférences",
+    "tabs": {
+      "profile": "Profil",
+      "preferences": "Préférences",
+      "integrations": "Intégrations",
+      "notifications": "Notifications"
+    },
+    "profile": {
+      "title": "Informations du profil",
+      "description": "Mettez à jour vos informations personnelles"
+    }
+  },
+  "form": {
+    "name": "Nom",
+    "firstName": "Prénom",
+    "email": "Email",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "submit": "Soumettre",
+    "bio": "Bio",
+    "placeholder": {
+      "name": "Jean",
+      "firstName": "Dupont",
+      "email": "example@gmail.com",
+      "password": "••••••••",
+      "confirmPassword": "••••••••"
+    },
+    "error": {
+      "required": "Ce champ est requis",
+      "email": "Veuillez entrer une adresse email valide",
+      "minLength": "Le mot de passe doit comporter au moins 8 caractères",
+      "passwordMismatch": "Les mots de passe ne correspondent pas"
+    }
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "changePicture": "Changer la photo",
+    "changePassword": "Changer le mot de passe",
+    "actualPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmNewPassword": "Confirmer le nouveau mot de passe"
+  }
+}
+

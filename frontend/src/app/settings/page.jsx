@@ -1,26 +1,18 @@
 "use client";
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card";
-import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
-import { Label } from "@/components/Label";
-import { Separator } from "@/components/Separator";
-import { Switch } from "@/components/Switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select";
-import { Badge } from "@/components/Badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar";
-import {
-    User,
-    Bell,
-    Palette,
-    Link as LinkIcon,
-    Check,
-    X,
-    Mail,
-    Sparkles,
-} from "lucide-react";
-import { toast } from "sonner";
+import {useState} from "react";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/Card";
+import {Button} from "@/components/Button";
+import {Input} from "@/components/Input";
+import {Label} from "@/components/Label";
+import {Separator} from "@/components/Separator";
+import {Switch} from "@/components/Switch";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/Tabs";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/Select";
+import {Badge} from "@/components/Badge";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/Avatar";
+import {Bell, Check, Link as LinkIcon, Mail, Palette, Sparkles, User, X,} from "lucide-react";
+import {toast} from "sonner";
+import {useTranslation} from "@/hooks/useI18n";
 
 const Settings = () => {
     const [notionConnected, setNotionConnected] = useState(true);
@@ -28,6 +20,7 @@ const Settings = () => {
     const [emailNotifications, setEmailNotifications] = useState(true);
     const [weeklyReport, setWeeklyReport] = useState(true);
     const [aiSuggestions, setAiSuggestions] = useState(true);
+    const {t} = useTranslation()
 
     const handleSave = () => {
         toast.success("Paramètres sauvegardés avec succès");
@@ -51,47 +44,47 @@ const Settings = () => {
         <div className="flex-1 overflow-auto bg-slate-50 p-8">
             <div className="mx-auto max-w-5xl space-y-8">
                 <div>
-                    <h1 className="text-3xl">Paramètres</h1>
-                    <p className="text-slate-600">Gérez votre compte et vos préférences</p>
+                    <h1 className="text-3xl">{t('settings.title')}</h1>
+                    <p className="text-slate-600">{t('settings.subTitle')}</p>
                 </div>
 
                 <Tabs defaultValue="profile" className="w-full">
                     <TabsList>
                         <TabsTrigger value="profile">
-                            <User className="mr-2 h-4 w-4" />
-                            Profil
+                            <User className="mr-2 h-4 w-4"/>
+                            {t('settings.tabs.profile')}
                         </TabsTrigger>
                         <TabsTrigger value="integrations">
-                            <LinkIcon className="mr-2 h-4 w-4" />
-                            Intégrations
+                            <LinkIcon className="mr-2 h-4 w-4"/>
+                            {t('settings.tabs.integrations')}
                         </TabsTrigger>
                         <TabsTrigger value="notifications">
-                            <Bell className="mr-2 h-4 w-4" />
-                            Notifications
+                            <Bell className="mr-2 h-4 w-4"/>
+                            {t('settings.tabs.notifications')}
                         </TabsTrigger>
                         <TabsTrigger value="preferences">
-                            <Palette className="mr-2 h-4 w-4" />
-                            Préférences
+                            <Palette className="mr-2 h-4 w-4"/>
+                            {t('settings.tabs.preferences')}
                         </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="profile" className="space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Informations du profil</CardTitle>
+                                <CardTitle>{t('settings.profile.title')}</CardTitle>
                                 <CardDescription>
-                                    Mettez à jour vos informations personnelles
+                                    {t('settings.profile.description')}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <div className="flex items-center gap-6">
                                     <Avatar className="h-20 w-20">
-                                        <AvatarImage src="" />
+                                        <AvatarImage src=""/>
                                         <AvatarFallback className="text-lg">JD</AvatarFallback>
                                     </Avatar>
                                     <div className="space-y-2">
                                         <Button variant="outline" size="sm">
-                                            Changer la photo
+                                            {t('common.changePicture')}
                                         </Button>
                                         <p className="text-xs text-slate-500">
                                             JPG, PNG ou GIF. Max 2MB.
@@ -99,26 +92,26 @@ const Settings = () => {
                                     </div>
                                 </div>
 
-                                <Separator />
+                                <Separator/>
 
                                 <div className="grid gap-6 md:grid-cols-2">
                                     <div className="space-y-2">
-                                        <Label htmlFor="firstName">Prénom</Label>
-                                        <Input id="firstName" defaultValue="Jean" />
+                                        <Label htmlFor="firstName">{t('form.firstName')}</Label>
+                                        <Input id="firstName" defaultValue="Jean"/>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="lastName">Nom</Label>
-                                        <Input id="lastName" defaultValue="Dupont" />
+                                        <Label htmlFor="lastName">{t('form.name')}</Label>
+                                        <Input id="lastName" defaultValue="Dupont"/>
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input id="email" type="email" defaultValue="jean.dupont@email.com" />
+                                    <Label htmlFor="email">{t('form.email')}</Label>
+                                    <Input id="email" type="email" defaultValue="jean.dupont@email.com"/>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="bio">Bio</Label>
+                                    <Label htmlFor="bio">{t('form.bio')}</Label>
                                     <Input
                                         id="bio"
                                         placeholder="Une courte description..."
@@ -126,29 +119,29 @@ const Settings = () => {
                                     />
                                 </div>
 
-                                <Separator />
+                                <Separator/>
 
                                 <div className="space-y-4">
-                                    <h3 className="font-medium">Changer le mot de passe</h3>
+                                    <h3 className="font-medium">{t('common.changePassword')}</h3>
                                     <div className="space-y-2">
-                                        <Label htmlFor="currentPassword">Mot de passe actuel</Label>
-                                        <Input id="currentPassword" type="password" />
+                                        <Label htmlFor="currentPassword">{t('common.actualPassword')}</Label>
+                                        <Input id="currentPassword" type="password"/>
                                     </div>
                                     <div className="grid gap-4 md:grid-cols-2">
                                         <div className="space-y-2">
-                                            <Label htmlFor="newPassword">Nouveau mot de passe</Label>
-                                            <Input id="newPassword" type="password" />
+                                            <Label htmlFor="newPassword">{t('common.newPassword')}</Label>
+                                            <Input id="newPassword" type="password"/>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-                                            <Input id="confirmPassword" type="password" />
+                                            <Label htmlFor="confirmPassword">{t('common.confirmNewPassword')}</Label>
+                                            <Input id="confirmPassword" type="password"/>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="flex justify-end gap-2">
-                                    <Button variant="outline">Annuler</Button>
-                                    <Button onClick={handleSave}>Enregistrer les modifications</Button>
+                                    <Button variant="outline">{t('common.cancel')}</Button>
+                                    <Button onClick={handleSave}>{t('common.save')}</Button>
                                 </div>
                             </CardContent>
                         </Card>
@@ -165,20 +158,21 @@ const Settings = () => {
                             <CardContent className="space-y-6">
                                 <div className="flex items-center justify-between rounded-lg border p-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100">
-                                            <Mail className="h-6 w-6 text-slate-700" />
+                                        <div
+                                            className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100">
+                                            <Mail className="h-6 w-6 text-slate-700"/>
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <h3 className="font-medium">Notion</h3>
                                                 {notionConnected ? (
                                                     <Badge variant="default" className="gap-1">
-                                                        <Check className="h-3 w-3" />
+                                                        <Check className="h-3 w-3"/>
                                                         Connecté
                                                     </Badge>
                                                 ) : (
                                                     <Badge variant="secondary" className="gap-1">
-                                                        <X className="h-3 w-3" />
+                                                        <X className="h-3 w-3"/>
                                                         Déconnecté
                                                     </Badge>
                                                 )}
@@ -212,7 +206,7 @@ const Settings = () => {
                                                 <Label htmlFor="notionDatabase">Base de données</Label>
                                                 <Select defaultValue="articles">
                                                     <SelectTrigger id="notionDatabase">
-                                                        <SelectValue />
+                                                        <SelectValue/>
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         <SelectItem value="articles">Articles de blog</SelectItem>
@@ -228,17 +222,18 @@ const Settings = () => {
                                                         Synchroniser automatiquement lors de la publication
                                                     </p>
                                                 </div>
-                                                <Switch defaultChecked />
+                                                <Switch defaultChecked/>
                                             </div>
                                         </div>
                                     </div>
                                 )}
 
-                                <Separator />
+                                <Separator/>
 
                                 <div className="flex items-center justify-between rounded-lg border p-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100">
+                                        <div
+                                            className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100">
                                             <svg className="h-6 w-6" viewBox="0 0 24 24">
                                                 <path
                                                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -263,12 +258,12 @@ const Settings = () => {
                                                 <h3 className="font-medium">Google Account</h3>
                                                 {googleConnected ? (
                                                     <Badge variant="default" className="gap-1">
-                                                        <Check className="h-3 w-3" />
+                                                        <Check className="h-3 w-3"/>
                                                         Connecté
                                                     </Badge>
                                                 ) : (
                                                     <Badge variant="secondary" className="gap-1">
-                                                        <X className="h-3 w-3" />
+                                                        <X className="h-3 w-3"/>
                                                         Déconnecté
                                                     </Badge>
                                                 )}
@@ -311,7 +306,7 @@ const Settings = () => {
                                     />
                                 </div>
 
-                                <Separator />
+                                <Separator/>
 
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
@@ -320,10 +315,10 @@ const Settings = () => {
                                             Recevez un résumé de votre activité chaque semaine
                                         </p>
                                     </div>
-                                    <Switch checked={weeklyReport} onCheckedChange={setWeeklyReport} />
+                                    <Switch checked={weeklyReport} onCheckedChange={setWeeklyReport}/>
                                 </div>
 
-                                <Separator />
+                                <Separator/>
 
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
@@ -332,25 +327,25 @@ const Settings = () => {
                                             Recevez des suggestions d'amélioration de contenu
                                         </p>
                                     </div>
-                                    <Switch checked={aiSuggestions} onCheckedChange={setAiSuggestions} />
+                                    <Switch checked={aiSuggestions} onCheckedChange={setAiSuggestions}/>
                                 </div>
 
-                                <Separator />
+                                <Separator/>
 
                                 <div className="space-y-3">
                                     <Label>Types de notifications</Label>
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm">Nouveaux commentaires</span>
-                                            <Switch defaultChecked />
+                                            <Switch defaultChecked/>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm">Mises à jour de l'application</span>
-                                            <Switch defaultChecked />
+                                            <Switch defaultChecked/>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm">Conseils et astuces</span>
-                                            <Switch />
+                                            <Switch/>
                                         </div>
                                     </div>
                                 </div>
@@ -375,7 +370,7 @@ const Settings = () => {
                                     <Label htmlFor="language">Langue de l'interface</Label>
                                     <Select defaultValue="fr">
                                         <SelectTrigger id="language">
-                                            <SelectValue />
+                                            <SelectValue/>
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="fr">Français</SelectItem>
@@ -386,13 +381,13 @@ const Settings = () => {
                                     </Select>
                                 </div>
 
-                                <Separator />
+                                <Separator/>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="timezone">Fuseau horaire</Label>
                                     <Select defaultValue="paris">
                                         <SelectTrigger id="timezone">
-                                            <SelectValue />
+                                            <SelectValue/>
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="paris">Europe/Paris (GMT+1)</SelectItem>
@@ -403,11 +398,11 @@ const Settings = () => {
                                     </Select>
                                 </div>
 
-                                <Separator />
+                                <Separator/>
 
                                 <div className="space-y-3">
                                     <Label className="flex items-center gap-2">
-                                        <Sparkles className="h-4 w-4" />
+                                        <Sparkles className="h-4 w-4"/>
                                         Paramètres IA par défaut
                                     </Label>
                                     <div className="space-y-2">
@@ -416,7 +411,7 @@ const Settings = () => {
                                         </Label>
                                         <Select defaultValue="professional">
                                             <SelectTrigger id="defaultTone">
-                                                <SelectValue />
+                                                <SelectValue/>
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="professional">Professionnel</SelectItem>
@@ -430,11 +425,11 @@ const Settings = () => {
                                         <Label htmlFor="defaultWords" className="text-sm">
                                             Nombre de mots par défaut
                                         </Label>
-                                        <Input id="defaultWords" type="number" defaultValue="800" />
+                                        <Input id="defaultWords" type="number" defaultValue="800"/>
                                     </div>
                                 </div>
 
-                                <Separator />
+                                <Separator/>
 
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
@@ -443,7 +438,7 @@ const Settings = () => {
                                             Activer le thème sombre de l'interface
                                         </p>
                                     </div>
-                                    <Switch />
+                                    <Switch/>
                                 </div>
 
                                 <div className="flex justify-end">

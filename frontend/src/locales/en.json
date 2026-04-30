@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "history": "History",
+    "ideas": "Ideas",
+    "editor": "Editor",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "settings": {
+    "title": "Settings",
+    "subTitle": "Manage your account and preferences",
+    "tabs": {
+      "profile": "Profile",
+      "preferences": "Preferences",
+      "integrations": "Integrations",
+      "notifications": "Notifications"
+    },
+    "profile": {
+      "title": "Profile Information",
+      "description": "Update your personal information"
+    }
+  },
+  "form": {
+    "name": "Name",
+    "firstName": "First Name",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "submit": "Submit",
+    "bio": "Bio",
+    "placeholder": {
+      "name": "John",
+      "firstName": "Doe",
+      "email": "example@gmail.com",
+      "password": "••••••••",
+      "confirmPassword": "••••••••"
+    },
+    "error": {
+      "required": "This field is required",
+      "email": "Please enter a valid email address",
+      "minLength": "Password must be at least 8 characters",
+      "passwordMismatch": "Passwords do not match"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "changePicture": "Change picture",
+    "changePassword": "Change password",
+    "actualPassword": "Current password",
+    "newPassword": "New password",
+    "confirmNewPassword": "Confirm new password"
+  }
+}
+

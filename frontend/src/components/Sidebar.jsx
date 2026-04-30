@@ -3,37 +3,38 @@
 import { Home, Lightbulb, PenTool, History, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {cn} from "../utils/Cn";
-
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: Home },
-  { name: "Générateur d'idées", href: "/ideas", icon: Lightbulb },
-  { name: "Éditeur de contenu", href: "/editor", icon: PenTool },
-  { name: "Historique", href: "/history", icon: History },
-  { name: "Paramètres", href: "/settings", icon: Settings },
-];
+import {cn} from "@/utils/Cn";
+import {useTranslation} from "@/hooks/useI18n";
+import {API_URL, Urls} from "@/utils/Api";
 
 export const Sidebar = ({ onNavigate }) => {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const handleNavClick = (href) => {
     onNavigate?.();
   };
 
+  const navigation = [
+    { name: t('nav.dashboard'), href: "/dashboard", icon: Home },
+    { name: t('nav.ideas'), href: "/ideas", icon: Lightbulb },
+    { name: t('nav.editor'), href: "/editor", icon: PenTool },
+    { name: t('nav.history'), href: "/history", icon: History },
+    { name: t('nav.settings'), href: "/settings", icon: Settings },
+  ];
+
   const handleLogout = async () => {
     try {
-      const response = await fetch("http://localhost:8001/api/auth/logout", {
+      const response = await fetch(`${API_URL}${Urls.auth.logout}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
 
       if (response.ok) {
-        // Nettoyer le localStorage
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         
-        // Rediriger vers la page de connexion
         router.push("/auth");
       }
     } catch (err) {
@@ -78,7 +79,7 @@ export const Sidebar = ({ onNavigate }) => {
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"
         >
           <LogOut className="h-5 w-5" />
-          <span>Déconnexion</span>
+          <span>{ t('nav.logout') }</span>
         </button>
       </div>
     </div>
