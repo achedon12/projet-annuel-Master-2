@@ -23,7 +23,6 @@ class UserController extends ApiAbstractController
     {
     }
 
-    // ==================== LIST ====================
     #[Route('', name: 'api_users_list', methods: ['GET'])]
     public function index(): JsonResponse
     {
@@ -34,7 +33,6 @@ class UserController extends ApiAbstractController
         );
     }
 
-    // ==================== SHOW ====================
 
     /**
      * Sérialise un User en tableau (jamais le mot de passe).
@@ -55,8 +53,6 @@ class UserController extends ApiAbstractController
         ];
     }
 
-    // ==================== CREATE ====================
-
     #[Route('/{id}', name: 'api_users_show', methods: ['GET'])]
     public function show(int $id): JsonResponse
     {
@@ -68,8 +64,6 @@ class UserController extends ApiAbstractController
 
         return $this->json($this->serialize($user));
     }
-
-    // ==================== UPDATE ====================
 
     #[Route('', name: 'api_users_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
