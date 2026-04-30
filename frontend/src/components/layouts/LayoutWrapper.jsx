@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Sidebar } from "./Sidebar";
+import { Sidebar } from "@/components/Sidebar";
 import { Menu, X } from "lucide-react";
 
 const SIDEBAR_ROUTES = ["/dashboard", "/history", "/ideas", "/settings", "/editor"];
 
-export function LayoutWrapper({ children }) {
+export const LayoutWrapper = ({ children }) => {
   const pathname = usePathname();
   const showSidebar = SIDEBAR_ROUTES.includes(pathname);
   const [sidebarOpen, setSidebarOpen] = useState(false);
