@@ -34,14 +34,7 @@ class InfoController extends ApiAbstractController
                 'version' => $this->composerInfo->getProjectVersion() ?? 'Unknown',
                 'description' => $this->composerInfo->getProjectDescription(),
             ],
-            'server' => [
-                'php_version' => phpversion(),
-                'symfony_version' => Kernel::VERSION,
-            ],
-            'composer' => $this->composerInfo->getSummary(),
-            'status' => $this->translator->trans('api.status.ok'),
             'timestamp' => time(),
-            'message' => $this->translator->trans('api.welcome'),
             'locale' => $locale,
         ];
         return $this->json($data);

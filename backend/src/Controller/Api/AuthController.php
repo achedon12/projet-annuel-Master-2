@@ -29,13 +29,11 @@ class AuthController extends ApiAbstractController
         private EventDispatcherInterface $eventDispatcher,
     ) {}
 
-    // ==================== SIGNUP ====================
     #[Route('/signup', name: 'api_auth_signup', methods: ['POST'])]
     public function signup(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        // Validation des données
         if (!$data || !isset($data['name'], $data['email'], $data['password'])) {
             return $this->json(
                 ['error' => 'Données manquantes (name, email, password requis).'],
@@ -47,7 +45,6 @@ class AuthController extends ApiAbstractController
         $email = trim($data['email']);
         $password = $data['password'];
 
-        // Vérifier que l'email n'existe pas déjà
         $existingUser = $this->userRepository->findOneBy(['email' => $email]);
         if ($existingUser) {
             return $this->json(
@@ -56,7 +53,6 @@ class AuthController extends ApiAbstractController
             );
         }
 
-        // Créer le nouvel utilisateur
         $user = new User();
         $user->setName($name);
         $user->setEmail($email);
@@ -64,7 +60,6 @@ class AuthController extends ApiAbstractController
         $user->setTheme($data['theme'] ?? 'system');
         $user->setLanguage($data['language'] ?? null);
 
-        // Valider l'entité
         $errors = $this->validator->validate($user);
         if (count($errors) > 0) {
             $errorMessages = [];
@@ -77,14 +72,11 @@ class AuthController extends ApiAbstractController
             );
         }
 
-        // Sauvegarder
         $this->em->persist($user);
         $this->em->flush();
 
-        // Dispatcher l'événement d'enregistrement
         $this->eventDispatcher->dispatch(new UserRegisteredEvent($user), UserRegisteredEvent::NAME);
 
-        // Générer JWT
         $token = $this->generateJWT($user);
 
         return $this->json([
@@ -94,13 +86,11 @@ class AuthController extends ApiAbstractController
         ], Response::HTTP_CREATED);
     }
 
-    // ==================== LOGIN ====================
     #[Route('/login', name: 'api_auth_login', methods: ['POST'])]
     public function login(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        // Validation des données
         if (!$data || !isset($data['email'], $data['password'])) {
             return $this->json(
                 ['error' => 'Email et mot de passe requis.'],
@@ -111,7 +101,6 @@ class AuthController extends ApiAbstractController
         $email = trim($data['email']);
         $password = $data['password'];
 
-        // Chercher l'utilisateur
         $user = $this->userRepository->findOneBy(['email' => $email]);
         if (!$user) {
             return $this->json(
@@ -120,7 +109,6 @@ class AuthController extends ApiAbstractController
             );
         }
 
-        // Vérifier le mot de passe
         if (!password_verify($password, $user->getPassword())) {
             return $this->json(
                 ['error' => 'Email ou mot de passe incorrect.'],
@@ -128,11 +116,9 @@ class AuthController extends ApiAbstractController
             );
         }
 
-        // Mettre à jour lastLogin
         $user->setLastLogin(new \DateTime());
         $this->em->flush();
 
-        // Générer JWT
         $token = $this->generateJWT($user);
 
         return $this->json([
@@ -142,7 +128,6 @@ class AuthController extends ApiAbstractController
         ], Response::HTTP_OK);
     }
 
-    // ==================== LOGOUT ====================
     #[Route('/logout', name: 'api_auth_logout', methods: ['POST'])]
     public function logout(): JsonResponse
     {
@@ -150,8 +135,6 @@ class AuthController extends ApiAbstractController
             'message' => 'Déconnexion réussie.',
         ], Response::HTTP_OK);
     }
-
-    // ==================== HELPERS ====================
 
     /**
      * Génère un JWT pour l'utilisateur

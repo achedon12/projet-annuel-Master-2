@@ -1,20 +1,29 @@
-FROM php:8.2-cli
+FROM php:8.3-fpm
 
-# Installer les dépendances MySQL
-RUN docker-php-ext-install mysqli pdo pdo_mysql
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    libzip-dev \
+    libicu-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+    zip \
+    intl \
+    gd \
+    pdo_mysql \
+    opcache \
+    && apt-get clean
 
-# Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Définir le répertoire de travail
+COPY . /var/www/html
 WORKDIR /var/www/html
 
-# Copier les fichiers du projet
-COPY . .
+RUN chown -R www-data:www-data /var/www/html
 
-# Installer les dépendances PHP
-RUN composer install --no-interaction --optimize-autoloader
+USER www-data
 
-EXPOSE 8000
-
-CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]
+CMD ["php-fpm"]

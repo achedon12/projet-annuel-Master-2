@@ -6,19 +6,18 @@ import {CardHeader, Card, CardTitle, CardDescription, CardContent} from "@/compo
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/Tabs";
 import {Label} from "@/components/Label";
 import {Button} from "@/components/Button";
-import {Separator} from "@/components/Separator";
 import {Input} from "@/components/Input";
+import {API_URL} from "@/utils/Api";
+import {Urls} from "../../utils/Api";
 
 const AuthPage = () => {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     
-    // Login states
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    // Signup states
     const [signupName, setSignupName] = useState("");
     const [signupEmail, setSignupEmail] = useState("");
     const [signupPassword, setSignupPassword] = useState("");
@@ -29,7 +28,7 @@ const AuthPage = () => {
         setLoading(true);
 
         try {
-            const response = await fetch("http://localhost:8001/api/auth/login", {
+            const response = await fetch(`${API_URL}${Urls.auth.login}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
@@ -58,7 +57,7 @@ const AuthPage = () => {
         setLoading(true);
 
         try {
-            const response = await fetch("http://localhost:8001/api/auth/signup", {
+            const response = await fetch(`${API_URL}${Urls.auth.signup}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

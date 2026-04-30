@@ -42,7 +42,11 @@ class SendWelcomeEmailListener implements EventSubscriberInterface
             ->subject('Bienvenue sur SEO Content AI!')
             ->html($this->getEmailContent($user));
 
-        $this->mailer->send($email);
+        try {
+            $this->mailer->send($email);
+        } catch (\Exception $e) {
+            error_log('Failed to send welcome email to ' . $user->getEmail() . ': ' . $e->getMessage());
+        }
     }
 
     /**
