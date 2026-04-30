@@ -2,7 +2,7 @@
 
 import { Home, Lightbulb, PenTool, History, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {cn} from "../utils/Cn";
 
 const navigation = [
@@ -15,9 +15,30 @@ const navigation = [
 
 export const Sidebar = ({ onNavigate }) => {
   const pathname = usePathname();
+  const router = useRouter();
 
   const handleNavClick = (href) => {
     onNavigate?.();
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("http://localhost:8001/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (response.ok) {
+        // Nettoyer le localStorage
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        
+        // Rediriger vers la page de connexion
+        router.push("/auth");
+      }
+    } catch (err) {
+      console.error("Erreur de déconnexion:", err);
+    }
   };
 
   return (
@@ -52,7 +73,10 @@ export const Sidebar = ({ onNavigate }) => {
       </nav>
 
       <div className="border-t border-slate-700 p-4">
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-slate-300 transition-colors hover:bg-slate-800 hover:text-white">
+        <button 
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"
+        >
           <LogOut className="h-5 w-5" />
           <span>Déconnexion</span>
         </button>
