@@ -329,18 +329,26 @@
     "type": {
       "blog": "Article de blog",
       "guide": "Guide",
-      "tutorial": "Tutoriel",
-      "article": "Article"
+      "tutorial": "Tutoriel"
     },
     "tabs": {
       "list": "Liste",
       "calendar": "Calendrier"
     },
-    "notionSynced": "Synchro Notion",
-    "views": "{count} vues",
-    "engagement": "{value}% engagement",
     "wordsCount": "{count} mots",
     "seoScoreLabel": "Score SEO",
+    "newArticle": "Nouvel article",
+    "loading": "Chargement des articles...",
+    "loadError": "Impossible de charger vos articles.",
+    "empty": "Aucun article pour le moment. Créez votre premier article depuis l'éditeur.",
+    "noMatch": "Aucun article ne correspond à vos filtres.",
+    "deleteTitle": "Supprimer cet article ?",
+    "deleteConfirm": "Cette action est définitive. L'article et son contenu seront supprimés.",
+    "deleteCancel": "Annuler",
+    "deleteOk": "Supprimer",
+    "deleting": "Suppression...",
+    "deleteSuccess": "Article supprimé.",
+    "deleteError": "La suppression a échoué. Réessayez.",
     "actions": {
       "view": "Voir",
       "edit": "Modifier",
@@ -352,14 +360,6 @@
       "title": "Vue calendrier",
       "description": "Visualisez vos publications dans un calendrier éditorial",
       "soon": "Cette fonctionnalité sera bientôt disponible"
-    },
-    "items": {
-      "seoTechnical": "Guide complet du SEO technique en 2026",
-      "tenStrategies": "10 stratégies de content marketing",
-      "aiInContent": "L'IA dans la création de contenu",
-      "metaDesc": "Optimiser vos meta descriptions pour le CTR",
-      "trends2026": "Les tendances SEO 2026",
-      "editorialCalendar": "Comment créer un calendrier éditorial"
     }
   },
   "ideas": {
@@ -466,11 +466,18 @@
     "toast": {
       "generated": "Contenu généré avec succès !",
       "rewritten": "Paragraphe reformulé avec succès !",
-      "saved": "Article sauvegardé en brouillon",
-      "published": "Article publié et synchronisé avec Notion"
-    },
-    "defaultTitle": "Titre de l'article",
-    "generatedContent": "# {title}\n\n## Introduction\n\nL'optimisation pour les moteurs de recherche (SEO) est devenue un élément crucial de toute stratégie de marketing digital. Dans cet article, nous explorerons les meilleures pratiques et stratégies pour améliorer votre visibilité en ligne.\n\n## Les fondamentaux du SEO\n\nLe SEO repose sur trois piliers principaux :\n\n1. **Contenu de qualité** : Créer du contenu pertinent et engageant\n2. **Technique** : Optimiser la structure et la performance du site\n3. **Popularité** : Développer l'autorité et les backlinks\n\n### Création de contenu optimisé\n\nPour créer du contenu qui performe bien dans les moteurs de recherche, il est essentiel de :\n\n- Comprendre l'intention de recherche de votre audience\n- Utiliser des mots-clés pertinents de manière naturelle\n- Structurer votre contenu avec des titres et sous-titres clairs\n- Fournir de la valeur ajoutée et des informations uniques\n\n## Conclusion\n\nL'optimisation SEO est un processus continu qui nécessite de la patience et de la persévérance. En appliquant ces stratégies, vous améliorerez progressivement votre positionnement dans les résultats de recherche."
+      "saved": "Article sauvegardé.",
+      "published": "Article publié.",
+      "saveError": "La sauvegarde a échoué. Réessayez.",
+      "loadError": "Impossible de charger l'article.",
+      "publishError": "La publication a échoué. Réessayez.",
+      "generateError": "La génération a échoué. Réessayez.",
+      "rewriteError": "La reformulation a échoué. Réessayez.",
+      "titleRequired": "Le titre doit contenir au moins 2 caractères.",
+      "loading": "Chargement de l'article...",
+      "notFound": "Article introuvable.",
+      "backToHistory": "Retour à l'historique"
+    }
   },
   "settings": {
     "title": "Paramètres",

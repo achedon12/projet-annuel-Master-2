@@ -27,3 +27,8 @@ services:
         arguments:
             $apiKey: '%env(MISTRAL_API_KEY)%'
             $model: '%env(MISTRAL_MODEL)%'
+
+    App\Service\MistralArticleService:
+        arguments:
+            $apiKey: '%env(MISTRAL_API_KEY)%'
+            $model: '%env(MISTRAL_MODEL)%'

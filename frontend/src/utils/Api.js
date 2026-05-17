@@ -12,4 +12,11 @@ export const Urls = {
   ideas: {
       generate: '/ideas/generate',
   },
+  articles: {
+      list: '/articles',
+      one: (id) => `/articles/${id}`,
+      publish: (id) => `/articles/${id}/publish`,
+      generateContent: '/articles/generate-content',
+      rewrite: '/articles/rewrite',
+  },
 };
