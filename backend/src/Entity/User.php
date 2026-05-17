@@ -47,6 +47,30 @@ class User
     #[Assert\Choice(choices: ['light', 'dark', 'system'], message: 'Thème invalide.')]
     private string $theme = 'system';
 
+    #[ORM\Column(length: 30, nullable: true)]
+    private ?string $defaultTone = null;
+
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 800])]
+    private int $defaultWords = 800;
+
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
+    private bool $notifEmail = true;
+
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
+    private bool $notifWeekly = true;
+
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
+    private bool $notifAi = true;
+
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
+    private bool $notifComments = true;
+
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
+    private bool $notifUpdates = true;
+
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $notifTips = false;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
 
@@ -202,6 +226,94 @@ class User
     public function setLastLogin(?\DateTimeInterface $lastLogin): static
     {
         $this->lastLogin = $lastLogin;
+        return $this;
+    }
+
+    public function getDefaultTone(): ?string
+    {
+        return $this->defaultTone;
+    }
+
+    public function setDefaultTone(?string $defaultTone): static
+    {
+        $this->defaultTone = $defaultTone;
+        return $this;
+    }
+
+    public function getDefaultWords(): int
+    {
+        return $this->defaultWords;
+    }
+
+    public function setDefaultWords(int $defaultWords): static
+    {
+        $this->defaultWords = $defaultWords;
+        return $this;
+    }
+
+    public function isNotifEmail(): bool
+    {
+        return $this->notifEmail;
+    }
+
+    public function setNotifEmail(bool $value): static
+    {
+        $this->notifEmail = $value;
+        return $this;
+    }
+
+    public function isNotifWeekly(): bool
+    {
+        return $this->notifWeekly;
+    }
+
+    public function setNotifWeekly(bool $value): static
+    {
+        $this->notifWeekly = $value;
+        return $this;
+    }
+
+    public function isNotifAi(): bool
+    {
+        return $this->notifAi;
+    }
+
+    public function setNotifAi(bool $value): static
+    {
+        $this->notifAi = $value;
+        return $this;
+    }
+
+    public function isNotifComments(): bool
+    {
+        return $this->notifComments;
+    }
+
+    public function setNotifComments(bool $value): static
+    {
+        $this->notifComments = $value;
+        return $this;
+    }
+
+    public function isNotifUpdates(): bool
+    {
+        return $this->notifUpdates;
+    }
+
+    public function setNotifUpdates(bool $value): static
+    {
+        $this->notifUpdates = $value;
+        return $this;
+    }
+
+    public function isNotifTips(): bool
+    {
+        return $this->notifTips;
+    }
+
+    public function setNotifTips(bool $value): static
+    {
+        $this->notifTips = $value;
         return $this;
     }
 
