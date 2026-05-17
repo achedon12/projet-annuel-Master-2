@@ -1,32 +1,48 @@
 {
+  "brand": "SEO Content AI",
   "nav": {
     "dashboard": "Dashboard",
     "history": "History",
     "ideas": "Ideas",
     "editor": "Editor",
     "settings": "Settings",
-    "logout": "Logout"
+    "logout": "Logout",
+    "features": "Features",
+    "pricing": "Pricing",
+    "testimonials": "Testimonials",
+    "login": "Log in",
+    "start": "Get started"
   },
-  "settings": {
-    "title": "Settings",
-    "subTitle": "Manage your account and preferences",
-    "tabs": {
-      "profile": "Profile",
-      "preferences": "Preferences",
-      "integrations": "Integrations",
-      "notifications": "Notifications"
-    },
-    "profile": {
-      "title": "Profile Information",
-      "description": "Update your personal information"
-    }
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "view": "View",
+    "export": "Export",
+    "share": "Share",
+    "changePicture": "Change picture",
+    "changePassword": "Change password",
+    "actualPassword": "Current password",
+    "newPassword": "New password",
+    "confirmNewPassword": "Confirm new password",
+    "good": "Good",
+    "needsImprovement": "Needs improvement",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "connected": "Connected",
+    "disconnected": "Disconnected"
   },
   "form": {
     "name": "Name",
-    "firstName": "First Name",
+    "firstName": "First name",
     "email": "Email",
     "password": "Password",
-    "confirmPassword": "Confirm Password",
+    "confirmPassword": "Confirm password",
     "submit": "Submit",
     "bio": "Bio",
     "placeholder": {
@@ -43,20 +59,526 @@
       "passwordMismatch": "Passwords do not match"
     }
   },
-  "common": {
-    "loading": "Loading...",
-    "error": "An error occurred",
-    "success": "Success",
-    "cancel": "Cancel",
+  "auth": {
+    "tagline": "Create SEO-optimized content with artificial intelligence",
+    "tabs": {
+      "login": "Log in",
+      "signup": "Sign up"
+    },
+    "login": {
+      "submit": "Log in",
+      "emailPlaceholder": "your@email.com",
+      "passwordPlaceholder": "••••••••"
+    },
+    "signup": {
+      "fullName": "Full name",
+      "fullNamePlaceholder": "John Doe",
+      "submit": "Create account"
+    },
+    "toast": {
+      "loginSuccess": "Logged in. Welcome!",
+      "loginInvalid": "Incorrect email or password.",
+      "loginNetwork": "Network error. Check that the server is running.",
+      "loginError": "Login error.",
+      "signupSuccess": "Account created!",
+      "signupWelcome": "Welcome!",
+      "signupCreatedButLoginFailed": "Account created, but automatic login failed. Please log in.",
+      "signupError": "Sign-up error",
+      "logoutSuccess": "Logged out."
+    }
+  },
+  "home": {
+    "hero": {
+      "badge": "Powered by AI",
+      "title1": "Create SEO content",
+      "title2": " in seconds",
+      "description": "Automatically generate SEO-optimized blog posts and social media content. Sync with Notion and track your performance in real time.",
+      "ctaPrimary": "Start for free",
+      "ctaSecondary": "Watch a demo"
+    },
+    "stats": {
+      "contents": "Generated contents",
+      "users": "Active users",
+      "satisfaction": "Customer satisfaction",
+      "availability": "Availability"
+    },
+    "features": {
+      "badge": "Features",
+      "title": "Everything you need to succeed",
+      "subtitle": "An all-in-one platform to manage your content strategy from A to Z",
+      "items": {
+        "ai": {
+          "title": "AI content generation",
+          "description": "Create SEO-optimized blog posts and social media content in seconds with advanced artificial intelligence."
+        },
+        "seo": {
+          "title": "SEO optimization",
+          "description": "Boost your online visibility with content optimized for search engines and tailored to your audience."
+        },
+        "notion": {
+          "title": "Notion integration",
+          "description": "Automatically sync your content with Notion via API. Easily import and export your data."
+        },
+        "history": {
+          "title": "History & tracking",
+          "description": "Track all your publications, analyze performance, and keep a full history of your content."
+        },
+        "multi": {
+          "title": "Multi-platform",
+          "description": "Publish simultaneously to your social networks and blog. Save time with a single interface."
+        },
+        "stats": {
+          "title": "Detailed analytics",
+          "description": "Visualize your performance with a complete dashboard: views, engagement, growth and more."
+        }
+      }
+    },
+    "benefits": {
+      "badge": "Benefits",
+      "title": "Transform your content strategy",
+      "subtitle": "Join hundreds of companies that have revolutionized their content creation with our platform.",
+      "items": {
+        "time": "Save up to 10h per week on content creation",
+        "traffic": "Grow your organic traffic by 300%",
+        "quality": "Create professional-quality content without writing skills",
+        "presence": "Keep a consistent presence across your channels"
+      },
+      "cta": "Try it now"
+    },
+    "testimonials": {
+      "badge": "Testimonials",
+      "title": "They trust us",
+      "subtitle": "Discover how our customers are transforming their content creation",
+      "items": {
+        "sophie": {
+          "name": "Sophie Martin",
+          "role": "Marketing Manager",
+          "company": "TechStart",
+          "content": "This tool revolutionized our content strategy. We publish 3x more with the same team!"
+        },
+        "thomas": {
+          "name": "Thomas Dubois",
+          "role": "CEO",
+          "company": "GrowthLab",
+          "content": "The Notion integration is perfect. Our workflow is now ultra smooth and our SEO improves every month."
+        },
+        "marie": {
+          "name": "Marie Laurent",
+          "role": "Content Manager",
+          "company": "Digital Agency",
+          "content": "The quality of generated content is impressive. It's like having an expert SEO writer available 24/7."
+        }
+      },
+      "roleAt": "{role} at {company}"
+    },
+    "pricing": {
+      "badge": "Pricing",
+      "title": "Pricing that fits every need",
+      "subtitle": "Choose the plan that matches your ambitions. Change anytime.",
+      "period": "/month",
+      "popular": "⭐ Most popular",
+      "ctaPopular": "Start now",
+      "ctaNormal": "Choose this plan",
+      "plans": {
+        "starter": {
+          "name": "Starter",
+          "price": "€29",
+          "description": "Perfect to get started",
+          "features": {
+            "articles": "10 articles per month",
+            "social": "50 social media posts",
+            "notion": "Notion integration",
+            "dashboard": "Basic dashboard",
+            "support": "Email support"
+          }
+        },
+        "pro": {
+          "name": "Professional",
+          "price": "€79",
+          "description": "For demanding professionals",
+          "features": {
+            "articles": "50 articles per month",
+            "social": "200 social media posts",
+            "notion": "Advanced Notion integration",
+            "dashboard": "Full dashboard + Analytics",
+            "support": "Priority support",
+            "curation": "Resource curation",
+            "export": "Multi-format export"
+          }
+        },
+        "enterprise": {
+          "name": "Enterprise",
+          "price": "€199",
+          "description": "Complete solution for businesses",
+          "features": {
+            "articles": "Unlimited articles",
+            "social": "Unlimited posts",
+            "teams": "Multi-account & teams",
+            "api": "Custom API",
+            "support": "24/7 dedicated support",
+            "training": "Personalized training",
+            "custom": "Tailor-made features"
+          }
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready to transform your content creation?",
+      "subtitle": "Join hundreds of professionals who use our platform to create exceptional content.",
+      "ctaPrimary": "Start for free",
+      "ctaSecondary": "Schedule a demo",
+      "note": "✨ No credit card required • 14-day free trial"
+    },
+    "footer": {
+      "tagline": "The all-in-one platform to create outstanding SEO content with AI.",
+      "productCol": "Product",
+      "resourcesCol": "Resources",
+      "companyCol": "Company",
+      "product": {
+        "features": "Features",
+        "pricing": "Pricing",
+        "integrations": "Integrations",
+        "api": "API"
+      },
+      "resources": {
+        "docs": "Documentation",
+        "blog": "Blog",
+        "guides": "Guides",
+        "support": "Support"
+      },
+      "company": {
+        "about": "About",
+        "contact": "Contact",
+        "legal": "Legal notice",
+        "privacy": "Privacy"
+      },
+      "copyright": "© 2026 SEO Content AI. All rights reserved."
+    }
+  },
+  "dashboard": {
+    "title": "Welcome to SEO Content AI",
+    "subtitle": "Here's an overview of your activity",
+    "stats": {
+      "articles": "Articles generated",
+      "words": "Words generated",
+      "seoScore": "Average SEO score",
+      "lastSync": "Last sync",
+      "lastSyncValue": "2d",
+      "changeNote": "{change} this month"
+    },
+    "weekActivity": {
+      "title": "Weekly activity",
+      "description": "Number of articles created"
+    },
+    "wordsChart": {
+      "title": "Words generated",
+      "description": "Content volume per day"
+    },
+    "recent": {
+      "title": "Recent articles",
+      "description": "Your latest created content",
+      "seoScoreLabel": "SEO score"
+    },
+    "quickActions": {
+      "title": "Quick actions",
+      "description": "Create optimized content",
+      "ideas": "Generate ideas",
+      "newArticle": "New article",
+      "history": "View history"
+    },
+    "weekdays": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "articles": {
+      "seoTechnical": "The complete guide to technical SEO in 2026",
+      "tenStrategies": "10 content marketing strategies",
+      "aiInContent": "AI in content creation",
+      "published": "Published",
+      "draft": "Draft",
+      "review": "Under review"
+    }
+  },
+  "history": {
+    "title": "Publication history",
+    "subtitle": "Manage and track all your content",
+    "stats": {
+      "total": "Total",
+      "published": "Published",
+      "drafts": "Drafts",
+      "archived": "Archived"
+    },
+    "all": "All content",
+    "resultsCount": "{count} result(s)",
+    "searchPlaceholder": "Search...",
+    "filters": {
+      "allStatus": "All statuses",
+      "allTypes": "All types"
+    },
+    "status": {
+      "published": "Published",
+      "draft": "Draft",
+      "review": "Under review",
+      "archived": "Archived"
+    },
+    "type": {
+      "blog": "Blog post",
+      "guide": "Guide",
+      "tutorial": "Tutorial",
+      "article": "Article"
+    },
+    "tabs": {
+      "list": "List",
+      "calendar": "Calendar"
+    },
+    "notionSynced": "Notion synced",
+    "views": "{count} views",
+    "engagement": "{value}% engagement",
+    "wordsCount": "{count} words",
+    "seoScoreLabel": "SEO score",
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "export": "Export",
+      "share": "Share",
+      "delete": "Delete"
+    },
+    "calendar": {
+      "title": "Calendar view",
+      "description": "Visualize your publications in an editorial calendar",
+      "soon": "This feature is coming soon"
+    },
+    "items": {
+      "seoTechnical": "The complete guide to technical SEO in 2026",
+      "tenStrategies": "10 content marketing strategies",
+      "aiInContent": "AI in content creation",
+      "metaDesc": "Optimize your meta descriptions for CTR",
+      "trends2026": "SEO trends 2026",
+      "editorialCalendar": "How to build an editorial calendar"
+    }
+  },
+  "ideas": {
+    "title": "Idea generator",
+    "subtitle": "Let AI suggest relevant topics for you",
+    "configTitle": "Generation settings",
+    "configDescription": "Set your parameters to get tailored suggestions",
+    "mainKeyword": "Main keyword",
+    "mainKeywordPlaceholder": "e.g. SEO, content marketing, AI...",
+    "contentType": "Content type",
+    "contentTypePlaceholder": "Select a type",
+    "types": {
+      "blog": "Blog post",
+      "guide": "Complete guide",
+      "listicle": "Listicle",
+      "tutorial": "Tutorial",
+      "caseStudy": "Case study"
+    },
+    "audience": "Target audience",
+    "audiencePlaceholder": "Describe your target audience (e.g. digital marketing pros, SEO beginners...)",
+    "generating": "Generating...",
+    "generate": "Generate ideas",
+    "suggestionsTitle": "Generated suggestions",
+    "ideasCount": "{count} ideas",
+    "difficultyLabel": "Difficulty:",
+    "volumeLabel": "Volume:",
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "advanced": "Advanced"
+    },
+    "toast": {
+      "generated": "Ideas generated successfully!",
+      "copied": "Title copied to clipboard"
+    },
+    "mock": {
+      "seoBeginners": {
+        "title": "Complete guide to technical SEO for beginners",
+        "description": "A detailed article covering the basics of technical SEO, including speed optimization, crawl budget, and URL structure."
+      },
+      "tenStrategies": {
+        "title": "10 content marketing strategies that work in 2026",
+        "description": "Discover proven tactics to create engaging, high-performing content in today's digital landscape."
+      },
+      "aiImpact": {
+        "title": "The impact of AI on SEO content creation",
+        "description": "An in-depth look at how artificial intelligence is transforming the way SEO-optimized content is produced."
+      },
+      "metaDesc": {
+        "title": "How to optimize your meta descriptions for CTR",
+        "description": "A practical guide to writing meta descriptions that increase your click-through rate in search results."
+      },
+      "volumeMonth": "{value}/month"
+    }
+  },
+  "editor": {
+    "title": "Content editor",
+    "wordCount": "{count} words",
     "save": "Save",
-    "delete": "Delete",
-    "edit": "Edit",
-    "create": "Create",
-    "changePicture": "Change picture",
-    "changePassword": "Change password",
-    "actualPassword": "Current password",
-    "newPassword": "New password",
-    "confirmNewPassword": "Confirm new password"
+    "preview": "Preview",
+    "publish": "Publish",
+    "basicInfo": "Basic information",
+    "articleTitle": "Article title",
+    "articleTitlePlaceholder": "Enter your article title...",
+    "tone": "Tone of voice",
+    "tonePlaceholder": "Select a tone",
+    "tones": {
+      "professional": "Professional",
+      "casual": "Casual",
+      "friendly": "Friendly",
+      "formal": "Formal",
+      "enthusiastic": "Enthusiastic"
+    },
+    "audience": "Target audience",
+    "audiencePlaceholder": "Select audience",
+    "audiences": {
+      "beginners": "Beginners",
+      "intermediate": "Intermediate",
+      "experts": "Experts",
+      "general": "General public"
+    },
+    "content": "Content",
+    "rewrite": "Rewrite",
+    "generating": "Generating...",
+    "generateAi": "Generate with AI",
+    "contentPlaceholder": "Start writing or use AI to generate content...",
+    "tabs": {
+      "ai": "AI Assistant",
+      "seo": "SEO"
+    },
+    "aiConfig": "AI configuration",
+    "targetWords": "Target word count",
+    "quickActions": "Quick actions",
+    "improveStyle": "Improve style",
+    "addIntro": "Add an intro",
+    "optimizeSeo": "Optimize SEO",
+    "suggestionsTitle": "Suggestions",
+    "suggestions": {
+      "trends": "Add a section about 2026 trends to improve relevance",
+      "examples": "Include concrete examples to illustrate your points",
+      "stats": "Add recent statistics to strengthen your arguments"
+    },
+    "seo": {
+      "scoreTitle": "SEO score",
+      "global": "Overall score",
+      "contentLength": "Content length",
+      "optimizedTitle": "Optimized title",
+      "structure": "Structure",
+      "keywords": "Keywords",
+      "detected": "Detected keywords"
+    },
+    "export": {
+      "title": "Export",
+      "pdf": "Export as PDF",
+      "markdown": "Export as Markdown",
+      "notion": "Send to Notion"
+    },
+    "toast": {
+      "generated": "Content generated successfully!",
+      "rewritten": "Paragraph rewritten successfully!",
+      "saved": "Article saved as draft",
+      "published": "Article published and synced with Notion"
+    },
+    "defaultTitle": "Article title",
+    "generatedContent": "# {title}\n\n## Introduction\n\nSearch engine optimization (SEO) has become a crucial part of any digital marketing strategy. In this article we'll explore best practices and strategies to improve your online visibility.\n\n## SEO fundamentals\n\nSEO rests on three main pillars:\n\n1. **Quality content**: Create relevant, engaging content\n2. **Technical**: Optimize your site's structure and performance\n3. **Authority**: Build authority and backlinks\n\n### Creating optimized content\n\nTo create content that performs well in search engines, it's essential to:\n\n- Understand your audience's search intent\n- Use relevant keywords naturally\n- Structure your content with clear headings and subheadings\n- Provide unique, value-adding information\n\n## Conclusion\n\nSEO is a continuous process that requires patience and persistence. By applying these strategies, you will progressively improve your search engine ranking."
+  },
+  "settings": {
+    "title": "Settings",
+    "subTitle": "Manage your account and preferences",
+    "tabs": {
+      "profile": "Profile",
+      "preferences": "Preferences",
+      "integrations": "Integrations",
+      "notifications": "Notifications",
+      "security": "Security"
+    },
+    "profile": {
+      "title": "Profile information",
+      "description": "Update your personal information",
+      "avatarHint": "JPG, PNG or GIF. Max 2MB.",
+      "bioPlaceholder": "A short description...",
+      "bioDefault": "SEO and content marketing expert"
+    },
+    "integrations": {
+      "title": "External connections",
+      "description": "Connect your favorite tools and services",
+      "notion": {
+        "description": "Sync your articles with your Notion workspace",
+        "config": "Notion configuration",
+        "workspace": "Workspace",
+        "workspaceDefault": "My Workspace",
+        "database": "Database",
+        "databases": {
+          "articles": "Blog posts",
+          "ideas": "Content ideas",
+          "calendar": "Editorial calendar"
+        },
+        "autoSync": "Automatic sync",
+        "autoSyncHint": "Automatically sync on publish"
+      },
+      "google": {
+        "description": "Quick sign-in and access to Google services"
+      },
+      "toast": {
+        "notionConnected": "Connected to Notion successfully",
+        "notionDisconnected": "Disconnected from Notion",
+        "googleConnected": "Connected to Google successfully",
+        "googleDisconnected": "Disconnected from Google"
+      }
+    },
+    "notifications": {
+      "title": "Notification preferences",
+      "description": "Choose how you want to be notified",
+      "email": "Email notifications",
+      "emailHint": "Receive notifications at your email address",
+      "weekly": "Weekly report",
+      "weeklyHint": "Get a summary of your activity every week",
+      "ai": "AI suggestions",
+      "aiHint": "Receive content improvement suggestions",
+      "types": "Notification types",
+      "comments": "New comments",
+      "updates": "App updates",
+      "tips": "Tips & tricks",
+      "savePrefs": "Save preferences"
+    },
+    "preferences": {
+      "title": "App preferences",
+      "description": "Customize your experience",
+      "language": "Interface language",
+      "timezone": "Timezone",
+      "aiSettings": "Default AI settings",
+      "defaultTone": "Default tone of voice",
+      "defaultWords": "Default word count",
+      "darkMode": "Dark mode",
+      "darkModeHint": "Enable the dark theme"
+    },
+    "toast": {
+      "saved": "Settings saved successfully"
+    },
+    "security": {
+      "title": "Account security",
+      "description": "Review the IP addresses used to sign in to your account.",
+      "loading": "Loading history...",
+      "empty": "No login activity recorded yet.",
+      "loadError": "Could not load your login history.",
+      "currentIp": "Current IP",
+      "currentBadge": "Current",
+      "table": {
+        "ip": "IP address",
+        "event": "Event",
+        "firstSeen": "First seen",
+        "lastSeen": "Last seen",
+        "userAgent": "Device"
+      },
+      "events": {
+        "login": "Sign in",
+        "signup": "Sign up"
+      },
+      "refresh": "Refresh"
+    }
   }
 }
-

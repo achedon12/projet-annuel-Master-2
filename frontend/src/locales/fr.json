@@ -1,25 +1,41 @@
 {
+  "brand": "SEO Content AI",
   "nav": {
     "dashboard": "Tableau de bord",
     "history": "Historique",
     "ideas": "Idées",
     "editor": "Éditeur",
     "settings": "Paramètres",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "features": "Fonctionnalités",
+    "pricing": "Tarifs",
+    "testimonials": "Témoignages",
+    "login": "Connexion",
+    "start": "Commencer"
   },
-  "settings": {
-    "title": "Paramètres",
-    "subTitle": "Gérez votre compte et vos préférences",
-    "tabs": {
-      "profile": "Profil",
-      "preferences": "Préférences",
-      "integrations": "Intégrations",
-      "notifications": "Notifications"
-    },
-    "profile": {
-      "title": "Informations du profil",
-      "description": "Mettez à jour vos informations personnelles"
-    }
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "view": "Voir",
+    "export": "Exporter",
+    "share": "Partager",
+    "changePicture": "Changer la photo",
+    "changePassword": "Changer le mot de passe",
+    "actualPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmNewPassword": "Confirmer le nouveau mot de passe",
+    "good": "Bon",
+    "needsImprovement": "À améliorer",
+    "connect": "Connecter",
+    "disconnect": "Déconnecter",
+    "connected": "Connecté",
+    "disconnected": "Déconnecté"
   },
   "form": {
     "name": "Nom",
@@ -43,20 +59,526 @@
       "passwordMismatch": "Les mots de passe ne correspondent pas"
     }
   },
-  "common": {
-    "loading": "Chargement...",
-    "error": "Une erreur s'est produite",
-    "success": "Succès",
-    "cancel": "Annuler",
-    "save": "Enregistrer",
-    "delete": "Supprimer",
-    "edit": "Modifier",
-    "create": "Créer",
-    "changePicture": "Changer la photo",
-    "changePassword": "Changer le mot de passe",
-    "actualPassword": "Mot de passe actuel",
-    "newPassword": "Nouveau mot de passe",
-    "confirmNewPassword": "Confirmer le nouveau mot de passe"
+  "auth": {
+    "tagline": "Créez du contenu optimisé SEO avec l'intelligence artificielle",
+    "tabs": {
+      "login": "Connexion",
+      "signup": "Inscription"
+    },
+    "login": {
+      "submit": "Se connecter",
+      "emailPlaceholder": "votre@email.com",
+      "passwordPlaceholder": "••••••••"
+    },
+    "signup": {
+      "fullName": "Nom complet",
+      "fullNamePlaceholder": "Jean Dupont",
+      "submit": "Créer un compte"
+    },
+    "toast": {
+      "loginSuccess": "Connexion réussie. Bienvenue !",
+      "loginInvalid": "Email ou mot de passe incorrect.",
+      "loginNetwork": "Erreur réseau. Vérifiez que le serveur est actif.",
+      "loginError": "Erreur de connexion.",
+      "signupSuccess": "Compte créé avec succès !",
+      "signupWelcome": "Bienvenue !",
+      "signupCreatedButLoginFailed": "Compte créé, mais connexion automatique impossible. Connectez-vous.",
+      "signupError": "Erreur d'inscription",
+      "logoutSuccess": "Déconnexion réussie."
+    }
+  },
+  "home": {
+    "hero": {
+      "badge": "Boosté par l'IA",
+      "title1": "Créez du contenu SEO",
+      "title2": " en quelques secondes",
+      "description": "Générez automatiquement des articles de blog et posts réseaux sociaux optimisés SEO. Synchronisez avec Notion et suivez vos performances en temps réel.",
+      "ctaPrimary": "Commencer gratuitement",
+      "ctaSecondary": "Voir une démo"
+    },
+    "stats": {
+      "contents": "Contenus générés",
+      "users": "Utilisateurs actifs",
+      "satisfaction": "Satisfaction client",
+      "availability": "Disponibilité"
+    },
+    "features": {
+      "badge": "Fonctionnalités",
+      "title": "Tout ce dont vous avez besoin pour réussir",
+      "subtitle": "Une plateforme complète pour gérer votre stratégie de contenu de A à Z",
+      "items": {
+        "ai": {
+          "title": "Génération de contenu IA",
+          "description": "Créez des articles de blog et posts réseaux sociaux optimisés SEO en quelques secondes grâce à l'intelligence artificielle avancée."
+        },
+        "seo": {
+          "title": "Optimisation SEO",
+          "description": "Boostez votre visibilité en ligne avec des contenus optimisés pour les moteurs de recherche et adaptés à votre audience."
+        },
+        "notion": {
+          "title": "Intégration Notion",
+          "description": "Synchronisez automatiquement vos contenus avec Notion via API. Importez et exportez vos données en toute simplicité."
+        },
+        "history": {
+          "title": "Historique & Suivi",
+          "description": "Suivez toutes vos publications, analysez vos performances et gardez un historique complet de vos contenus."
+        },
+        "multi": {
+          "title": "Multi-plateformes",
+          "description": "Publiez simultanément sur vos réseaux sociaux et votre blog. Gagnez du temps avec une seule interface."
+        },
+        "stats": {
+          "title": "Statistiques détaillées",
+          "description": "Visualisez vos performances avec un dashboard complet : vues, engagement, croissance et bien plus encore."
+        }
+      }
+    },
+    "benefits": {
+      "badge": "Avantages",
+      "title": "Transformez votre stratégie de contenu",
+      "subtitle": "Rejoignez des centaines d'entreprises qui ont révolutionné leur création de contenu avec notre plateforme.",
+      "items": {
+        "time": "Gagnez jusqu'à 10h par semaine sur la création de contenu",
+        "traffic": "Augmentez votre trafic organique de 300%",
+        "quality": "Créez du contenu de qualité professionnelle sans compétences en rédaction",
+        "presence": "Maintenez une présence constante sur vos canaux de communication"
+      },
+      "cta": "Essayer maintenant"
+    },
+    "testimonials": {
+      "badge": "Témoignages",
+      "title": "Ils nous font confiance",
+      "subtitle": "Découvrez comment nos clients transforment leur création de contenu",
+      "items": {
+        "sophie": {
+          "name": "Sophie Martin",
+          "role": "Responsable Marketing",
+          "company": "TechStart",
+          "content": "Cet outil a révolutionné notre stratégie de contenu. Nous publions 3x plus avec la même équipe !"
+        },
+        "thomas": {
+          "name": "Thomas Dubois",
+          "role": "CEO",
+          "company": "GrowthLab",
+          "content": "L'intégration avec Notion est parfaite. Notre workflow est maintenant ultra-fluide et notre SEO s'améliore chaque mois."
+        },
+        "marie": {
+          "name": "Marie Laurent",
+          "role": "Content Manager",
+          "company": "Digital Agency",
+          "content": "La qualité du contenu généré est impressionnante. C'est comme avoir un rédacteur SEO expert disponible 24/7."
+        }
+      },
+      "roleAt": "{role} chez {company}"
+    },
+    "pricing": {
+      "badge": "Tarifs",
+      "title": "Des prix adaptés à tous les besoins",
+      "subtitle": "Choisissez le plan qui correspond à vos ambitions. Changez à tout moment.",
+      "period": "/mois",
+      "popular": "⭐ Plus populaire",
+      "ctaPopular": "Commencer maintenant",
+      "ctaNormal": "Choisir ce plan",
+      "plans": {
+        "starter": {
+          "name": "Starter",
+          "price": "29€",
+          "description": "Parfait pour commencer",
+          "features": {
+            "articles": "10 articles par mois",
+            "social": "50 posts réseaux sociaux",
+            "notion": "Intégration Notion",
+            "dashboard": "Dashboard basique",
+            "support": "Support email"
+          }
+        },
+        "pro": {
+          "name": "Professional",
+          "price": "79€",
+          "description": "Pour les professionnels exigeants",
+          "features": {
+            "articles": "50 articles par mois",
+            "social": "200 posts réseaux sociaux",
+            "notion": "Intégration Notion avancée",
+            "dashboard": "Dashboard complet + Analytics",
+            "support": "Support prioritaire",
+            "curation": "Curation de ressources",
+            "export": "Export multi-formats"
+          }
+        },
+        "enterprise": {
+          "name": "Enterprise",
+          "price": "199€",
+          "description": "Solution complète pour entreprises",
+          "features": {
+            "articles": "Articles illimités",
+            "social": "Posts illimités",
+            "teams": "Multi-comptes & équipes",
+            "api": "API personnalisée",
+            "support": "Support dédié 24/7",
+            "training": "Formation personnalisée",
+            "custom": "Fonctionnalités sur-mesure"
+          }
+        }
+      }
+    },
+    "cta": {
+      "title": "Prêt à transformer votre création de contenu ?",
+      "subtitle": "Rejoignez des centaines de professionnels qui utilisent notre plateforme pour créer du contenu exceptionnel.",
+      "ctaPrimary": "Démarrer gratuitement",
+      "ctaSecondary": "Planifier une démo",
+      "note": "✨ Aucune carte bancaire requise • 14 jours d'essai gratuit"
+    },
+    "footer": {
+      "tagline": "La plateforme tout-en-un pour créer du contenu SEO exceptionnel avec l'IA.",
+      "productCol": "Produit",
+      "resourcesCol": "Ressources",
+      "companyCol": "Entreprise",
+      "product": {
+        "features": "Fonctionnalités",
+        "pricing": "Tarifs",
+        "integrations": "Intégrations",
+        "api": "API"
+      },
+      "resources": {
+        "docs": "Documentation",
+        "blog": "Blog",
+        "guides": "Guides",
+        "support": "Support"
+      },
+      "company": {
+        "about": "À propos",
+        "contact": "Contact",
+        "legal": "Mentions légales",
+        "privacy": "Confidentialité"
+      },
+      "copyright": "© 2026 SEO Content AI. Tous droits réservés."
+    }
+  },
+  "dashboard": {
+    "title": "Bienvenue sur SEO Content AI",
+    "subtitle": "Voici un aperçu de votre activité",
+    "stats": {
+      "articles": "Articles générés",
+      "words": "Mots générés",
+      "seoScore": "Score SEO moyen",
+      "lastSync": "Dernière synchronisation",
+      "lastSyncValue": "2j",
+      "changeNote": "{change} ce mois"
+    },
+    "weekActivity": {
+      "title": "Activité de la semaine",
+      "description": "Nombre d'articles créés"
+    },
+    "wordsChart": {
+      "title": "Mots générés",
+      "description": "Volume de contenu par jour"
+    },
+    "recent": {
+      "title": "Articles récents",
+      "description": "Vos derniers contenus créés",
+      "seoScoreLabel": "Score SEO"
+    },
+    "quickActions": {
+      "title": "Actions rapides",
+      "description": "Créez du contenu optimisé",
+      "ideas": "Générer des idées",
+      "newArticle": "Nouvel article",
+      "history": "Voir l'historique"
+    },
+    "weekdays": {
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mer",
+      "thu": "Jeu",
+      "fri": "Ven",
+      "sat": "Sam",
+      "sun": "Dim"
+    },
+    "articles": {
+      "seoTechnical": "Guide complet du SEO technique en 2026",
+      "tenStrategies": "10 stratégies de content marketing",
+      "aiInContent": "L'IA dans la création de contenu",
+      "published": "Publié",
+      "draft": "Brouillon",
+      "review": "En révision"
+    }
+  },
+  "history": {
+    "title": "Historique des publications",
+    "subtitle": "Gérez et suivez tous vos contenus",
+    "stats": {
+      "total": "Total",
+      "published": "Publiés",
+      "drafts": "Brouillons",
+      "archived": "Archivés"
+    },
+    "all": "Tous les contenus",
+    "resultsCount": "{count} résultat(s)",
+    "searchPlaceholder": "Rechercher...",
+    "filters": {
+      "allStatus": "Tous les statuts",
+      "allTypes": "Tous les types"
+    },
+    "status": {
+      "published": "Publié",
+      "draft": "Brouillon",
+      "review": "En révision",
+      "archived": "Archivé"
+    },
+    "type": {
+      "blog": "Article de blog",
+      "guide": "Guide",
+      "tutorial": "Tutoriel",
+      "article": "Article"
+    },
+    "tabs": {
+      "list": "Liste",
+      "calendar": "Calendrier"
+    },
+    "notionSynced": "Synchro Notion",
+    "views": "{count} vues",
+    "engagement": "{value}% engagement",
+    "wordsCount": "{count} mots",
+    "seoScoreLabel": "Score SEO",
+    "actions": {
+      "view": "Voir",
+      "edit": "Modifier",
+      "export": "Exporter",
+      "share": "Partager",
+      "delete": "Supprimer"
+    },
+    "calendar": {
+      "title": "Vue calendrier",
+      "description": "Visualisez vos publications dans un calendrier éditorial",
+      "soon": "Cette fonctionnalité sera bientôt disponible"
+    },
+    "items": {
+      "seoTechnical": "Guide complet du SEO technique en 2026",
+      "tenStrategies": "10 stratégies de content marketing",
+      "aiInContent": "L'IA dans la création de contenu",
+      "metaDesc": "Optimiser vos meta descriptions pour le CTR",
+      "trends2026": "Les tendances SEO 2026",
+      "editorialCalendar": "Comment créer un calendrier éditorial"
+    }
+  },
+  "ideas": {
+    "title": "Générateur d'idées",
+    "subtitle": "Laissez l'IA vous suggérer des sujets pertinents",
+    "configTitle": "Configuration de la génération",
+    "configDescription": "Définissez vos paramètres pour obtenir des suggestions personnalisées",
+    "mainKeyword": "Mot-clé principal",
+    "mainKeywordPlaceholder": "Ex: SEO, content marketing, IA...",
+    "contentType": "Type de contenu",
+    "contentTypePlaceholder": "Sélectionner un type",
+    "types": {
+      "blog": "Article de blog",
+      "guide": "Guide complet",
+      "listicle": "Liste",
+      "tutorial": "Tutoriel",
+      "caseStudy": "Étude de cas"
+    },
+    "audience": "Audience cible",
+    "audiencePlaceholder": "Décrivez votre audience cible (ex: professionnels du marketing digital, débutants en SEO...)",
+    "generating": "Génération en cours...",
+    "generate": "Générer des idées",
+    "suggestionsTitle": "Suggestions générées",
+    "ideasCount": "{count} idées",
+    "difficultyLabel": "Difficulté:",
+    "volumeLabel": "Volume:",
+    "difficulty": {
+      "easy": "Facile",
+      "medium": "Moyen",
+      "advanced": "Avancé"
+    },
+    "toast": {
+      "generated": "Idées générées avec succès !",
+      "copied": "Titre copié dans le presse-papier"
+    },
+    "mock": {
+      "seoBeginners": {
+        "title": "Guide complet du SEO technique pour les débutants",
+        "description": "Un article détaillé couvrant les bases du SEO technique, incluant l'optimisation de la vitesse, le crawl budget, et la structure des URLs."
+      },
+      "tenStrategies": {
+        "title": "10 stratégies de content marketing qui fonctionnent en 2026",
+        "description": "Découvrez les tactiques éprouvées pour créer du contenu engageant et performant dans l'environnement digital actuel."
+      },
+      "aiImpact": {
+        "title": "L'impact de l'IA sur la création de contenu SEO",
+        "description": "Analyse approfondie de comment l'intelligence artificielle transforme les pratiques de création de contenu optimisé pour les moteurs de recherche."
+      },
+      "metaDesc": {
+        "title": "Comment optimiser vos meta descriptions pour le CTR",
+        "description": "Guide pratique pour rédiger des meta descriptions qui augmentent votre taux de clics dans les résultats de recherche."
+      },
+      "volumeMonth": "{value}/mois"
+    }
+  },
+  "editor": {
+    "title": "Éditeur de contenu",
+    "wordCount": "{count} mots",
+    "save": "Sauvegarder",
+    "preview": "Prévisualiser",
+    "publish": "Publier",
+    "basicInfo": "Informations de base",
+    "articleTitle": "Titre de l'article",
+    "articleTitlePlaceholder": "Entrez le titre de votre article...",
+    "tone": "Ton de voix",
+    "tonePlaceholder": "Sélectionner un ton",
+    "tones": {
+      "professional": "Professionnel",
+      "casual": "Décontracté",
+      "friendly": "Amical",
+      "formal": "Formel",
+      "enthusiastic": "Enthousiaste"
+    },
+    "audience": "Audience cible",
+    "audiencePlaceholder": "Sélectionner l'audience",
+    "audiences": {
+      "beginners": "Débutants",
+      "intermediate": "Intermédiaires",
+      "experts": "Experts",
+      "general": "Grand public"
+    },
+    "content": "Contenu",
+    "rewrite": "Reformuler",
+    "generating": "Génération...",
+    "generateAi": "Générer avec IA",
+    "contentPlaceholder": "Commencez à écrire ou utilisez l'IA pour générer du contenu...",
+    "tabs": {
+      "ai": "Assistant IA",
+      "seo": "SEO"
+    },
+    "aiConfig": "Configuration IA",
+    "targetWords": "Nombre de mots cible",
+    "quickActions": "Actions rapides",
+    "improveStyle": "Améliorer le style",
+    "addIntro": "Ajouter une intro",
+    "optimizeSeo": "Optimiser SEO",
+    "suggestionsTitle": "Suggestions",
+    "suggestions": {
+      "trends": "Ajoutez une section sur les tendances 2026 pour améliorer la pertinence",
+      "examples": "Incluez des exemples concrets pour illustrer vos points",
+      "stats": "Ajoutez des statistiques récentes pour renforcer vos arguments"
+    },
+    "seo": {
+      "scoreTitle": "Score SEO",
+      "global": "Score global",
+      "contentLength": "Longueur du contenu",
+      "optimizedTitle": "Titre optimisé",
+      "structure": "Structure",
+      "keywords": "Mots-clés",
+      "detected": "Mots-clés détectés"
+    },
+    "export": {
+      "title": "Export",
+      "pdf": "Exporter en PDF",
+      "markdown": "Exporter en Markdown",
+      "notion": "Envoyer à Notion"
+    },
+    "toast": {
+      "generated": "Contenu généré avec succès !",
+      "rewritten": "Paragraphe reformulé avec succès !",
+      "saved": "Article sauvegardé en brouillon",
+      "published": "Article publié et synchronisé avec Notion"
+    },
+    "defaultTitle": "Titre de l'article",
+    "generatedContent": "# {title}\n\n## Introduction\n\nL'optimisation pour les moteurs de recherche (SEO) est devenue un élément crucial de toute stratégie de marketing digital. Dans cet article, nous explorerons les meilleures pratiques et stratégies pour améliorer votre visibilité en ligne.\n\n## Les fondamentaux du SEO\n\nLe SEO repose sur trois piliers principaux :\n\n1. **Contenu de qualité** : Créer du contenu pertinent et engageant\n2. **Technique** : Optimiser la structure et la performance du site\n3. **Popularité** : Développer l'autorité et les backlinks\n\n### Création de contenu optimisé\n\nPour créer du contenu qui performe bien dans les moteurs de recherche, il est essentiel de :\n\n- Comprendre l'intention de recherche de votre audience\n- Utiliser des mots-clés pertinents de manière naturelle\n- Structurer votre contenu avec des titres et sous-titres clairs\n- Fournir de la valeur ajoutée et des informations uniques\n\n## Conclusion\n\nL'optimisation SEO est un processus continu qui nécessite de la patience et de la persévérance. En appliquant ces stratégies, vous améliorerez progressivement votre positionnement dans les résultats de recherche."
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subTitle": "Gérez votre compte et vos préférences",
+    "tabs": {
+      "profile": "Profil",
+      "preferences": "Préférences",
+      "integrations": "Intégrations",
+      "notifications": "Notifications",
+      "security": "Sécurité"
+    },
+    "profile": {
+      "title": "Informations du profil",
+      "description": "Mettez à jour vos informations personnelles",
+      "avatarHint": "JPG, PNG ou GIF. Max 2MB.",
+      "bioPlaceholder": "Une courte description...",
+      "bioDefault": "Expert en SEO et content marketing"
+    },
+    "integrations": {
+      "title": "Connexions externes",
+      "description": "Connectez vos outils et services préférés",
+      "notion": {
+        "description": "Synchronisez vos articles avec votre workspace Notion",
+        "config": "Configuration Notion",
+        "workspace": "Workspace",
+        "workspaceDefault": "Mon Workspace",
+        "database": "Base de données",
+        "databases": {
+          "articles": "Articles de blog",
+          "ideas": "Idées de contenu",
+          "calendar": "Calendrier éditorial"
+        },
+        "autoSync": "Synchronisation automatique",
+        "autoSyncHint": "Synchroniser automatiquement lors de la publication"
+      },
+      "google": {
+        "description": "Connexion rapide et accès aux services Google"
+      },
+      "toast": {
+        "notionConnected": "Connecté à Notion avec succès",
+        "notionDisconnected": "Déconnecté de Notion",
+        "googleConnected": "Connecté à Google avec succès",
+        "googleDisconnected": "Déconnecté de Google"
+      }
+    },
+    "notifications": {
+      "title": "Préférences de notification",
+      "description": "Choisissez comment vous souhaitez être informé",
+      "email": "Notifications par email",
+      "emailHint": "Recevez des notifications sur votre adresse email",
+      "weekly": "Rapport hebdomadaire",
+      "weeklyHint": "Recevez un résumé de votre activité chaque semaine",
+      "ai": "Suggestions IA",
+      "aiHint": "Recevez des suggestions d'amélioration de contenu",
+      "types": "Types de notifications",
+      "comments": "Nouveaux commentaires",
+      "updates": "Mises à jour de l'application",
+      "tips": "Conseils et astuces",
+      "savePrefs": "Enregistrer les préférences"
+    },
+    "preferences": {
+      "title": "Préférences de l'application",
+      "description": "Personnalisez votre expérience utilisateur",
+      "language": "Langue de l'interface",
+      "timezone": "Fuseau horaire",
+      "aiSettings": "Paramètres IA par défaut",
+      "defaultTone": "Ton de voix par défaut",
+      "defaultWords": "Nombre de mots par défaut",
+      "darkMode": "Mode sombre",
+      "darkModeHint": "Activer le thème sombre de l'interface"
+    },
+    "toast": {
+      "saved": "Paramètres sauvegardés avec succès"
+    },
+    "security": {
+      "title": "Sécurité du compte",
+      "description": "Consultez les adresses IP utilisées pour vous connecter à votre compte.",
+      "loading": "Chargement de l'historique...",
+      "empty": "Aucune connexion enregistrée pour le moment.",
+      "loadError": "Impossible de charger l'historique des connexions.",
+      "currentIp": "IP actuelle",
+      "currentBadge": "Actuelle",
+      "table": {
+        "ip": "Adresse IP",
+        "event": "Événement",
+        "firstSeen": "Première connexion",
+        "lastSeen": "Dernière connexion",
+        "userAgent": "Appareil"
+      },
+      "events": {
+        "login": "Connexion",
+        "signup": "Inscription"
+      },
+      "refresh": "Actualiser"
+    }
   }
 }
-

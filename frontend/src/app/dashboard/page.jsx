@@ -26,98 +26,65 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import Link from "next/link";
-
-const stats = [
-    {
-        title: "Articles générés",
-        value: "24",
-        change: "+12%",
-        trend: "up",
-        icon: FileText,
-    },
-    {
-        title: "Mots générés",
-        value: "45.2K",
-        change: "+23%",
-        trend: "up",
-        icon: Sparkles,
-    },
-    {
-        title: "Score SEO moyen",
-        value: "87%",
-        change: "+5%",
-        trend: "up",
-        icon: TrendingUp,
-    },
-    {
-        title: "Dernière synchronisation",
-        value: "2j",
-        change: "",
-        trend: "up",
-        icon: Calendar,
-    },
-];
-
-const activityData = [
-    { name: "Lun", articles: 2, mots: 1200 },
-    { name: "Mar", articles: 3, mots: 2100 },
-    { name: "Mer", articles: 1, mots: 800 },
-    { name: "Jeu", articles: 4, mots: 3200 },
-    { name: "Ven", articles: 2, mots: 1600 },
-    { name: "Sam", articles: 1, mots: 500 },
-    { name: "Dim", articles: 0, mots: 0 },
-];
-
-const recentArticles = [
-    {
-        title: "Guide complet du SEO technique en 2026",
-        status: "Publié",
-        date: "5 mars 2026",
-        score: 92,
-    },
-    {
-        title: "10 stratégies de content marketing",
-        status: "Brouillon",
-        date: "4 mars 2026",
-        score: 85,
-    },
-    {
-        title: "L'IA dans la création de contenu",
-        status: "En révision",
-        date: "3 mars 2026",
-        score: 88,
-    },
-];
+import { useTranslation } from "@/hooks/useI18n";
 
 const Dashboard = () => {
+    const { t } = useTranslation();
+
+    const stats = [
+        { titleKey: "dashboard.stats.articles", value: "24", change: "+12%", trend: "up", icon: FileText },
+        { titleKey: "dashboard.stats.words", value: "45.2K", change: "+23%", trend: "up", icon: Sparkles },
+        { titleKey: "dashboard.stats.seoScore", value: "87%", change: "+5%", trend: "up", icon: TrendingUp },
+        { titleKey: "dashboard.stats.lastSync", value: t("dashboard.stats.lastSyncValue"), change: "", trend: "up", icon: Calendar },
+    ];
+
+    const activityData = [
+        { name: t("dashboard.weekdays.mon"), articles: 2, mots: 1200 },
+        { name: t("dashboard.weekdays.tue"), articles: 3, mots: 2100 },
+        { name: t("dashboard.weekdays.wed"), articles: 1, mots: 800 },
+        { name: t("dashboard.weekdays.thu"), articles: 4, mots: 3200 },
+        { name: t("dashboard.weekdays.fri"), articles: 2, mots: 1600 },
+        { name: t("dashboard.weekdays.sat"), articles: 1, mots: 500 },
+        { name: t("dashboard.weekdays.sun"), articles: 0, mots: 0 },
+    ];
+
+    const recentArticles = [
+        { titleKey: "dashboard.articles.seoTechnical", statusKey: "dashboard.articles.published", date: "2026-03-05", score: 92 },
+        { titleKey: "dashboard.articles.tenStrategies", statusKey: "dashboard.articles.draft", date: "2026-03-04", score: 85 },
+        { titleKey: "dashboard.articles.aiInContent", statusKey: "dashboard.articles.review", date: "2026-03-03", score: 88 },
+    ];
+
+    const statusColor = (key) =>
+        key === "dashboard.articles.published"
+            ? "text-emerald-600 dark:text-emerald-400"
+            : key === "dashboard.articles.draft"
+                ? "text-slate-500 dark:text-slate-400"
+                : "text-amber-600 dark:text-amber-400";
+
     return (
-        <div className="flex-1 overflow-auto bg-slate-50 p-8">
+        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-8">
             <div className="mx-auto max-w-7xl space-y-8">
                 <div>
-                    <h1 className="text-3xl">
-                        Bienvenue sur SEO Content AI
-                    </h1>
-                    <p className="text-slate-600">
-                        Voici un aperçu de votre activité
-                    </p>
+                    <h1 className="text-3xl">{t("dashboard.title")}</h1>
+                    <p className="text-slate-600 dark:text-slate-400">{t("dashboard.subtitle")}</p>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                     {stats.map((stat) => {
                         const Icon = stat.icon;
                         return (
-                            <Card key={stat.title}>
+                            <Card key={stat.titleKey}>
                                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                    <CardTitle className="text-sm">
-                                        {stat.title}
-                                    </CardTitle>
-                                    <Icon className="h-4 w-4 text-slate-500" />
+                                    <CardTitle className="text-sm">{t(stat.titleKey)}</CardTitle>
+                                    <Icon className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl">{stat.value}</div>
-                                    <p className="text-xs text-emerald-600">
-                                        {stat.change} ce mois
-                                    </p>
+                                    {stat.change && (
+                                        <p className="text-xs text-emerald-600">
+                                            {t("dashboard.stats.changeNote", { change: stat.change })}
+                                        </p>
+                                    )}
                                 </CardContent>
                             </Card>
                         );
@@ -127,10 +94,8 @@ const Dashboard = () => {
                 <div className="grid gap-6 lg:grid-cols-2">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Activité de la semaine</CardTitle>
-                            <CardDescription>
-                                Nombre d'articles créés
-                            </CardDescription>
+                            <CardTitle>{t("dashboard.weekActivity.title")}</CardTitle>
+                            <CardDescription>{t("dashboard.weekActivity.description")}</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <ResponsiveContainer width="100%" height={300}>
@@ -153,10 +118,8 @@ const Dashboard = () => {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Mots générés</CardTitle>
-                            <CardDescription>
-                                Volume de contenu par jour
-                            </CardDescription>
+                            <CardTitle>{t("dashboard.wordsChart.title")}</CardTitle>
+                            <CardDescription>{t("dashboard.wordsChart.description")}</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <ResponsiveContainer width="100%" height={300}>
@@ -180,46 +143,30 @@ const Dashboard = () => {
                 <div className="grid gap-6 lg:grid-cols-3">
                     <Card className="lg:col-span-2">
                         <CardHeader>
-                            <CardTitle>Articles récents</CardTitle>
-                            <CardDescription>
-                                Vos derniers contenus créés
-                            </CardDescription>
+                            <CardTitle>{t("dashboard.recent.title")}</CardTitle>
+                            <CardDescription>{t("dashboard.recent.description")}</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
                                 {recentArticles.map((article, index) => (
                                     <div
                                         key={index}
-                                        className="flex items-center justify-between rounded-lg border p-4"
+                                        className="flex items-center justify-between rounded-lg border dark:border-slate-800 p-4"
                                     >
                                         <div className="space-y-1">
-                                            <p className="font-medium">
-                                                {article.title}
-                                            </p>
-                                            <div className="flex items-center gap-2 text-sm text-slate-500">
+                                            <p className="font-medium">{t(article.titleKey)}</p>
+                                            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                                                 <span>{article.date}</span>
                                                 <span>•</span>
-                                                <span
-                                                    className={
-                                                        article.status === "Publié"
-                                                            ? "text-emerald-600"
-                                                            : article.status === "Brouillon"
-                                                                ? "text-slate-500"
-                                                                : "text-amber-600"
-                                                    }
-                                                >
-                          {article.status}
-                        </span>
+                                                <span className={statusColor(article.statusKey)}>
+                                                    {t(article.statusKey)}
+                                                </span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <div className="text-right">
-                                                <p className="text-sm text-slate-500">
-                                                    Score SEO
-                                                </p>
-                                                <p className="text-lg text-emerald-600">
-                                                    {article.score}%
-                                                </p>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400">{t("dashboard.recent.seoScoreLabel")}</p>
+                                                <p className="text-lg text-emerald-600">{article.score}%</p>
                                             </div>
                                             <Button variant="ghost" size="icon">
                                                 <ArrowRight className="h-4 w-4" />
@@ -233,34 +180,26 @@ const Dashboard = () => {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Actions rapides</CardTitle>
-                            <CardDescription>
-                                Créez du contenu optimisé
-                            </CardDescription>
+                            <CardTitle>{t("dashboard.quickActions.title")}</CardTitle>
+                            <CardDescription>{t("dashboard.quickActions.description")}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <Link href="/ideas">
-                                <Button
-                                    className="w-full justify-start"
-                                    variant="outline"
-                                >
+                                <Button className="w-full justify-start" variant="outline">
                                     <Sparkles className="mr-2 h-4 w-4" />
-                                    Générer des idées
+                                    {t("dashboard.quickActions.ideas")}
                                 </Button>
                             </Link>
                             <Link href="/editor">
                                 <Button className="w-full justify-start">
                                     <FileText className="mr-2 h-4 w-4" />
-                                    Nouvel article
+                                    {t("dashboard.quickActions.newArticle")}
                                 </Button>
                             </Link>
                             <Link href="/history">
-                                <Button
-                                    className="w-full justify-start"
-                                    variant="outline"
-                                >
+                                <Button className="w-full justify-start" variant="outline">
                                     <Calendar className="mr-2 h-4 w-4" />
-                                    Voir l'historique
+                                    {t("dashboard.quickActions.history")}
                                 </Button>
                             </Link>
                         </CardContent>
@@ -269,6 +208,6 @@ const Dashboard = () => {
             </div>
         </div>
     );
-}
+};
 
 export default Dashboard;

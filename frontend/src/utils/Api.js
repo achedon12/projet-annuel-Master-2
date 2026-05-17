@@ -5,5 +5,8 @@ export const Urls = {
       login: '/auth/login',
       signup: '/auth/signup',
       logout: '/auth/logout',
+  },
+  user: {
+      ips: '/user/ips',
   }
 };

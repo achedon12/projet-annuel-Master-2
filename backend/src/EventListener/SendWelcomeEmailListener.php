@@ -3,25 +3,19 @@
 namespace App\EventListener;
 
 use App\Event\UserRegisteredEvent;
+use App\Service\PendingMailQueue;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
 
 /**
- * EventListener qui envoie un email de confirmation lors de l'inscription d'un utilisateur
- *
- * Cet EventListener est automatiquement appelé par Symfony sur l'événement user.registered
- * grâce à l'implémentation de EventSubscriberInterface et l'autoconfiguration dans services.yaml
+ * EventListener qui pousse un email de bienvenue dans la queue lors de l'inscription.
+ * L'envoi effectif est réalisé par la commande cron `app:mail:process`.
  */
 class SendWelcomeEmailListener implements EventSubscriberInterface
 {
     public function __construct(
-        private MailerInterface $mailer,
+        private PendingMailQueue $mailQueue,
     ) {}
 
-    /**
-     * Enregistre cet event listener pour l'événement user.registered
-     */
     public static function getSubscribedEvents(): array
     {
         return [
@@ -29,31 +23,26 @@ class SendWelcomeEmailListener implements EventSubscriberInterface
         ];
     }
 
-    /**
-     * Envoie un email de bienvenue lors de l'inscription
-     */
     public function onUserRegistered(UserRegisteredEvent $event): void
     {
         $user = $event->getUser();
 
-        $email = (new Email())
-            ->from('noreply@seocontent.ai')
-            ->to($user->getEmail())
-            ->subject('Bienvenue sur SEO Content AI!')
-            ->html($this->getEmailContent($user));
-
         try {
-            $this->mailer->send($email);
-        } catch (\Exception $e) {
-            error_log('Failed to send welcome email to ' . $user->getEmail() . ': ' . $e->getMessage());
+            $this->mailQueue->enqueue([
+                'toEmail' => $user->getEmail(),
+                'toName' => $user->getName(),
+                'subject' => 'Bienvenue sur SEO Content AI!',
+                'bodyHtml' => $this->getEmailContent($user),
+            ]);
+        } catch (\Throwable $e) {
+            error_log('Failed to enqueue welcome email for ' . $user->getEmail() . ': ' . $e->getMessage());
         }
     }
 
-    /**
-     * Génère le contenu HTML de l'email de bienvenue
-     */
     private function getEmailContent($user): string
     {
+        $name = htmlspecialchars((string) $user->getName(), ENT_QUOTES, 'UTF-8');
+
         return <<<HTML
 <!DOCTYPE html>
 <html>
@@ -73,12 +62,10 @@ class SendWelcomeEmailListener implements EventSubscriberInterface
 <body>
     <div class="container">
         <div class="header">
-            <h1>Bienvenue, {$user->getName()}!</h1>
+            <h1>Bienvenue, {$name}!</h1>
         </div>
-        
         <div class="content">
             <p>Merci de vous être inscrit sur <strong>SEO Content AI</strong>!</p>
-            
             <p>Votre compte a été créé avec succès. Vous pouvez maintenant:</p>
             <ul>
                 <li>Générer du contenu optimisé SEO avec l'IA</li>
@@ -86,17 +73,14 @@ class SendWelcomeEmailListener implements EventSubscriberInterface
                 <li>Éditer et améliorer vos articles</li>
                 <li>Suivre l'historique de vos créations</li>
             </ul>
-            
             <p>Accédez à votre tableau de bord pour commencer:</p>
             <center>
                 <a href="http://localhost:3000/dashboard" class="button">Accéder à SEO Content AI</a>
             </center>
-            
             <p style="margin-top: 30px; font-size: 14px; color: #64748b;">
                 Si vous avez des questions, n'hésitez pas à nous contacter.
             </p>
         </div>
-        
         <div class="footer">
             <p>&copy; 2026 SEO Content AI. Tous droits réservés.</p>
         </div>
