@@ -503,9 +503,9 @@
     "profile": {
       "title": "Profile information",
       "description": "Update your personal information",
-      "avatarHint": "JPG, PNG or GIF. Max 2MB.",
-      "bioPlaceholder": "A short description...",
-      "bioDefault": "SEO and content marketing expert"
+      "avatarUrl": "Avatar URL",
+      "avatarHint": "Paste a public image URL (JPG, PNG, etc.). Max 500 characters.",
+      "bioPlaceholder": "A short description..."
     },
     "integrations": {
       "title": "External connections",
@@ -527,11 +527,10 @@
       "google": {
         "description": "Quick sign-in and access to Google services"
       },
+      "soonHint": "Notion and Google integrations will be wired in a future release.",
       "toast": {
-        "notionConnected": "Connected to Notion successfully",
-        "notionDisconnected": "Disconnected from Notion",
-        "googleConnected": "Connected to Google successfully",
-        "googleDisconnected": "Disconnected from Google"
+        "notionSoon": "Notion integration is coming soon.",
+        "googleSoon": "Google integration is coming soon."
       }
     },
     "notifications": {
@@ -561,7 +560,18 @@
       "darkModeHint": "Enable the dark theme"
     },
     "toast": {
-      "saved": "Settings saved successfully"
+      "saved": "Settings saved successfully",
+      "loading": "Loading your preferences...",
+      "loadError": "Could not load your preferences.",
+      "saveError": "Save failed. Please try again.",
+      "nameRequired": "Name is required.",
+      "emailInvalid": "Invalid email.",
+      "passwordRequired": "Current and new passwords are required.",
+      "passwordMismatch": "The two new passwords do not match.",
+      "passwordTooShort": "The new password must be at least 6 characters.",
+      "passwordError": "Password change failed.",
+      "passwordChanged": "Password updated successfully.",
+      "wordsRange": "The default word count must be an integer between 100 and 5000."
     },
     "security": {
       "title": "Account security",
