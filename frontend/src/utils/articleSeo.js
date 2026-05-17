@@ -6,24 +6,24 @@
 // Mots vides FR + EN ignorés lors de l'extraction de mots-clés.
 const STOP_WORDS = new Set([
     // FR
-    "alors", "aussi", "avec", "avoir", "bien", "celui", "cette", "comme", "dans", "dont",
-    "donc", "elle", "elles", "encore", "entre", "est", "etre", "être", "faire", "fait",
-    "leur", "leurs", "mais", "meme", "même", "moins", "notre", "nous", "ou", "où", "par",
-    "pas", "peut", "plus", "pour", "quand", "que", "quel", "quelle", "qui", "sans",
-    "ses", "son", "sont", "sous", "sur", "tous", "tout", "tres", "très", "une", "vous",
-    "votre", "vos", "des", "les", "ces", "aux", "ils", "ont", "été", "etait", "était",
-    "cela", "ainsi", "voici", "voilà", "ceci", "celle", "ceux", "afin", "deja", "déjà",
-    "depuis", "jusque", "selon", "via", "puis", "aussi", "autres", "autre", "autour",
-    "lui", "leur", "moi", "toi", "vous", "elles", "non", "oui",
+    "afin", "ainsi", "alors", "aussi", "autour", "autre", "autres", "aux", "avec", "avoir",
+    "bien", "ceci", "cela", "celle", "celui", "ces", "cette", "ceux", "comme", "dans",
+    "deja", "déjà", "depuis", "des", "donc", "dont", "elle", "elles", "encore", "entre",
+    "est", "etait", "était", "etre", "être", "été", "faire", "fait", "ils", "jusque",
+    "les", "leur", "leurs", "lui", "mais", "meme", "même", "moi", "moins", "non", "notre",
+    "nous", "ont", "où", "par", "pas", "peut", "plus", "pour", "puis", "quand", "que",
+    "quel", "quelle", "qui", "sans", "selon", "ses", "son", "sont", "sous", "sur", "toi",
+    "tous", "tout", "tres", "très", "une", "via", "voici", "voilà", "vos", "votre", "vous",
+    "oui",
     // EN
-    "the", "and", "for", "are", "but", "not", "you", "all", "can", "her", "was", "one",
-    "our", "out", "day", "get", "has", "him", "his", "how", "may", "new", "now", "old",
-    "see", "two", "way", "who", "boy", "did", "its", "let", "put", "say", "she", "too",
-    "use", "any", "ask", "men", "off", "own", "set", "try", "via", "yet", "from", "this",
-    "that", "with", "have", "they", "will", "your", "what", "when", "make", "like",
-    "time", "into", "just", "know", "than", "them", "only", "some", "would", "their",
-    "there", "about", "after", "very", "more", "such", "also", "even", "much", "those",
-    "these", "where", "which",
+    "about", "after", "all", "also", "and", "any", "are", "ask", "been", "boy", "but",
+    "can", "day", "did", "even", "for", "from", "get", "has", "have", "her", "him", "his",
+    "how", "into", "its", "just", "know", "let", "like", "make", "may", "men", "more",
+    "much", "new", "not", "now", "off", "old", "one", "only", "our", "out", "own", "put",
+    "say", "see", "set", "she", "some", "such", "than", "that", "the", "their", "them",
+    "there", "these", "they", "this", "those", "time", "too", "try", "two", "use", "very",
+    "was", "way", "what", "when", "where", "which", "who", "will", "with", "would", "yet",
+    "you", "your",
 ]);
 
 const WORD_RE = /[a-zàâäéèêëîïôöùûüç]{4,}/giu;
@@ -128,7 +128,7 @@ const slugify = (s) =>
     s
         .toLowerCase()
         .normalize("NFD")
-        .replace(/[̀-ͯ]/g, "")
+        .replace(/[\u0300-\u036F]/g, "")
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "")
         .slice(0, 60) || "article";

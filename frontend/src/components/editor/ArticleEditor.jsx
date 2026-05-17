@@ -243,8 +243,9 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                     locale,
                 }),
             });
+            const toastKey = action.replace(/-/g, "");
             if (!res.ok) {
-                const message = await extractError(res, t(`editor.toast.${action.replace(/-/g, "")}Error`) || t("editor.toast.generateError"));
+                const message = await extractError(res, t(`editor.toast.${toastKey}Error`));
                 toast.error(message);
                 return;
             }
@@ -252,9 +253,9 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
             if (typeof data?.content === "string") {
                 setContent(data.content);
                 setWordCount(typeof data.wordCount === "number" ? data.wordCount : countWords(data.content));
-                toast.success(t(`editor.toast.${action.replace(/-/g, "")}Success`) || t("editor.toast.generated"));
+                toast.success(t(`editor.toast.${toastKey}Success`));
             } else {
-                toast.error(t("editor.toast.generateError"));
+                toast.error(t(`editor.toast.${toastKey}Error`));
             }
         } catch (err) {
             console.error("article.ai-action", action, err);
@@ -488,7 +489,7 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={handleRewrite}
-                                                disabled={!content || isRewriting || isGenerating}
+                                                disabled={isAnyAiActionRunning || !content}
                                             >
                                                 {isRewriting ? (
                                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -500,7 +501,7 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                                             <Button
                                                 size="sm"
                                                 onClick={handleGenerateContent}
-                                                disabled={isGenerating || isRewriting || title.trim().length < 2}
+                                                disabled={isAnyAiActionRunning || title.trim().length < 2}
                                             >
                                                 {isGenerating ? (
                                                     <>
