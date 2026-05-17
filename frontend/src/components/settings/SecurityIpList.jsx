@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { RefreshCw, Shield, Globe, Loader2 } from "lucide-react";
 import { Button } from "@/components/Button";
@@ -29,6 +29,11 @@ export const SecurityIpList = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // Ref stable sur t : t change d'identité à chaque render (useTranslation ne mémoïse pas),
+    // donc on l'isole du useCallback pour éviter une boucle de fetch.
+    const tRef = useRef(t);
+    tRef.current = t;
+
     const fetchIps = useCallback(async () => {
         if (!session?.backendToken) return;
         setLoading(true);
@@ -44,11 +49,11 @@ export const SecurityIpList = () => {
             setItems(data.items || []);
             setCurrentIp(data.currentIp || null);
         } catch (e) {
-            setError(t("settings.security.loadError"));
+            setError(tRef.current("settings.security.loadError"));
         } finally {
             setLoading(false);
         }
-    }, [session?.backendToken, t]);
+    }, [session?.backendToken]);
 
     useEffect(() => {
         if (status === "authenticated") {

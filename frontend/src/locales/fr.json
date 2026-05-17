@@ -503,9 +503,9 @@
     "profile": {
       "title": "Informations du profil",
       "description": "Mettez à jour vos informations personnelles",
-      "avatarHint": "JPG, PNG ou GIF. Max 2MB.",
-      "bioPlaceholder": "Une courte description...",
-      "bioDefault": "Expert en SEO et content marketing"
+      "avatarUrl": "URL de l'avatar",
+      "avatarHint": "Collez une URL d'image publique (JPG, PNG, etc.). Max 500 caractères.",
+      "bioPlaceholder": "Une courte description..."
     },
     "integrations": {
       "title": "Connexions externes",
@@ -527,11 +527,10 @@
       "google": {
         "description": "Connexion rapide et accès aux services Google"
       },
+      "soonHint": "Les intégrations Notion et Google seront branchées dans une prochaine mise à jour.",
       "toast": {
-        "notionConnected": "Connecté à Notion avec succès",
-        "notionDisconnected": "Déconnecté de Notion",
-        "googleConnected": "Connecté à Google avec succès",
-        "googleDisconnected": "Déconnecté de Google"
+        "notionSoon": "L'intégration Notion arrive bientôt.",
+        "googleSoon": "L'intégration Google arrive bientôt."
       }
     },
     "notifications": {
@@ -561,7 +560,18 @@
       "darkModeHint": "Activer le thème sombre de l'interface"
     },
     "toast": {
-      "saved": "Paramètres sauvegardés avec succès"
+      "saved": "Paramètres sauvegardés avec succès",
+      "loading": "Chargement de vos préférences...",
+      "loadError": "Impossible de charger vos préférences.",
+      "saveError": "La sauvegarde a échoué. Réessayez.",
+      "nameRequired": "Le nom est requis.",
+      "emailInvalid": "Email invalide.",
+      "passwordRequired": "Le mot de passe actuel et le nouveau sont requis.",
+      "passwordMismatch": "Les deux nouveaux mots de passe ne correspondent pas.",
+      "passwordTooShort": "Le nouveau mot de passe doit contenir au moins 6 caractères.",
+      "passwordError": "Le changement de mot de passe a échoué.",
+      "passwordChanged": "Mot de passe mis à jour avec succès.",
+      "wordsRange": "Le nombre de mots par défaut doit être un entier entre 100 et 5000."
     },
     "security": {
       "title": "Sécurité du compte",

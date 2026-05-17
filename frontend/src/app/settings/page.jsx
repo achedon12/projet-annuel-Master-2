@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
@@ -10,45 +11,271 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select";
 import { Badge } from "@/components/Badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar";
-import { Bell, Check, Link as LinkIcon, Mail, Palette, Shield, Sparkles, User, X } from "lucide-react";
+import { Bell, Check, Link as LinkIcon, Loader2, Mail, Palette, Shield, Sparkles, User, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { useTranslation } from "@/hooks/useI18n";
 import { useLanguage } from "@/context/LanguageContext";
 import { SecurityIpList } from "@/components/settings/SecurityIpList";
+import { API_URL, Urls } from "@/utils/Api";
+
+const DEFAULT_NOTIFS = {
+    email: true,
+    weekly: true,
+    ai: true,
+    comments: true,
+    updates: true,
+    tips: false,
+};
+
+const initialsOf = (name) =>
+    (name || "")
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((s) => s[0]?.toUpperCase() ?? "")
+        .join("") || "?";
+
+const extractError = async (response, fallback) => {
+    try {
+        const data = await response.json();
+        if (data?.error && typeof data.error === "string") return data.error;
+    } catch {
+        // body non JSON — fallback générique
+    }
+    return fallback;
+};
 
 const Settings = () => {
     const { t, locale } = useTranslation();
     const { changeLocale } = useLanguage();
     const { resolvedTheme, setTheme } = useTheme();
+    const { data: session, status: sessionStatus } = useSession();
     const isDark = resolvedTheme === "dark";
-    const [notionConnected, setNotionConnected] = useState(true);
+
+    const token = session?.backendToken;
+
+    // Ref stable sur t pour éviter les boucles de fetch.
+    const tRef = useRef(t);
+    tRef.current = t;
+
+    // État chargé depuis /api/me
+    const [loadState, setLoadState] = useState("loading");
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [bio, setBio] = useState("");
+    const [avatar, setAvatar] = useState("");
+    const [defaultTone, setDefaultTone] = useState("");
+    const [defaultWords, setDefaultWords] = useState(800);
+    const [notifications, setNotifications] = useState(DEFAULT_NOTIFS);
+
+    // Saisies password séparées (non persistées dans l'objet user)
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+
+    // Drapeaux de soumission
+    const [isSavingProfile, setIsSavingProfile] = useState(false);
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [isSavingPrefs, setIsSavingPrefs] = useState(false);
+    const [isSavingNotifs, setIsSavingNotifs] = useState(false);
+
+    // Intégrations restent locales (pas de back) — placeholders disabled.
+    const [notionConnected, setNotionConnected] = useState(false);
     const [googleConnected, setGoogleConnected] = useState(false);
-    const [emailNotifications, setEmailNotifications] = useState(true);
-    const [weeklyReport, setWeeklyReport] = useState(true);
-    const [aiSuggestions, setAiSuggestions] = useState(true);
 
-    const handleSave = () => {
-        toast.success(t("settings.toast.saved"));
+    useEffect(() => {
+        if (sessionStatus !== "authenticated" || !token) return;
+        let cancelled = false;
+        setLoadState("loading");
+        fetch(`${API_URL}${Urls.me.get}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(async (res) => {
+                if (cancelled) return;
+                if (!res.ok) {
+                    toast.error(tRef.current("settings.toast.loadError"));
+                    setLoadState("error");
+                    return;
+                }
+                const data = await res.json();
+                setName(data.name || "");
+                setEmail(data.email || "");
+                setBio(data.bio || "");
+                setAvatar(data.avatar || "");
+                setDefaultTone(data.defaultTone || "");
+                setDefaultWords(typeof data.defaultWords === "number" ? data.defaultWords : 800);
+                if (data.notifications && typeof data.notifications === "object") {
+                    setNotifications({ ...DEFAULT_NOTIFS, ...data.notifications });
+                }
+                setLoadState("ready");
+            })
+            .catch((err) => {
+                if (cancelled) return;
+                console.error("settings.load", err);
+                toast.error(tRef.current("settings.toast.loadError"));
+                setLoadState("error");
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [sessionStatus, token]);
+
+    const handleSaveProfile = async () => {
+        if (!token) return;
+        if (name.trim() === "") {
+            toast.error(t("settings.toast.nameRequired"));
+            return;
+        }
+        if (!/\S+@\S+\.\S+/.test(email)) {
+            toast.error(t("settings.toast.emailInvalid"));
+            return;
+        }
+        setIsSavingProfile(true);
+        try {
+            const res = await fetch(`${API_URL}${Urls.me.update}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    name: name.trim(),
+                    email: email.trim(),
+                    bio: bio || null,
+                    avatar: avatar || null,
+                }),
+            });
+            if (!res.ok) {
+                toast.error(await extractError(res, t("settings.toast.saveError")));
+                return;
+            }
+            toast.success(t("settings.toast.saved"));
+        } catch (err) {
+            console.error("settings.profile", err);
+            toast.error(t("settings.toast.saveError"));
+        } finally {
+            setIsSavingProfile(false);
+        }
     };
 
-    const handleConnectNotion = () => {
-        setNotionConnected(!notionConnected);
-        toast.success(
-            notionConnected
-                ? t("settings.integrations.toast.notionDisconnected")
-                : t("settings.integrations.toast.notionConnected")
+    const handleChangePassword = async () => {
+        if (!token) return;
+        if (!currentPassword || !newPassword) {
+            toast.error(t("settings.toast.passwordRequired"));
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            toast.error(t("settings.toast.passwordMismatch"));
+            return;
+        }
+        if (newPassword.length < 6) {
+            toast.error(t("settings.toast.passwordTooShort"));
+            return;
+        }
+        setIsChangingPassword(true);
+        try {
+            const res = await fetch(`${API_URL}${Urls.me.password}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ currentPassword, newPassword }),
+            });
+            if (!res.ok) {
+                toast.error(await extractError(res, t("settings.toast.passwordError")));
+                return;
+            }
+            toast.success(t("settings.toast.passwordChanged"));
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+        } catch (err) {
+            console.error("settings.password", err);
+            toast.error(t("settings.toast.passwordError"));
+        } finally {
+            setIsChangingPassword(false);
+        }
+    };
+
+    const handleSavePrefs = async () => {
+        if (!token) return;
+        if (!Number.isInteger(defaultWords) || defaultWords < 100 || defaultWords > 5000) {
+            toast.error(t("settings.toast.wordsRange"));
+            return;
+        }
+        setIsSavingPrefs(true);
+        try {
+            const res = await fetch(`${API_URL}${Urls.me.update}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    language: locale,
+                    theme: isDark ? "dark" : "light",
+                    defaultTone: defaultTone || null,
+                    defaultWords,
+                }),
+            });
+            if (!res.ok) {
+                toast.error(await extractError(res, t("settings.toast.saveError")));
+                return;
+            }
+            toast.success(t("settings.toast.saved"));
+        } catch (err) {
+            console.error("settings.prefs", err);
+            toast.error(t("settings.toast.saveError"));
+        } finally {
+            setIsSavingPrefs(false);
+        }
+    };
+
+    const handleSaveNotifs = async () => {
+        if (!token) return;
+        setIsSavingNotifs(true);
+        try {
+            const res = await fetch(`${API_URL}${Urls.me.notifications}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    notifEmail: notifications.email,
+                    notifWeekly: notifications.weekly,
+                    notifAi: notifications.ai,
+                    notifComments: notifications.comments,
+                    notifUpdates: notifications.updates,
+                    notifTips: notifications.tips,
+                }),
+            });
+            if (!res.ok) {
+                toast.error(await extractError(res, t("settings.toast.saveError")));
+                return;
+            }
+            toast.success(t("settings.toast.saved"));
+        } catch (err) {
+            console.error("settings.notifs", err);
+            toast.error(t("settings.toast.saveError"));
+        } finally {
+            setIsSavingNotifs(false);
+        }
+    };
+
+    const setNotif = (key) => (value) =>
+        setNotifications((prev) => ({ ...prev, [key]: value }));
+
+    if (loadState === "loading") {
+        return (
+            <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                {t("settings.toast.loading")}
+            </div>
         );
-    };
-
-    const handleConnectGoogle = () => {
-        setGoogleConnected(!googleConnected);
-        toast.success(
-            googleConnected
-                ? t("settings.integrations.toast.googleDisconnected")
-                : t("settings.integrations.toast.googleConnected")
-        );
-    };
+    }
 
     return (
         <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-8">
@@ -91,33 +318,43 @@ const Settings = () => {
                             <CardContent className="space-y-6">
                                 <div className="flex items-center gap-6">
                                     <Avatar className="h-20 w-20">
-                                        <AvatarImage src="" />
-                                        <AvatarFallback className="text-lg">JD</AvatarFallback>
+                                        <AvatarImage src={avatar || ""} alt={name} />
+                                        <AvatarFallback className="text-lg">{initialsOf(name)}</AvatarFallback>
                                     </Avatar>
-                                    <div className="space-y-2">
-                                        <Button variant="outline" size="sm">
-                                            {t("common.changePicture")}
-                                        </Button>
+                                    <div className="flex-1 space-y-2">
+                                        <Label htmlFor="avatarUrl" className="text-xs">{t("settings.profile.avatarUrl")}</Label>
+                                        <Input
+                                            id="avatarUrl"
+                                            value={avatar}
+                                            onChange={(e) => setAvatar(e.target.value)}
+                                            placeholder="https://..."
+                                            maxLength={500}
+                                        />
                                         <p className="text-xs text-slate-500 dark:text-slate-400">{t("settings.profile.avatarHint")}</p>
                                     </div>
                                 </div>
 
                                 <Separator />
 
-                                <div className="grid gap-6 md:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="firstName">{t("form.firstName")}</Label>
-                                        <Input id="firstName" defaultValue="Jean" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="lastName">{t("form.name")}</Label>
-                                        <Input id="lastName" defaultValue="Dupont" />
-                                    </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">{t("form.name")}</Label>
+                                    <Input
+                                        id="name"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        maxLength={100}
+                                    />
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="email">{t("form.email")}</Label>
-                                    <Input id="email" type="email" defaultValue="jean.dupont@email.com" />
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        maxLength={255}
+                                    />
                                 </div>
 
                                 <div className="space-y-2">
@@ -125,8 +362,17 @@ const Settings = () => {
                                     <Input
                                         id="bio"
                                         placeholder={t("settings.profile.bioPlaceholder")}
-                                        defaultValue={t("settings.profile.bioDefault")}
+                                        value={bio}
+                                        onChange={(e) => setBio(e.target.value)}
+                                        maxLength={1000}
                                     />
+                                </div>
+
+                                <div className="flex justify-end gap-2">
+                                    <Button onClick={handleSaveProfile} disabled={isSavingProfile}>
+                                        {isSavingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        {t("common.save")}
+                                    </Button>
                                 </div>
 
                                 <Separator />
@@ -135,23 +381,42 @@ const Settings = () => {
                                     <h3 className="font-medium">{t("common.changePassword")}</h3>
                                     <div className="space-y-2">
                                         <Label htmlFor="currentPassword">{t("common.actualPassword")}</Label>
-                                        <Input id="currentPassword" type="password" />
+                                        <Input
+                                            id="currentPassword"
+                                            type="password"
+                                            value={currentPassword}
+                                            onChange={(e) => setCurrentPassword(e.target.value)}
+                                            autoComplete="current-password"
+                                        />
                                     </div>
                                     <div className="grid gap-4 md:grid-cols-2">
                                         <div className="space-y-2">
                                             <Label htmlFor="newPassword">{t("common.newPassword")}</Label>
-                                            <Input id="newPassword" type="password" />
+                                            <Input
+                                                id="newPassword"
+                                                type="password"
+                                                value={newPassword}
+                                                onChange={(e) => setNewPassword(e.target.value)}
+                                                autoComplete="new-password"
+                                            />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="confirmPassword">{t("common.confirmNewPassword")}</Label>
-                                            <Input id="confirmPassword" type="password" />
+                                            <Input
+                                                id="confirmPassword"
+                                                type="password"
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                autoComplete="new-password"
+                                            />
                                         </div>
                                     </div>
-                                </div>
-
-                                <div className="flex justify-end gap-2">
-                                    <Button variant="outline">{t("common.cancel")}</Button>
-                                    <Button onClick={handleSave}>{t("common.save")}</Button>
+                                    <div className="flex justify-end">
+                                        <Button onClick={handleChangePassword} disabled={isChangingPassword} variant="outline">
+                                            {isChangingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                            {t("common.changePassword")}
+                                        </Button>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -190,62 +455,13 @@ const Settings = () => {
                                         </div>
                                     </div>
                                     <Button
-                                        variant={notionConnected ? "outline" : "default"}
-                                        onClick={handleConnectNotion}
+                                        variant="outline"
+                                        disabled
+                                        title={t("settings.integrations.toast.notionSoon")}
                                     >
-                                        {notionConnected ? t("common.disconnect") : t("common.connect")}
+                                        {t("common.connect")}
                                     </Button>
                                 </div>
-
-                                {notionConnected && (
-                                    <div className="rounded-lg bg-slate-50 dark:bg-slate-800/40 p-4">
-                                        <h4 className="mb-3 text-sm font-medium">
-                                            {t("settings.integrations.notion.config")}
-                                        </h4>
-                                        <div className="space-y-3">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="notionWorkspace">
-                                                    {t("settings.integrations.notion.workspace")}
-                                                </Label>
-                                                <Input
-                                                    id="notionWorkspace"
-                                                    defaultValue={t("settings.integrations.notion.workspaceDefault")}
-                                                    readOnly
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="notionDatabase">
-                                                    {t("settings.integrations.notion.database")}
-                                                </Label>
-                                                <Select defaultValue="articles">
-                                                    <SelectTrigger id="notionDatabase">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="articles">
-                                                            {t("settings.integrations.notion.databases.articles")}
-                                                        </SelectItem>
-                                                        <SelectItem value="ideas">
-                                                            {t("settings.integrations.notion.databases.ideas")}
-                                                        </SelectItem>
-                                                        <SelectItem value="calendar">
-                                                            {t("settings.integrations.notion.databases.calendar")}
-                                                        </SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <div className="space-y-0.5">
-                                                    <Label>{t("settings.integrations.notion.autoSync")}</Label>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                                                        {t("settings.integrations.notion.autoSyncHint")}
-                                                    </p>
-                                                </div>
-                                                <Switch defaultChecked />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
 
                                 <Separator />
 
@@ -253,22 +469,10 @@ const Settings = () => {
                                     <div className="flex items-center gap-4">
                                         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
                                             <svg className="h-6 w-6" viewBox="0 0 24 24">
-                                                <path
-                                                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                                                    fill="#4285F4"
-                                                />
-                                                <path
-                                                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                                                    fill="#34A853"
-                                                />
-                                                <path
-                                                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                                                    fill="#FBBC05"
-                                                />
-                                                <path
-                                                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                                                    fill="#EA4335"
-                                                />
+                                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                                             </svg>
                                         </div>
                                         <div>
@@ -292,12 +496,17 @@ const Settings = () => {
                                         </div>
                                     </div>
                                     <Button
-                                        variant={googleConnected ? "outline" : "default"}
-                                        onClick={handleConnectGoogle}
+                                        variant="outline"
+                                        disabled
+                                        title={t("settings.integrations.toast.googleSoon")}
                                     >
-                                        {googleConnected ? t("common.disconnect") : t("common.connect")}
+                                        {t("common.connect")}
                                     </Button>
                                 </div>
+
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    {t("settings.integrations.soonHint")}
+                                </p>
                             </CardContent>
                         </Card>
                     </TabsContent>
@@ -312,14 +521,9 @@ const Settings = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
                                         <Label>{t("settings.notifications.email")}</Label>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                                            {t("settings.notifications.emailHint")}
-                                        </p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{t("settings.notifications.emailHint")}</p>
                                     </div>
-                                    <Switch
-                                        checked={emailNotifications}
-                                        onCheckedChange={setEmailNotifications}
-                                    />
+                                    <Switch checked={notifications.email} onCheckedChange={setNotif("email")} />
                                 </div>
 
                                 <Separator />
@@ -327,11 +531,9 @@ const Settings = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
                                         <Label>{t("settings.notifications.weekly")}</Label>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                                            {t("settings.notifications.weeklyHint")}
-                                        </p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{t("settings.notifications.weeklyHint")}</p>
                                     </div>
-                                    <Switch checked={weeklyReport} onCheckedChange={setWeeklyReport} />
+                                    <Switch checked={notifications.weekly} onCheckedChange={setNotif("weekly")} />
                                 </div>
 
                                 <Separator />
@@ -339,11 +541,9 @@ const Settings = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
                                         <Label>{t("settings.notifications.ai")}</Label>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                                            {t("settings.notifications.aiHint")}
-                                        </p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{t("settings.notifications.aiHint")}</p>
                                     </div>
-                                    <Switch checked={aiSuggestions} onCheckedChange={setAiSuggestions} />
+                                    <Switch checked={notifications.ai} onCheckedChange={setNotif("ai")} />
                                 </div>
 
                                 <Separator />
@@ -353,21 +553,24 @@ const Settings = () => {
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm">{t("settings.notifications.comments")}</span>
-                                            <Switch defaultChecked />
+                                            <Switch checked={notifications.comments} onCheckedChange={setNotif("comments")} />
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm">{t("settings.notifications.updates")}</span>
-                                            <Switch defaultChecked />
+                                            <Switch checked={notifications.updates} onCheckedChange={setNotif("updates")} />
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm">{t("settings.notifications.tips")}</span>
-                                            <Switch />
+                                            <Switch checked={notifications.tips} onCheckedChange={setNotif("tips")} />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="flex justify-end">
-                                    <Button onClick={handleSave}>{t("settings.notifications.savePrefs")}</Button>
+                                    <Button onClick={handleSaveNotifs} disabled={isSavingNotifs}>
+                                        {isSavingNotifs && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        {t("settings.notifications.savePrefs")}
+                                    </Button>
                                 </div>
                             </CardContent>
                         </Card>
@@ -399,23 +602,6 @@ const Settings = () => {
 
                                 <Separator />
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="timezone">{t("settings.preferences.timezone")}</Label>
-                                    <Select defaultValue="paris">
-                                        <SelectTrigger id="timezone">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="paris">Europe/Paris (GMT+1)</SelectItem>
-                                            <SelectItem value="london">Europe/London (GMT+0)</SelectItem>
-                                            <SelectItem value="newyork">America/New_York (GMT-5)</SelectItem>
-                                            <SelectItem value="tokyo">Asia/Tokyo (GMT+9)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <Separator />
-
                                 <div className="space-y-3">
                                     <Label className="flex items-center gap-2">
                                         <Sparkles className="h-4 w-4" />
@@ -425,15 +611,16 @@ const Settings = () => {
                                         <Label htmlFor="defaultTone" className="text-sm">
                                             {t("settings.preferences.defaultTone")}
                                         </Label>
-                                        <Select defaultValue="professional">
+                                        <Select value={defaultTone || ""} onValueChange={setDefaultTone}>
                                             <SelectTrigger id="defaultTone">
-                                                <SelectValue />
+                                                <SelectValue placeholder={t("editor.tonePlaceholder")} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="professional">{t("editor.tones.professional")}</SelectItem>
                                                 <SelectItem value="casual">{t("editor.tones.casual")}</SelectItem>
                                                 <SelectItem value="friendly">{t("editor.tones.friendly")}</SelectItem>
                                                 <SelectItem value="formal">{t("editor.tones.formal")}</SelectItem>
+                                                <SelectItem value="enthusiastic">{t("editor.tones.enthusiastic")}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -441,7 +628,14 @@ const Settings = () => {
                                         <Label htmlFor="defaultWords" className="text-sm">
                                             {t("settings.preferences.defaultWords")}
                                         </Label>
-                                        <Input id="defaultWords" type="number" defaultValue="800" />
+                                        <Input
+                                            id="defaultWords"
+                                            type="number"
+                                            min={100}
+                                            max={5000}
+                                            value={defaultWords}
+                                            onChange={(e) => setDefaultWords(Number(e.target.value) || 0)}
+                                        />
                                     </div>
                                 </div>
 
@@ -450,9 +644,7 @@ const Settings = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
                                         <Label>{t("settings.preferences.darkMode")}</Label>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                                            {t("settings.preferences.darkModeHint")}
-                                        </p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{t("settings.preferences.darkModeHint")}</p>
                                     </div>
                                     <Switch
                                         checked={isDark}
@@ -461,7 +653,10 @@ const Settings = () => {
                                 </div>
 
                                 <div className="flex justify-end">
-                                    <Button onClick={handleSave}>{t("settings.notifications.savePrefs")}</Button>
+                                    <Button onClick={handleSavePrefs} disabled={isSavingPrefs}>
+                                        {isSavingPrefs && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        {t("settings.notifications.savePrefs")}
+                                    </Button>
                                 </div>
                             </CardContent>
                         </Card>

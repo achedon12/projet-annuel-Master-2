@@ -20,4 +20,10 @@ export const Urls = {
       rewrite: '/articles/rewrite',
       aiAction: '/articles/ai-action',
   },
+  me: {
+      get: '/me',
+      update: '/me',
+      password: '/me/password',
+      notifications: '/me/notifications',
+  },
 };
