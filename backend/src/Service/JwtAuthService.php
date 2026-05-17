@@ -67,4 +67,19 @@ class JwtAuthService
 
         return $this->userRepository->find($payload['userId']);
     }
+
+    /**
+     * Authentifie un utilisateur et vérifie qu'il a le rôle admin.
+     *
+     * @return User|null l'utilisateur s'il est admin, null sinon (le controller
+     *                   distingue 401 vs 403 via isAuthenticated())
+     */
+    public function authenticateAdmin(Request $request): ?User
+    {
+        $user = $this->authenticate($request);
+        if (!$user || !$user->isAdmin()) {
+            return null;
+        }
+        return $user;
+    }
 }

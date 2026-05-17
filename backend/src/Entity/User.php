@@ -47,6 +47,14 @@ class User
     #[Assert\Choice(choices: ['light', 'dark', 'system'], message: 'Thème invalide.')]
     private string $theme = 'system';
 
+    public const ROLE_USER = 'user';
+    public const ROLE_ADMIN = 'admin';
+    public const ROLES = [self::ROLE_USER, self::ROLE_ADMIN];
+
+    #[ORM\Column(length: 20, options: ['default' => self::ROLE_USER])]
+    #[Assert\Choice(choices: self::ROLES, message: 'Rôle invalide.')]
+    private string $role = self::ROLE_USER;
+
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $defaultTone = null;
 
@@ -227,6 +235,25 @@ class User
     {
         $this->lastLogin = $lastLogin;
         return $this;
+    }
+
+    public function getRole(): string
+    {
+        return $this->role;
+    }
+
+    public function setRole(string $role): static
+    {
+        if (!in_array($role, self::ROLES, true)) {
+            throw new \InvalidArgumentException('Rôle invalide : ' . $role);
+        }
+        $this->role = $role;
+        return $this;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
     }
 
     public function getDefaultTone(): ?string

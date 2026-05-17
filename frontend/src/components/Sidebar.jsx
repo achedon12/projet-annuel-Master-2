@@ -1,9 +1,9 @@
 "use client";
 
-import { Home, Lightbulb, PenTool, History, Settings, LogOut } from "lucide-react";
+import { Home, Lightbulb, PenTool, History, Settings, ShieldCheck, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { toast } from "sonner";
 import {cn} from "@/utils/Cn";
 import {useTranslation} from "@/hooks/useI18n";
@@ -12,6 +12,8 @@ export const Sidebar = ({ onNavigate }) => {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useTranslation();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
 
   const handleNavClick = (href) => {
     onNavigate?.();
@@ -23,6 +25,7 @@ export const Sidebar = ({ onNavigate }) => {
     { name: t('nav.editor'), href: "/editor", icon: PenTool },
     { name: t('nav.history'), href: "/history", icon: History },
     { name: t('nav.settings'), href: "/settings", icon: Settings },
+    ...(isAdmin ? [{ name: t('nav.admin'), href: "/admin", icon: ShieldCheck }] : []),
   ];
 
   const handleLogout = async () => {
