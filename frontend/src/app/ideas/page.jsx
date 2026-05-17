@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { Copy, RefreshCw, Sparkles, ThumbsDown, ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card";
@@ -10,6 +11,7 @@ import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { Badge } from "@/components/Badge";
 import { useTranslation } from "@/hooks/useI18n";
+import { API_URL, Urls } from "@/utils/Api";
 
 const DIFFICULTY = {
     EASY: "easy",
@@ -17,52 +19,70 @@ const DIFFICULTY = {
     ADVANCED: "advanced",
 };
 
-const mockIdeas = [
-    {
-        titleKey: "ideas.mock.seoBeginners.title",
-        descriptionKey: "ideas.mock.seoBeginners.description",
-        keywords: ["SEO technique", "optimisation", "crawl budget"],
-        difficulty: DIFFICULTY.EASY,
-        volume: "2.4K",
-    },
-    {
-        titleKey: "ideas.mock.tenStrategies.title",
-        descriptionKey: "ideas.mock.tenStrategies.description",
-        keywords: ["content marketing", "stratégie digitale", "engagement"],
-        difficulty: DIFFICULTY.MEDIUM,
-        volume: "1.8K",
-    },
-    {
-        titleKey: "ideas.mock.aiImpact.title",
-        descriptionKey: "ideas.mock.aiImpact.description",
-        keywords: ["IA", "SEO", "automatisation"],
-        difficulty: DIFFICULTY.ADVANCED,
-        volume: "3.2K",
-    },
-    {
-        titleKey: "ideas.mock.metaDesc.title",
-        descriptionKey: "ideas.mock.metaDesc.description",
-        keywords: ["meta description", "CTR", "SERP"],
-        difficulty: DIFFICULTY.EASY,
-        volume: "1.5K",
-    },
-];
-
 const IdeaGenerator = () => {
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
+    const { data: session } = useSession();
     const [keyword, setKeyword] = useState("");
     const [audience, setAudience] = useState("");
     const [contentType, setContentType] = useState("");
     const [ideas, setIdeas] = useState([]);
     const [isGenerating, setIsGenerating] = useState(false);
 
-    const handleGenerate = () => {
+    const handleGenerate = async () => {
+        const trimmedKeyword = keyword.trim();
+        if (trimmedKeyword.length < 2) {
+            toast.error(t("ideas.toast.errorMissingKeyword"));
+            return;
+        }
+        if (!session?.backendToken) {
+            toast.error(t("ideas.toast.errorNetwork"));
+            return;
+        }
+
         setIsGenerating(true);
-        setTimeout(() => {
-            setIdeas(mockIdeas);
+        try {
+            const res = await fetch(`${API_URL}${Urls.ideas.generate}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.backendToken}`,
+                },
+                body: JSON.stringify({
+                    keyword: trimmedKeyword,
+                    contentType: contentType || undefined,
+                    audience: audience.trim() || undefined,
+                    locale,
+                }),
+            });
+
+            if (!res.ok) {
+                let message = t("ideas.toast.errorGeneration");
+                try {
+                    const data = await res.json();
+                    if (data?.error && typeof data.error === "string") {
+                        message = data.error;
+                    }
+                } catch {
+                    // body non JSON — message générique conservé
+                }
+                toast.error(message);
+                return;
+            }
+
+            const data = await res.json();
+            const list = Array.isArray(data?.ideas) ? data.ideas : [];
+            setIdeas(list);
+            if (list.length === 0) {
+                toast.error(t("ideas.toast.errorGeneration"));
+            } else {
+                toast.success(t("ideas.toast.generated"));
+            }
+        } catch (err) {
+            console.error("ideas.generate", err);
+            toast.error(t("ideas.toast.errorNetwork"));
+        } finally {
             setIsGenerating(false);
-            toast.success(t("ideas.toast.generated"));
-        }, 2000);
+        }
     };
 
     const handleCopy = (title) => {
@@ -76,6 +96,12 @@ const IdeaGenerator = () => {
             : d === DIFFICULTY.MEDIUM
                 ? "text-amber-600"
                 : "text-red-600";
+
+    const difficultyLabel = (d) => {
+        const key = `ideas.difficulty.${d}`;
+        const translated = t(key);
+        return translated === key ? d : translated;
+    };
 
     return (
         <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-8">
@@ -99,6 +125,7 @@ const IdeaGenerator = () => {
                                     placeholder={t("ideas.mainKeywordPlaceholder")}
                                     value={keyword}
                                     onChange={(e) => setKeyword(e.target.value)}
+                                    maxLength={120}
                                 />
                             </div>
 
@@ -127,12 +154,13 @@ const IdeaGenerator = () => {
                                 value={audience}
                                 onChange={(e) => setAudience(e.target.value)}
                                 rows={3}
+                                maxLength={500}
                             />
                         </div>
 
                         <Button
                             onClick={handleGenerate}
-                            disabled={isGenerating || !keyword}
+                            disabled={isGenerating || keyword.trim().length < 2}
                             className="w-full md:w-auto"
                         >
                             {isGenerating ? (
@@ -150,7 +178,11 @@ const IdeaGenerator = () => {
                     </CardContent>
                 </Card>
 
-                {ideas.length > 0 && (
+                {ideas.length === 0 ? (
+                    <div className="rounded-md border border-dashed dark:border-slate-700 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+                        {t("ideas.empty")}
+                    </div>
+                ) : (
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h2 className="text-2xl">{t("ideas.suggestionsTitle")}</h2>
@@ -158,59 +190,58 @@ const IdeaGenerator = () => {
                         </div>
 
                         <div className="grid gap-6">
-                            {ideas.map((idea, index) => {
-                                const title = t(idea.titleKey);
-                                return (
-                                    <Card key={index} className="transition-shadow hover:shadow-md">
-                                        <CardHeader>
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div className="flex-1 space-y-2">
-                                                    <CardTitle className="text-xl">{title}</CardTitle>
-                                                    <CardDescription>{t(idea.descriptionKey)}</CardDescription>
-                                                </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => handleCopy(title)}
-                                                >
-                                                    <Copy className="h-4 w-4" />
-                                                </Button>
+                            {ideas.map((idea, index) => (
+                                <Card key={index} className="transition-shadow hover:shadow-md">
+                                    <CardHeader>
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex-1 space-y-2">
+                                                <CardTitle className="text-xl">{idea.title}</CardTitle>
+                                                <CardDescription>{idea.description}</CardDescription>
                                             </div>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="flex flex-wrap items-center gap-4">
-                                                <div className="flex flex-wrap gap-2">
-                                                    {idea.keywords.map((kw, kIndex) => (
-                                                        <Badge key={kIndex} variant="outline">
-                                                            {kw}
-                                                        </Badge>
-                                                    ))}
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleCopy(idea.title)}
+                                            >
+                                                <Copy className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex flex-wrap items-center gap-4">
+                                            <div className="flex flex-wrap gap-2">
+                                                {(idea.keywords || []).map((kw, kIndex) => (
+                                                    <Badge key={kIndex} variant="outline">
+                                                        {kw}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                            <div className="ml-auto flex items-center gap-4">
+                                                <div className="text-sm text-slate-600 dark:text-slate-400">
+                                                    <span className="font-medium">{t("ideas.difficultyLabel")}</span>{" "}
+                                                    <span className={difficultyColor(idea.difficulty)}>
+                                                        {difficultyLabel(idea.difficulty)}
+                                                    </span>
                                                 </div>
-                                                <div className="ml-auto flex items-center gap-4">
-                                                    <div className="text-sm text-slate-600 dark:text-slate-400">
-                                                        <span className="font-medium">{t("ideas.difficultyLabel")}</span>{" "}
-                                                        <span className={difficultyColor(idea.difficulty)}>
-                                                            {t(`ideas.difficulty.${idea.difficulty}`)}
-                                                        </span>
-                                                    </div>
+                                                {idea.volume && (
                                                     <div className="text-sm text-slate-600 dark:text-slate-400">
                                                         <span className="font-medium">{t("ideas.volumeLabel")}</span>{" "}
-                                                        {t("ideas.mock.volumeMonth", { value: idea.volume })}
+                                                        {t("ideas.volumeMonth", { value: idea.volume })}
                                                     </div>
-                                                    <div className="flex gap-1">
-                                                        <Button variant="ghost" size="icon">
-                                                            <ThumbsUp className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button variant="ghost" size="icon">
-                                                            <ThumbsDown className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
+                                                )}
+                                                <div className="flex gap-1">
+                                                    <Button variant="ghost" size="icon">
+                                                        <ThumbsUp className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon">
+                                                        <ThumbsDown className="h-4 w-4" />
+                                                    </Button>
                                                 </div>
                                             </div>
-                                        </CardContent>
-                                    </Card>
-                                );
-                            })}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
                         </div>
                     </div>
                 )}

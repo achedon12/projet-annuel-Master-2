@@ -391,28 +391,14 @@
       "medium": "Moyen",
       "advanced": "Avancé"
     },
+    "empty": "Aucune idée pour le moment. Lancez une génération pour obtenir des suggestions personnalisées.",
+    "volumeMonth": "{value}/mois",
     "toast": {
       "generated": "Idées générées avec succès !",
-      "copied": "Titre copié dans le presse-papier"
-    },
-    "mock": {
-      "seoBeginners": {
-        "title": "Guide complet du SEO technique pour les débutants",
-        "description": "Un article détaillé couvrant les bases du SEO technique, incluant l'optimisation de la vitesse, le crawl budget, et la structure des URLs."
-      },
-      "tenStrategies": {
-        "title": "10 stratégies de content marketing qui fonctionnent en 2026",
-        "description": "Découvrez les tactiques éprouvées pour créer du contenu engageant et performant dans l'environnement digital actuel."
-      },
-      "aiImpact": {
-        "title": "L'impact de l'IA sur la création de contenu SEO",
-        "description": "Analyse approfondie de comment l'intelligence artificielle transforme les pratiques de création de contenu optimisé pour les moteurs de recherche."
-      },
-      "metaDesc": {
-        "title": "Comment optimiser vos meta descriptions pour le CTR",
-        "description": "Guide pratique pour rédiger des meta descriptions qui augmentent votre taux de clics dans les résultats de recherche."
-      },
-      "volumeMonth": "{value}/mois"
+      "copied": "Titre copié dans le presse-papier",
+      "errorMissingKeyword": "Le mot-clé principal est requis (2 caractères minimum).",
+      "errorGeneration": "La génération a échoué. Réessayez dans quelques instants.",
+      "errorNetwork": "Erreur réseau lors de la génération. Vérifiez votre connexion."
     }
   },
   "editor": {
