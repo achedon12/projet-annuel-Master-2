@@ -391,28 +391,14 @@
       "medium": "Medium",
       "advanced": "Advanced"
     },
+    "empty": "No ideas yet. Run a generation to get tailored suggestions.",
+    "volumeMonth": "{value}/month",
     "toast": {
       "generated": "Ideas generated successfully!",
-      "copied": "Title copied to clipboard"
-    },
-    "mock": {
-      "seoBeginners": {
-        "title": "Complete guide to technical SEO for beginners",
-        "description": "A detailed article covering the basics of technical SEO, including speed optimization, crawl budget, and URL structure."
-      },
-      "tenStrategies": {
-        "title": "10 content marketing strategies that work in 2026",
-        "description": "Discover proven tactics to create engaging, high-performing content in today's digital landscape."
-      },
-      "aiImpact": {
-        "title": "The impact of AI on SEO content creation",
-        "description": "An in-depth look at how artificial intelligence is transforming the way SEO-optimized content is produced."
-      },
-      "metaDesc": {
-        "title": "How to optimize your meta descriptions for CTR",
-        "description": "A practical guide to writing meta descriptions that increase your click-through rate in search results."
-      },
-      "volumeMonth": "{value}/month"
+      "copied": "Title copied to clipboard",
+      "errorMissingKeyword": "Main keyword is required (minimum 2 characters).",
+      "errorGeneration": "Generation failed. Please try again in a moment.",
+      "errorNetwork": "Network error during generation. Check your connection."
     }
   },
   "editor": {
