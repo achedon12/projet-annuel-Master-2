@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Loader2 } from "lucide-react";
@@ -18,6 +18,11 @@ const EditorEditPage = ({ params }) => {
     const router = useRouter();
     const [article, setArticle] = useState(null);
     const [loadState, setLoadState] = useState("loading");
+
+    // Ref stable sur t : t change d'identité à chaque render, on l'isole
+    // du useEffect pour éviter de re-fetch l'article à chaque re-render.
+    const tRef = useRef(t);
+    tRef.current = t;
 
     useEffect(() => {
         if (status !== "authenticated" || !session?.backendToken) return;
@@ -37,7 +42,7 @@ const EditorEditPage = ({ params }) => {
                     return;
                 }
                 if (!res.ok) {
-                    toast.error(t("editor.toast.loadError"));
+                    toast.error(tRef.current("editor.toast.loadError"));
                     setLoadState("error");
                     return;
                 }
@@ -48,13 +53,13 @@ const EditorEditPage = ({ params }) => {
             .catch((err) => {
                 if (cancelled) return;
                 console.error("article.load", err);
-                toast.error(t("editor.toast.loadError"));
+                toast.error(tRef.current("editor.toast.loadError"));
                 setLoadState("error");
             });
         return () => {
             cancelled = true;
         };
-    }, [articleId, session?.backendToken, status, t]);
+    }, [articleId, session?.backendToken, status]);
 
     if (loadState === "loading") {
         return (

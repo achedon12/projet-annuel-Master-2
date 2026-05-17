@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card";
@@ -84,6 +84,11 @@ const PublicationsHistory = () => {
 
     const token = session?.backendToken;
 
+    // Ref stable sur t : t change d'identité à chaque render (useTranslation ne mémoïse pas),
+    // donc on l'isole d'un useCallback pour éviter une boucle de fetch.
+    const tRef = useRef(t);
+    tRef.current = t;
+
     const fetchArticles = useCallback(async () => {
         if (!token) return;
         setLoadState("loading");
@@ -92,7 +97,7 @@ const PublicationsHistory = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (!res.ok) {
-                toast.error(t("history.loadError"));
+                toast.error(tRef.current("history.loadError"));
                 setLoadState("error");
                 return;
             }
@@ -101,10 +106,10 @@ const PublicationsHistory = () => {
             setLoadState("ready");
         } catch (err) {
             console.error("history.fetch", err);
-            toast.error(t("history.loadError"));
+            toast.error(tRef.current("history.loadError"));
             setLoadState("error");
         }
-    }, [token, t]);
+    }, [token]);
 
     useEffect(() => {
         if (sessionStatus === "authenticated") {
