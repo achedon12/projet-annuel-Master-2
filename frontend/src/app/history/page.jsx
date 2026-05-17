@@ -1,5 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
@@ -19,6 +21,16 @@ import {
     DropdownMenuTrigger,
 } from "@/components/DropdownMenu";
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/AlertDialog";
+import {
     Search,
     Filter,
     MoreVertical,
@@ -28,11 +40,14 @@ import {
     Download,
     Share2,
     Calendar,
-    TrendingUp,
+    Loader2,
+    Plus,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr as dateFr, enUS as dateEn } from "date-fns/locale";
+import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useI18n";
+import { API_URL, Urls } from "@/utils/Api";
 
 const STATUS_KEYS = {
     PUBLISHED: "published",
@@ -47,81 +62,6 @@ const TYPE_KEYS = {
     TUTORIAL: "tutorial",
 };
 
-const publications = [
-    {
-        id: 1,
-        titleKey: "history.items.seoTechnical",
-        type: TYPE_KEYS.BLOG,
-        status: STATUS_KEYS.PUBLISHED,
-        publishedDate: new Date(2026, 2, 5),
-        wordCount: 2450,
-        seoScore: 92,
-        views: 1247,
-        engagement: 8.5,
-        notionSynced: true,
-    },
-    {
-        id: 2,
-        titleKey: "history.items.tenStrategies",
-        type: TYPE_KEYS.BLOG,
-        status: STATUS_KEYS.DRAFT,
-        publishedDate: new Date(2026, 2, 4),
-        wordCount: 1850,
-        seoScore: 85,
-        views: 0,
-        engagement: 0,
-        notionSynced: false,
-    },
-    {
-        id: 3,
-        titleKey: "history.items.aiInContent",
-        type: TYPE_KEYS.GUIDE,
-        status: STATUS_KEYS.REVIEW,
-        publishedDate: new Date(2026, 2, 3),
-        wordCount: 3200,
-        seoScore: 88,
-        views: 0,
-        engagement: 0,
-        notionSynced: true,
-    },
-    {
-        id: 4,
-        titleKey: "history.items.metaDesc",
-        type: TYPE_KEYS.TUTORIAL,
-        status: STATUS_KEYS.PUBLISHED,
-        publishedDate: new Date(2026, 2, 1),
-        wordCount: 1450,
-        seoScore: 90,
-        views: 856,
-        engagement: 7.2,
-        notionSynced: true,
-    },
-    {
-        id: 5,
-        titleKey: "history.items.trends2026",
-        type: TYPE_KEYS.BLOG,
-        status: STATUS_KEYS.PUBLISHED,
-        publishedDate: new Date(2026, 1, 28),
-        wordCount: 2100,
-        seoScore: 94,
-        views: 2134,
-        engagement: 9.1,
-        notionSynced: true,
-    },
-    {
-        id: 6,
-        titleKey: "history.items.editorialCalendar",
-        type: TYPE_KEYS.GUIDE,
-        status: STATUS_KEYS.ARCHIVED,
-        publishedDate: new Date(2026, 1, 15),
-        wordCount: 1900,
-        seoScore: 87,
-        views: 423,
-        engagement: 6.8,
-        notionSynced: false,
-    },
-];
-
 const statusBadgeVariant = {
     [STATUS_KEYS.PUBLISHED]: "default",
     [STATUS_KEYS.DRAFT]: "secondary",
@@ -131,33 +71,129 @@ const statusBadgeVariant = {
 
 const PublicationsHistory = () => {
     const { t, locale } = useTranslation();
+    const { data: session, status: sessionStatus } = useSession();
+    const router = useRouter();
+
+    const [articles, setArticles] = useState([]);
+    const [loadState, setLoadState] = useState("loading");
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState("all");
     const [filterType, setFilterType] = useState("all");
+    const [pendingDeleteId, setPendingDeleteId] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    const filteredPublications = publications.filter((pub) => {
-        const title = t(pub.titleKey).toLowerCase();
-        const matchesSearch = title.includes(searchQuery.toLowerCase());
-        const matchesStatus = filterStatus === "all" || pub.status === filterStatus;
-        const matchesType = filterType === "all" || pub.type === filterType;
-        return matchesSearch && matchesStatus && matchesType;
-    });
+    const token = session?.backendToken;
 
-    const stats = {
-        total: publications.length,
-        published: publications.filter((p) => p.status === STATUS_KEYS.PUBLISHED).length,
-        draft: publications.filter((p) => p.status === STATUS_KEYS.DRAFT).length,
-        archived: publications.filter((p) => p.status === STATUS_KEYS.ARCHIVED).length,
+    // Ref stable sur t : t change d'identité à chaque render (useTranslation ne mémoïse pas),
+    // donc on l'isole d'un useCallback pour éviter une boucle de fetch.
+    const tRef = useRef(t);
+    tRef.current = t;
+
+    const fetchArticles = useCallback(async () => {
+        if (!token) return;
+        setLoadState("loading");
+        try {
+            const res = await fetch(`${API_URL}${Urls.articles.list}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) {
+                toast.error(tRef.current("history.loadError"));
+                setLoadState("error");
+                return;
+            }
+            const data = await res.json();
+            setArticles(Array.isArray(data?.items) ? data.items : []);
+            setLoadState("ready");
+        } catch (err) {
+            console.error("history.fetch", err);
+            toast.error(tRef.current("history.loadError"));
+            setLoadState("error");
+        }
+    }, [token]);
+
+    useEffect(() => {
+        if (sessionStatus === "authenticated") {
+            fetchArticles();
+        }
+    }, [sessionStatus, fetchArticles]);
+
+    const handleDelete = async () => {
+        if (!pendingDeleteId || !token) return;
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`${API_URL}${Urls.articles.one(pendingDeleteId)}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok && res.status !== 204) {
+                toast.error(t("history.deleteError"));
+                return;
+            }
+            setArticles((prev) => prev.filter((a) => a.id !== pendingDeleteId));
+            toast.success(t("history.deleteSuccess"));
+        } catch (err) {
+            console.error("history.delete", err);
+            toast.error(t("history.deleteError"));
+        } finally {
+            setIsDeleting(false);
+            setPendingDeleteId(null);
+        }
     };
 
+    const filteredArticles = useMemo(() => {
+        const needle = searchQuery.toLowerCase();
+        return articles.filter((article) => {
+            const title = (article.title || "").toLowerCase();
+            const matchesSearch = needle === "" || title.includes(needle);
+            const matchesStatus = filterStatus === "all" || article.status === filterStatus;
+            const matchesType = filterType === "all" || article.type === filterType;
+            return matchesSearch && matchesStatus && matchesType;
+        });
+    }, [articles, searchQuery, filterStatus, filterType]);
+
+    const stats = useMemo(() => ({
+        total: articles.length,
+        published: articles.filter((a) => a.status === STATUS_KEYS.PUBLISHED).length,
+        draft: articles.filter((a) => a.status === STATUS_KEYS.DRAFT).length,
+        archived: articles.filter((a) => a.status === STATUS_KEYS.ARCHIVED).length,
+    }), [articles]);
+
     const dateLocale = locale === "en" ? dateEn : dateFr;
+
+    const formatDate = (iso) => {
+        if (!iso) return "—";
+        try {
+            return format(new Date(iso), "d MMMM yyyy", { locale: dateLocale });
+        } catch {
+            return iso;
+        }
+    };
+
+    const typeLabel = (type) => {
+        if (!type) return "—";
+        const key = `history.type.${type}`;
+        const translated = t(key);
+        return translated === key ? type : translated;
+    };
+
+    const statusLabel = (statusValue) => {
+        const key = `history.status.${statusValue}`;
+        const translated = t(key);
+        return translated === key ? statusValue : translated;
+    };
 
     return (
         <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-8">
             <div className="mx-auto max-w-7xl space-y-8">
-                <div>
-                    <h1 className="text-3xl">{t("history.title")}</h1>
-                    <p className="text-slate-600 dark:text-slate-400">{t("history.subtitle")}</p>
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl">{t("history.title")}</h1>
+                        <p className="text-slate-600 dark:text-slate-400">{t("history.subtitle")}</p>
+                    </div>
+                    <Button onClick={() => router.push("/editor")}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        {t("history.newArticle")}
+                    </Button>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-4">
@@ -193,7 +229,7 @@ const PublicationsHistory = () => {
                             <div>
                                 <CardTitle>{t("history.all")}</CardTitle>
                                 <CardDescription>
-                                    {t("history.resultsCount", { count: filteredPublications.length })}
+                                    {t("history.resultsCount", { count: filteredArticles.length })}
                                 </CardDescription>
                             </div>
                             <div className="flex flex-wrap gap-2">
@@ -226,7 +262,7 @@ const PublicationsHistory = () => {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">{t("history.filters.allTypes")}</SelectItem>
-                                        <SelectItem value={TYPE_KEYS.BLOG}>{t("history.type.article")}</SelectItem>
+                                        <SelectItem value={TYPE_KEYS.BLOG}>{t("history.type.blog")}</SelectItem>
                                         <SelectItem value={TYPE_KEYS.GUIDE}>{t("history.type.guide")}</SelectItem>
                                         <SelectItem value={TYPE_KEYS.TUTORIAL}>{t("history.type.tutorial")}</SelectItem>
                                     </SelectContent>
@@ -242,86 +278,96 @@ const PublicationsHistory = () => {
                             </TabsList>
 
                             <TabsContent value="list" className="space-y-4">
-                                <div className="space-y-3">
-                                    {filteredPublications.map((pub) => (
-                                        <div
-                                            key={pub.id}
-                                            className="flex items-center justify-between rounded-lg border dark:border-slate-800 bg-white dark:bg-slate-900 p-4 transition-shadow hover:shadow-md"
-                                        >
-                                            <div className="flex-1 space-y-2">
-                                                <div className="flex items-center gap-3">
-                                                    <h3 className="font-medium">{t(pub.titleKey)}</h3>
-                                                    <Badge variant={statusBadgeVariant[pub.status]}>
-                                                        {t(`history.status.${pub.status}`)}
-                                                    </Badge>
-                                                    {pub.notionSynced && (
-                                                        <Badge variant="outline" className="text-xs">
-                                                            {t("history.notionSynced")}
+                                {loadState === "loading" ? (
+                                    <div className="flex items-center justify-center py-10 text-slate-500 dark:text-slate-400">
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        {t("history.loading")}
+                                    </div>
+                                ) : loadState === "error" ? (
+                                    <div className="rounded-md bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-600 dark:text-red-400">
+                                        {t("history.loadError")}
+                                    </div>
+                                ) : articles.length === 0 ? (
+                                    <div className="rounded-md border border-dashed dark:border-slate-700 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+                                        {t("history.empty")}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {filteredArticles.map((article) => (
+                                            <div
+                                                key={article.id}
+                                                className="flex items-center justify-between rounded-lg border dark:border-slate-800 bg-white dark:bg-slate-900 p-4 transition-shadow hover:shadow-md"
+                                            >
+                                                <div className="flex-1 space-y-2">
+                                                    <div className="flex items-center gap-3">
+                                                        <h3 className="font-medium">{article.title}</h3>
+                                                        <Badge variant={statusBadgeVariant[article.status] || "secondary"}>
+                                                            {statusLabel(article.status)}
                                                         </Badge>
-                                                    )}
+                                                    </div>
+                                                    <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+                                                        {article.type && (
+                                                            <>
+                                                                <span>{typeLabel(article.type)}</span>
+                                                                <span>•</span>
+                                                            </>
+                                                        )}
+                                                        <span>
+                                                            {formatDate(article.publishedAt || article.updatedAt)}
+                                                        </span>
+                                                        <span>•</span>
+                                                        <span>{t("history.wordsCount", { count: article.wordCount || 0 })}</span>
+                                                    </div>
                                                 </div>
-                                                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
-                                                    <span>{t(`history.type.${pub.type}`)}</span>
-                                                    <span>•</span>
-                                                    <span>
-                                                        {format(pub.publishedDate, "d MMMM yyyy", { locale: dateLocale })}
-                                                    </span>
-                                                    <span>•</span>
-                                                    <span>{t("history.wordsCount", { count: pub.wordCount })}</span>
-                                                    {pub.status === STATUS_KEYS.PUBLISHED && (
-                                                        <>
-                                                            <span>•</span>
-                                                            <span className="flex items-center gap-1">
-                                                                <Eye className="h-3 w-3" />
-                                                                {t("history.views", { count: pub.views })}
-                                                            </span>
-                                                            <span>•</span>
-                                                            <span className="flex items-center gap-1">
-                                                                <TrendingUp className="h-3 w-3" />
-                                                                {t("history.engagement", { value: pub.engagement })}
-                                                            </span>
-                                                        </>
+                                                <div className="flex items-center gap-4">
+                                                    {typeof article.seoScore === "number" && (
+                                                        <div className="text-right">
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400">{t("history.seoScoreLabel")}</p>
+                                                            <p className="text-lg text-emerald-600">{article.seoScore}%</p>
+                                                        </div>
                                                     )}
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon">
+                                                                <MoreVertical className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => router.push(`/editor/${article.id}`)}>
+                                                                <Eye className="mr-2 h-4 w-4" />
+                                                                {t("history.actions.view")}
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => router.push(`/editor/${article.id}`)}>
+                                                                <Edit className="mr-2 h-4 w-4" />
+                                                                {t("history.actions.edit")}
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem disabled>
+                                                                <Download className="mr-2 h-4 w-4" />
+                                                                {t("history.actions.export")}
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem disabled>
+                                                                <Share2 className="mr-2 h-4 w-4" />
+                                                                {t("history.actions.share")}
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                className="text-red-600"
+                                                                onClick={() => setPendingDeleteId(article.id)}
+                                                            >
+                                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                                {t("history.actions.delete")}
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-4">
-                                                <div className="text-right">
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400">{t("history.seoScoreLabel")}</p>
-                                                    <p className="text-lg text-emerald-600">{pub.seoScore}%</p>
-                                                </div>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon">
-                                                            <MoreVertical className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem>
-                                                            <Eye className="mr-2 h-4 w-4" />
-                                                            {t("history.actions.view")}
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem>
-                                                            <Edit className="mr-2 h-4 w-4" />
-                                                            {t("history.actions.edit")}
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem>
-                                                            <Download className="mr-2 h-4 w-4" />
-                                                            {t("history.actions.export")}
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem>
-                                                            <Share2 className="mr-2 h-4 w-4" />
-                                                            {t("history.actions.share")}
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-red-600">
-                                                            <Trash2 className="mr-2 h-4 w-4" />
-                                                            {t("history.actions.delete")}
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
+                                        ))}
+                                        {filteredArticles.length === 0 && (
+                                            <div className="rounded-md border border-dashed dark:border-slate-700 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+                                                {t("history.noMatch")}
                                             </div>
-                                        </div>
-                                    ))}
-                                </div>
+                                        )}
+                                    </div>
+                                )}
                             </TabsContent>
 
                             <TabsContent value="calendar">
@@ -336,6 +382,35 @@ const PublicationsHistory = () => {
                     </CardContent>
                 </Card>
             </div>
+
+            <AlertDialog
+                open={pendingDeleteId !== null}
+                onOpenChange={(open) => {
+                    if (!open && !isDeleting) {
+                        setPendingDeleteId(null);
+                    }
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t("history.deleteTitle")}</AlertDialogTitle>
+                        <AlertDialogDescription>{t("history.deleteConfirm")}</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>{t("history.deleteCancel")}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+                            {isDeleting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    {t("history.deleting")}
+                                </>
+                            ) : (
+                                t("history.deleteOk")
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

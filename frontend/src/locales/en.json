@@ -329,18 +329,26 @@
     "type": {
       "blog": "Blog post",
       "guide": "Guide",
-      "tutorial": "Tutorial",
-      "article": "Article"
+      "tutorial": "Tutorial"
     },
     "tabs": {
       "list": "List",
       "calendar": "Calendar"
     },
-    "notionSynced": "Notion synced",
-    "views": "{count} views",
-    "engagement": "{value}% engagement",
     "wordsCount": "{count} words",
     "seoScoreLabel": "SEO score",
+    "newArticle": "New article",
+    "loading": "Loading articles...",
+    "loadError": "Failed to load your articles.",
+    "empty": "No articles yet. Create your first one from the editor.",
+    "noMatch": "No article matches your filters.",
+    "deleteTitle": "Delete this article?",
+    "deleteConfirm": "This action is permanent. The article and its content will be removed.",
+    "deleteCancel": "Cancel",
+    "deleteOk": "Delete",
+    "deleting": "Deleting...",
+    "deleteSuccess": "Article deleted.",
+    "deleteError": "Deletion failed. Please try again.",
     "actions": {
       "view": "View",
       "edit": "Edit",
@@ -352,14 +360,6 @@
       "title": "Calendar view",
       "description": "Visualize your publications in an editorial calendar",
       "soon": "This feature is coming soon"
-    },
-    "items": {
-      "seoTechnical": "The complete guide to technical SEO in 2026",
-      "tenStrategies": "10 content marketing strategies",
-      "aiInContent": "AI in content creation",
-      "metaDesc": "Optimize your meta descriptions for CTR",
-      "trends2026": "SEO trends 2026",
-      "editorialCalendar": "How to build an editorial calendar"
     }
   },
   "ideas": {
@@ -443,11 +443,8 @@
     "addIntro": "Add an intro",
     "optimizeSeo": "Optimize SEO",
     "suggestionsTitle": "Suggestions",
-    "suggestions": {
-      "trends": "Add a section about 2026 trends to improve relevance",
-      "examples": "Include concrete examples to illustrate your points",
-      "stats": "Add recent statistics to strengthen your arguments"
-    },
+    "suggestionsEmpty": "No suggestions yet. Click Refresh to generate some.",
+    "suggestionsRefresh": "Refresh",
     "seo": {
       "scoreTitle": "SEO score",
       "global": "Overall score",
@@ -455,7 +452,8 @@
       "optimizedTitle": "Optimized title",
       "structure": "Structure",
       "keywords": "Keywords",
-      "detected": "Detected keywords"
+      "detected": "Detected keywords",
+      "detectedEmpty": "No keywords detected yet."
     },
     "export": {
       "title": "Export",
@@ -466,11 +464,31 @@
     "toast": {
       "generated": "Content generated successfully!",
       "rewritten": "Paragraph rewritten successfully!",
-      "saved": "Article saved as draft",
-      "published": "Article published and synced with Notion"
-    },
-    "defaultTitle": "Article title",
-    "generatedContent": "# {title}\n\n## Introduction\n\nSearch engine optimization (SEO) has become a crucial part of any digital marketing strategy. In this article we'll explore best practices and strategies to improve your online visibility.\n\n## SEO fundamentals\n\nSEO rests on three main pillars:\n\n1. **Quality content**: Create relevant, engaging content\n2. **Technical**: Optimize your site's structure and performance\n3. **Authority**: Build authority and backlinks\n\n### Creating optimized content\n\nTo create content that performs well in search engines, it's essential to:\n\n- Understand your audience's search intent\n- Use relevant keywords naturally\n- Structure your content with clear headings and subheadings\n- Provide unique, value-adding information\n\n## Conclusion\n\nSEO is a continuous process that requires patience and persistence. By applying these strategies, you will progressively improve your search engine ranking."
+      "saved": "Article saved.",
+      "published": "Article published.",
+      "saveError": "Save failed. Please try again.",
+      "loadError": "Failed to load the article.",
+      "publishError": "Publish failed. Please try again.",
+      "generateError": "Generation failed. Please try again.",
+      "rewriteError": "Rewrite failed. Please try again.",
+      "titleRequired": "Title must contain at least 2 characters.",
+      "contentRequired": "Content is required for this action.",
+      "loading": "Loading article...",
+      "notFound": "Article not found.",
+      "backToHistory": "Back to history",
+      "improvestyleSuccess": "Style improved successfully!",
+      "improvestyleError": "Style improvement failed. Please try again.",
+      "addintroSuccess": "Introduction added successfully!",
+      "addintroError": "Failed to add the introduction. Please try again.",
+      "optimizeseoSuccess": "Article optimized for SEO!",
+      "optimizeseoError": "SEO optimization failed. Please try again.",
+      "suggestionsError": "Could not generate suggestions. Please try again.",
+      "exportMd": "Article exported as Markdown.",
+      "exportPdf": "Article exported as PDF.",
+      "exportEmpty": "Add a title or content before exporting.",
+      "exportError": "Export failed. Please try again.",
+      "notionSoon": "Notion integration is coming soon."
+    }
   },
   "settings": {
     "title": "Settings",
