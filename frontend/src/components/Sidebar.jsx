@@ -3,9 +3,10 @@
 import { Home, Lightbulb, PenTool, History, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { toast } from "sonner";
 import {cn} from "@/utils/Cn";
 import {useTranslation} from "@/hooks/useI18n";
-import {API_URL, Urls} from "@/utils/Api";
 
 export const Sidebar = ({ onNavigate }) => {
   const pathname = usePathname();
@@ -25,28 +26,17 @@ export const Sidebar = ({ onNavigate }) => {
   ];
 
   const handleLogout = async () => {
-    try {
-      const response = await fetch(`${API_URL}${Urls.auth.logout}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (response.ok) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        
-        router.push("/auth");
-      }
-    } catch (err) {
-      console.error("Erreur de déconnexion:", err);
-    }
+    await signOut({ redirect: false });
+    toast.success(t("auth.toast.logoutSuccess"));
+    router.push("/auth");
+    router.refresh();
   };
 
   return (
     <div className="flex h-full flex-col bg-slate-900 text-white overflow-y-auto">
       <div className="hidden md:flex h-16 items-center gap-2 border-b border-slate-700 px-6">
         <PenTool className="h-6 w-6 text-emerald-400" />
-        <span className="text-lg">SEO Content AI</span>
+        <span className="text-lg">{t("brand")}</span>
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4">

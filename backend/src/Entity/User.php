@@ -72,12 +72,17 @@ class User
     #[ORM\OneToMany(targetEntity: EditArticle::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
     private Collection $editArticles;
 
+    /** @var Collection<int, UserLoginIp> */
+    #[ORM\OneToMany(targetEntity: UserLoginIp::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $loginIps;
+
     public function __construct()
     {
         $this->integrations = new ArrayCollection();
         $this->ideas = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->editArticles = new ArrayCollection();
+        $this->loginIps = new ArrayCollection();
         $this->createdAt = new \DateTime();
         $this->updatedAt = new \DateTime();
     }
@@ -295,6 +300,31 @@ class User
         if ($this->editArticles->removeElement($editArticle)) {
             if ($editArticle->getUser() === $this) {
                 $editArticle->setUser(null);
+            }
+        }
+        return $this;
+    }
+
+    /** @return Collection<int, UserLoginIp> */
+    public function getLoginIps(): Collection
+    {
+        return $this->loginIps;
+    }
+
+    public function addLoginIp(UserLoginIp $loginIp): static
+    {
+        if (!$this->loginIps->contains($loginIp)) {
+            $this->loginIps->add($loginIp);
+            $loginIp->setUser($this);
+        }
+        return $this;
+    }
+
+    public function removeLoginIp(UserLoginIp $loginIp): static
+    {
+        if ($this->loginIps->removeElement($loginIp)) {
+            if ($loginIp->getUser() === $this) {
+                $loginIp->setUser(null);
             }
         }
         return $this;

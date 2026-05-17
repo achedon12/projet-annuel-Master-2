@@ -12,27 +12,21 @@ import {
     Share2,
 } from "lucide-react";
 import { toast } from "sonner";
-import {Badge} from "@/components/Badge";
-import {Button} from "@/components/Button";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/Card";
-import * as PropTypes from "prop-types";
-import {Input} from "@/components/Input";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/Select";
-import {Textarea} from "@/components/Textarea";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/Tabs";
-import {Separator} from "@/components/Separator";
-import {Progress} from "@/components/Progress";
-import {Slider} from "@/components/Slider";
+import { Badge } from "@/components/Badge";
+import { Button } from "@/components/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
+import { Input } from "@/components/Input";
+import { Label } from "@/components/Label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select";
+import { Textarea } from "@/components/Textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
+import { Separator } from "@/components/Separator";
+import { Progress } from "@/components/Progress";
+import { Slider } from "@/components/Slider";
+import { useTranslation } from "@/hooks/useI18n";
 
-function Label(props) {
-    return null;
-}
-
-Label.propTypes = {
-    htmlFor: PropTypes.string,
-    children: PropTypes.node
-};
 const ContentEditor = () => {
+    const { t } = useTranslation();
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [wordCount, setWordCount] = useState(0);
@@ -49,75 +43,51 @@ const ContentEditor = () => {
     const handleGenerateContent = () => {
         setIsGenerating(true);
         setTimeout(() => {
-            const generatedContent = `# ${title || "Titre de l'article"}
-
-## Introduction
-
-L'optimisation pour les moteurs de recherche (SEO) est devenue un élément crucial de toute stratégie de marketing digital. Dans cet article, nous explorerons les meilleures pratiques et stratégies pour améliorer votre visibilité en ligne.
-
-## Les fondamentaux du SEO
-
-Le SEO repose sur trois piliers principaux :
-
-1. **Contenu de qualité** : Créer du contenu pertinent et engageant
-2. **Technique** : Optimiser la structure et la performance du site
-3. **Popularité** : Développer l'autorité et les backlinks
-
-### Création de contenu optimisé
-
-Pour créer du contenu qui performe bien dans les moteurs de recherche, il est essentiel de :
-
-- Comprendre l'intention de recherche de votre audience
-- Utiliser des mots-clés pertinents de manière naturelle
-- Structurer votre contenu avec des titres et sous-titres clairs
-- Fournir de la valeur ajoutée et des informations uniques
-
-## Conclusion
-
-L'optimisation SEO est un processus continu qui nécessite de la patience et de la persévérance. En appliquant ces stratégies, vous améliorerez progressivement votre positionnement dans les résultats de recherche.`;
-
+            const generatedContent = t("editor.generatedContent", {
+                title: title || t("editor.defaultTitle"),
+            });
             setContent(generatedContent);
             setWordCount(generatedContent.trim().split(/\s+/).filter(Boolean).length);
             setIsGenerating(false);
-            toast.success("Contenu généré avec succès !");
+            toast.success(t("editor.toast.generated"));
         }, 3000);
     };
 
     const handleRewrite = () => {
-        toast.success("Paragraphe reformulé avec succès !");
+        toast.success(t("editor.toast.rewritten"));
     };
 
     const handleSave = () => {
-        toast.success("Article sauvegardé en brouillon");
+        toast.success(t("editor.toast.saved"));
     };
 
     const handlePublish = () => {
-        toast.success("Article publié et synchronisé avec Notion");
+        toast.success(t("editor.toast.published"));
     };
 
     const seoScore = Math.min(100, Math.round((wordCount / targetWords[0]) * 85 + 15));
 
     return (
-        <div className="flex h-screen overflow-hidden bg-slate-50">
+        <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
             <div className="flex flex-1 flex-col overflow-hidden">
-                <div className="border-b bg-white px-6 py-4">
+                <div className="border-b dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <h1 className="text-2xl">Éditeur de contenu</h1>
-                            <Badge variant="secondary">{wordCount} mots</Badge>
+                            <h1 className="text-2xl">{t("editor.title")}</h1>
+                            <Badge variant="secondary">{t("editor.wordCount", { count: wordCount })}</Badge>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button variant="outline" onClick={handleSave}>
                                 <Save className="mr-2 h-4 w-4" />
-                                Sauvegarder
+                                {t("editor.save")}
                             </Button>
                             <Button variant="outline">
                                 <Eye className="mr-2 h-4 w-4" />
-                                Prévisualiser
+                                {t("editor.preview")}
                             </Button>
                             <Button onClick={handlePublish}>
                                 <Send className="mr-2 h-4 w-4" />
-                                Publier
+                                {t("editor.publish")}
                             </Button>
                         </div>
                     </div>
@@ -128,14 +98,14 @@ L'optimisation SEO est un processus continu qui nécessite de la patience et de 
                         <div className="mx-auto max-w-4xl space-y-6">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Informations de base</CardTitle>
+                                    <CardTitle>{t("editor.basicInfo")}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="title">Titre de l'article</Label>
+                                        <Label htmlFor="title">{t("editor.articleTitle")}</Label>
                                         <Input
                                             id="title"
-                                            placeholder="Entrez le titre de votre article..."
+                                            placeholder={t("editor.articleTitlePlaceholder")}
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
                                         />
@@ -143,32 +113,32 @@ L'optimisation SEO est un processus continu qui nécessite de la patience et de 
 
                                     <div className="grid gap-4 md:grid-cols-2">
                                         <div className="space-y-2">
-                                            <Label htmlFor="tone">Ton de voix</Label>
+                                            <Label htmlFor="tone">{t("editor.tone")}</Label>
                                             <Select value={tone} onValueChange={setTone}>
                                                 <SelectTrigger id="tone">
-                                                    <SelectValue placeholder="Sélectionner un ton" />
+                                                    <SelectValue placeholder={t("editor.tonePlaceholder")} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="professional">Professionnel</SelectItem>
-                                                    <SelectItem value="casual">Décontracté</SelectItem>
-                                                    <SelectItem value="friendly">Amical</SelectItem>
-                                                    <SelectItem value="formal">Formel</SelectItem>
-                                                    <SelectItem value="enthusiastic">Enthousiaste</SelectItem>
+                                                    <SelectItem value="professional">{t("editor.tones.professional")}</SelectItem>
+                                                    <SelectItem value="casual">{t("editor.tones.casual")}</SelectItem>
+                                                    <SelectItem value="friendly">{t("editor.tones.friendly")}</SelectItem>
+                                                    <SelectItem value="formal">{t("editor.tones.formal")}</SelectItem>
+                                                    <SelectItem value="enthusiastic">{t("editor.tones.enthusiastic")}</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label htmlFor="audience-editor">Audience cible</Label>
+                                            <Label htmlFor="audience-editor">{t("editor.audience")}</Label>
                                             <Select value={audience} onValueChange={setAudience}>
                                                 <SelectTrigger id="audience-editor">
-                                                    <SelectValue placeholder="Sélectionner l'audience" />
+                                                    <SelectValue placeholder={t("editor.audiencePlaceholder")} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="beginners">Débutants</SelectItem>
-                                                    <SelectItem value="intermediate">Intermédiaires</SelectItem>
-                                                    <SelectItem value="experts">Experts</SelectItem>
-                                                    <SelectItem value="general">Grand public</SelectItem>
+                                                    <SelectItem value="beginners">{t("editor.audiences.beginners")}</SelectItem>
+                                                    <SelectItem value="intermediate">{t("editor.audiences.intermediate")}</SelectItem>
+                                                    <SelectItem value="experts">{t("editor.audiences.experts")}</SelectItem>
+                                                    <SelectItem value="general">{t("editor.audiences.general")}</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -179,7 +149,7 @@ L'optimisation SEO est un processus continu qui nécessite de la patience et de 
                             <Card>
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
-                                        <CardTitle>Contenu</CardTitle>
+                                        <CardTitle>{t("editor.content")}</CardTitle>
                                         <div className="flex items-center gap-2">
                                             <Button
                                                 variant="outline"
@@ -188,7 +158,7 @@ L'optimisation SEO est un processus continu qui nécessite de la patience et de 
                                                 disabled={!content}
                                             >
                                                 <RotateCcw className="mr-2 h-4 w-4" />
-                                                Reformuler
+                                                {t("editor.rewrite")}
                                             </Button>
                                             <Button
                                                 size="sm"
@@ -196,14 +166,14 @@ L'optimisation SEO est un processus continu qui nécessite de la patience et de 
                                                 disabled={isGenerating || !title}
                                             >
                                                 <Sparkles className="mr-2 h-4 w-4" />
-                                                {isGenerating ? "Génération..." : "Générer avec IA"}
+                                                {isGenerating ? t("editor.generating") : t("editor.generateAi")}
                                             </Button>
                                         </div>
                                     </div>
                                 </CardHeader>
                                 <CardContent>
                                     <Textarea
-                                        placeholder="Commencez à écrire ou utilisez l'IA pour générer du contenu..."
+                                        placeholder={t("editor.contentPlaceholder")}
                                         value={content}
                                         onChange={(e) => handleContentChange(e.target.value)}
                                         rows={20}
@@ -214,22 +184,22 @@ L'optimisation SEO est un processus continu qui nécessite de la patience et de 
                         </div>
                     </div>
 
-                    <div className="w-80 overflow-auto border-l bg-white p-6">
+                    <div className="w-80 overflow-auto border-l dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
                         <Tabs defaultValue="ai" className="w-full">
                             <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="ai">Assistant IA</TabsTrigger>
-                                <TabsTrigger value="seo">SEO</TabsTrigger>
+                                <TabsTrigger value="ai">{t("editor.tabs.ai")}</TabsTrigger>
+                                <TabsTrigger value="seo">{t("editor.tabs.seo")}</TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="ai" className="space-y-4">
                                 <Card>
                                     <CardHeader className="pb-3">
-                                        <CardTitle className="text-base">Configuration IA</CardTitle>
+                                        <CardTitle className="text-base">{t("editor.aiConfig")}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between">
-                                                <Label className="text-sm">Nombre de mots cible</Label>
+                                                <Label className="text-sm">{t("editor.targetWords")}</Label>
                                                 <span className="text-sm">{targetWords[0]}</span>
                                             </div>
                                             <Slider
@@ -244,19 +214,19 @@ L'optimisation SEO est un processus continu qui nécessite de la patience et de 
                                         <Separator />
 
                                         <div className="space-y-3">
-                                            <Label className="text-sm">Actions rapides</Label>
+                                            <Label className="text-sm">{t("editor.quickActions")}</Label>
                                             <div className="space-y-2">
                                                 <Button variant="outline" size="sm" className="w-full justify-start">
                                                     <Wand2 className="mr-2 h-4 w-4" />
-                                                    Améliorer le style
+                                                    {t("editor.improveStyle")}
                                                 </Button>
                                                 <Button variant="outline" size="sm" className="w-full justify-start">
                                                     <FileText className="mr-2 h-4 w-4" />
-                                                    Ajouter une intro
+                                                    {t("editor.addIntro")}
                                                 </Button>
                                                 <Button variant="outline" size="sm" className="w-full justify-start">
                                                     <TrendingUp className="mr-2 h-4 w-4" />
-                                                    Optimiser SEO
+                                                    {t("editor.optimizeSeo")}
                                                 </Button>
                                             </div>
                                         </div>
@@ -265,24 +235,18 @@ L'optimisation SEO est un processus continu qui nécessite de la patience et de 
 
                                 <Card>
                                     <CardHeader className="pb-3">
-                                        <CardTitle className="text-base">Suggestions</CardTitle>
+                                        <CardTitle className="text-base">{t("editor.suggestionsTitle")}</CardTitle>
                                     </CardHeader>
                                     <CardContent>
                                         <div className="space-y-3 text-sm">
-                                            <div className="rounded-lg bg-slate-50 p-3">
-                                                <p className="text-slate-600">
-                                                    Ajoutez une section sur les tendances 2026 pour améliorer la pertinence
-                                                </p>
+                                            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/40 p-3">
+                                                <p className="text-slate-600 dark:text-slate-300">{t("editor.suggestions.trends")}</p>
                                             </div>
-                                            <div className="rounded-lg bg-slate-50 p-3">
-                                                <p className="text-slate-600">
-                                                    Incluez des exemples concrets pour illustrer vos points
-                                                </p>
+                                            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/40 p-3">
+                                                <p className="text-slate-600 dark:text-slate-300">{t("editor.suggestions.examples")}</p>
                                             </div>
-                                            <div className="rounded-lg bg-slate-50 p-3">
-                                                <p className="text-slate-600">
-                                                    Ajoutez des statistiques récentes pour renforcer vos arguments
-                                                </p>
+                                            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/40 p-3">
+                                                <p className="text-slate-600 dark:text-slate-300">{t("editor.suggestions.stats")}</p>
                                             </div>
                                         </div>
                                     </CardContent>
@@ -292,12 +256,12 @@ L'optimisation SEO est un processus continu qui nécessite de la patience et de 
                             <TabsContent value="seo" className="space-y-4">
                                 <Card>
                                     <CardHeader className="pb-3">
-                                        <CardTitle className="text-base">Score SEO</CardTitle>
+                                        <CardTitle className="text-base">{t("editor.seo.scoreTitle")}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm">Score global</span>
+                                                <span className="text-sm">{t("editor.seo.global")}</span>
                                                 <span className="text-2xl text-emerald-600">{seoScore}%</span>
                                             </div>
                                             <Progress value={seoScore} className="h-2" />
@@ -307,24 +271,24 @@ L'optimisation SEO est un processus continu qui nécessite de la patience et de 
 
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-slate-600">Longueur du contenu</span>
+                                                <span className="text-slate-600 dark:text-slate-400">{t("editor.seo.contentLength")}</span>
                                                 <Badge variant={wordCount >= targetWords[0] * 0.8 ? "default" : "secondary"}>
-                                                    {wordCount >= targetWords[0] * 0.8 ? "Bon" : "À améliorer"}
+                                                    {wordCount >= targetWords[0] * 0.8 ? t("common.good") : t("common.needsImprovement")}
                                                 </Badge>
                                             </div>
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-slate-600">Titre optimisé</span>
+                                                <span className="text-slate-600 dark:text-slate-400">{t("editor.seo.optimizedTitle")}</span>
                                                 <Badge variant={title.length > 30 ? "default" : "secondary"}>
-                                                    {title.length > 30 ? "Bon" : "À améliorer"}
+                                                    {title.length > 30 ? t("common.good") : t("common.needsImprovement")}
                                                 </Badge>
                                             </div>
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-slate-600">Structure</span>
-                                                <Badge variant="default">Bon</Badge>
+                                                <span className="text-slate-600 dark:text-slate-400">{t("editor.seo.structure")}</span>
+                                                <Badge variant="default">{t("common.good")}</Badge>
                                             </div>
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-slate-600">Mots-clés</span>
-                                                <Badge variant="secondary">À améliorer</Badge>
+                                                <span className="text-slate-600 dark:text-slate-400">{t("editor.seo.keywords")}</span>
+                                                <Badge variant="secondary">{t("common.needsImprovement")}</Badge>
                                             </div>
                                         </div>
                                     </CardContent>
@@ -332,13 +296,13 @@ L'optimisation SEO est un processus continu qui nécessite de la patience et de 
 
                                 <Card>
                                     <CardHeader className="pb-3">
-                                        <CardTitle className="text-base">Mots-clés détectés</CardTitle>
+                                        <CardTitle className="text-base">{t("editor.seo.detected")}</CardTitle>
                                     </CardHeader>
                                     <CardContent>
                                         <div className="flex flex-wrap gap-2">
                                             <Badge variant="outline">SEO</Badge>
-                                            <Badge variant="outline">contenu</Badge>
-                                            <Badge variant="outline">optimisation</Badge>
+                                            <Badge variant="outline">content</Badge>
+                                            <Badge variant="outline">optimization</Badge>
                                             <Badge variant="outline">marketing</Badge>
                                         </div>
                                     </CardContent>
@@ -346,20 +310,20 @@ L'optimisation SEO est un processus continu qui nécessite de la patience et de 
 
                                 <Card>
                                     <CardHeader className="pb-3">
-                                        <CardTitle className="text-base">Export</CardTitle>
+                                        <CardTitle className="text-base">{t("editor.export.title")}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-2">
                                         <Button variant="outline" size="sm" className="w-full justify-start">
                                             <Share2 className="mr-2 h-4 w-4" />
-                                            Exporter en PDF
+                                            {t("editor.export.pdf")}
                                         </Button>
                                         <Button variant="outline" size="sm" className="w-full justify-start">
                                             <Share2 className="mr-2 h-4 w-4" />
-                                            Exporter en Markdown
+                                            {t("editor.export.markdown")}
                                         </Button>
                                         <Button variant="outline" size="sm" className="w-full justify-start">
                                             <Share2 className="mr-2 h-4 w-4" />
-                                            Envoyer à Notion
+                                            {t("editor.export.notion")}
                                         </Button>
                                     </CardContent>
                                 </Card>
@@ -370,6 +334,6 @@ L'optimisation SEO est un processus continu qui nécessite de la patience et de 
             </div>
         </div>
     );
-}
+};
 
 export default ContentEditor;

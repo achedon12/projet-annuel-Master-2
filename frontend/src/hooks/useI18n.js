@@ -7,22 +7,33 @@ import en from '@/locales/en.json';
 
 const translations = { fr, en };
 
+const interpolate = (value, params) => {
+    if (typeof value !== 'string' || !params) return value;
+    return value.replace(/\{(\w+)\}/g, (match, key) =>
+        params[key] !== undefined && params[key] !== null ? String(params[key]) : match
+    );
+};
+
 export function useTranslation() {
-  const { locale } = useLanguage();
+    const { locale } = useLanguage();
 
-  const t = (key, fallback = null) => {
-    let value = getNestedValue(translations[locale], key);
+    const t = (key, paramsOrFallback = null, maybeFallback = null) => {
+        const isParams = paramsOrFallback && typeof paramsOrFallback === 'object';
+        const params = isParams ? paramsOrFallback : null;
+        const fallback = isParams ? maybeFallback : paramsOrFallback;
 
-    if (value === undefined) {
-      value = getNestedValue(translations.fr, key);
-    }
+        let value = getNestedValue(translations[locale], key);
 
-    if (value === undefined) {
-      return fallback !== null ? fallback : key;
-    }
+        if (value === undefined) {
+            value = getNestedValue(translations.fr, key);
+        }
 
-    return value;
-  };
+        if (value === undefined) {
+            return fallback !== null ? fallback : key;
+        }
 
-  return { t, locale };
+        return interpolate(value, params);
+    };
+
+    return { t, locale };
 }

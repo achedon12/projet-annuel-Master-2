@@ -31,14 +31,28 @@ import {
     TrendingUp,
 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr as dateFr, enUS as dateEn } from "date-fns/locale";
+import { useTranslation } from "@/hooks/useI18n";
+
+const STATUS_KEYS = {
+    PUBLISHED: "published",
+    DRAFT: "draft",
+    REVIEW: "review",
+    ARCHIVED: "archived",
+};
+
+const TYPE_KEYS = {
+    BLOG: "blog",
+    GUIDE: "guide",
+    TUTORIAL: "tutorial",
+};
 
 const publications = [
     {
         id: 1,
-        title: "Guide complet du SEO technique en 2026",
-        type: "Article de blog",
-        status: "Publié",
+        titleKey: "history.items.seoTechnical",
+        type: TYPE_KEYS.BLOG,
+        status: STATUS_KEYS.PUBLISHED,
         publishedDate: new Date(2026, 2, 5),
         wordCount: 2450,
         seoScore: 92,
@@ -48,9 +62,9 @@ const publications = [
     },
     {
         id: 2,
-        title: "10 stratégies de content marketing",
-        type: "Article de blog",
-        status: "Brouillon",
+        titleKey: "history.items.tenStrategies",
+        type: TYPE_KEYS.BLOG,
+        status: STATUS_KEYS.DRAFT,
         publishedDate: new Date(2026, 2, 4),
         wordCount: 1850,
         seoScore: 85,
@@ -60,9 +74,9 @@ const publications = [
     },
     {
         id: 3,
-        title: "L'IA dans la création de contenu",
-        type: "Guide",
-        status: "En révision",
+        titleKey: "history.items.aiInContent",
+        type: TYPE_KEYS.GUIDE,
+        status: STATUS_KEYS.REVIEW,
         publishedDate: new Date(2026, 2, 3),
         wordCount: 3200,
         seoScore: 88,
@@ -72,9 +86,9 @@ const publications = [
     },
     {
         id: 4,
-        title: "Optimiser vos meta descriptions pour le CTR",
-        type: "Tutoriel",
-        status: "Publié",
+        titleKey: "history.items.metaDesc",
+        type: TYPE_KEYS.TUTORIAL,
+        status: STATUS_KEYS.PUBLISHED,
         publishedDate: new Date(2026, 2, 1),
         wordCount: 1450,
         seoScore: 90,
@@ -84,9 +98,9 @@ const publications = [
     },
     {
         id: 5,
-        title: "Les tendances SEO 2026",
-        type: "Article de blog",
-        status: "Publié",
+        titleKey: "history.items.trends2026",
+        type: TYPE_KEYS.BLOG,
+        status: STATUS_KEYS.PUBLISHED,
         publishedDate: new Date(2026, 1, 28),
         wordCount: 2100,
         seoScore: 94,
@@ -96,9 +110,9 @@ const publications = [
     },
     {
         id: 6,
-        title: "Comment créer un calendrier éditorial",
-        type: "Guide",
-        status: "Archivé",
+        titleKey: "history.items.editorialCalendar",
+        type: TYPE_KEYS.GUIDE,
+        status: STATUS_KEYS.ARCHIVED,
         publishedDate: new Date(2026, 1, 15),
         wordCount: 1900,
         seoScore: 87,
@@ -108,20 +122,22 @@ const publications = [
     },
 ];
 
-const statusColors = {
-    Publié: "default",
-    Brouillon: "secondary",
-    "En révision": "outline",
-    Archivé: "secondary",
+const statusBadgeVariant = {
+    [STATUS_KEYS.PUBLISHED]: "default",
+    [STATUS_KEYS.DRAFT]: "secondary",
+    [STATUS_KEYS.REVIEW]: "outline",
+    [STATUS_KEYS.ARCHIVED]: "secondary",
 };
 
 const PublicationsHistory = () => {
+    const { t, locale } = useTranslation();
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState("all");
     const [filterType, setFilterType] = useState("all");
 
     const filteredPublications = publications.filter((pub) => {
-        const matchesSearch = pub.title.toLowerCase().includes(searchQuery.toLowerCase());
+        const title = t(pub.titleKey).toLowerCase();
+        const matchesSearch = title.includes(searchQuery.toLowerCase());
         const matchesStatus = filterStatus === "all" || pub.status === filterStatus;
         const matchesType = filterType === "all" || pub.type === filterType;
         return matchesSearch && matchesStatus && matchesType;
@@ -129,42 +145,44 @@ const PublicationsHistory = () => {
 
     const stats = {
         total: publications.length,
-        published: publications.filter((p) => p.status === "Publié").length,
-        draft: publications.filter((p) => p.status === "Brouillon").length,
-        archived: publications.filter((p) => p.status === "Archivé").length,
+        published: publications.filter((p) => p.status === STATUS_KEYS.PUBLISHED).length,
+        draft: publications.filter((p) => p.status === STATUS_KEYS.DRAFT).length,
+        archived: publications.filter((p) => p.status === STATUS_KEYS.ARCHIVED).length,
     };
 
+    const dateLocale = locale === "en" ? dateEn : dateFr;
+
     return (
-        <div className="flex-1 overflow-auto bg-slate-50 p-8">
+        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-8">
             <div className="mx-auto max-w-7xl space-y-8">
                 <div>
-                    <h1 className="text-3xl">Historique des publications</h1>
-                    <p className="text-slate-600">Gérez et suivez tous vos contenus</p>
+                    <h1 className="text-3xl">{t("history.title")}</h1>
+                    <p className="text-slate-600 dark:text-slate-400">{t("history.subtitle")}</p>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-4">
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardDescription>Total</CardDescription>
+                            <CardDescription>{t("history.stats.total")}</CardDescription>
                             <CardTitle className="text-3xl">{stats.total}</CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardDescription>Publiés</CardDescription>
+                            <CardDescription>{t("history.stats.published")}</CardDescription>
                             <CardTitle className="text-3xl text-emerald-600">{stats.published}</CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardDescription>Brouillons</CardDescription>
+                            <CardDescription>{t("history.stats.drafts")}</CardDescription>
                             <CardTitle className="text-3xl text-amber-600">{stats.draft}</CardTitle>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardDescription>Archivés</CardDescription>
-                            <CardTitle className="text-3xl text-slate-600">{stats.archived}</CardTitle>
+                            <CardDescription>{t("history.stats.archived")}</CardDescription>
+                            <CardTitle className="text-3xl text-slate-600 dark:text-slate-300">{stats.archived}</CardTitle>
                         </CardHeader>
                     </Card>
                 </div>
@@ -173,16 +191,16 @@ const PublicationsHistory = () => {
                     <CardHeader>
                         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                             <div>
-                                <CardTitle>Tous les contenus</CardTitle>
+                                <CardTitle>{t("history.all")}</CardTitle>
                                 <CardDescription>
-                                    {filteredPublications.length} résultat(s)
+                                    {t("history.resultsCount", { count: filteredPublications.length })}
                                 </CardDescription>
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 <div className="relative flex-1 md:w-64 md:flex-none">
-                                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
                                     <Input
-                                        placeholder="Rechercher..."
+                                        placeholder={t("history.searchPlaceholder")}
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="pl-9"
@@ -194,11 +212,11 @@ const PublicationsHistory = () => {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">Tous les statuts</SelectItem>
-                                        <SelectItem value="Publié">Publié</SelectItem>
-                                        <SelectItem value="Brouillon">Brouillon</SelectItem>
-                                        <SelectItem value="En révision">En révision</SelectItem>
-                                        <SelectItem value="Archivé">Archivé</SelectItem>
+                                        <SelectItem value="all">{t("history.filters.allStatus")}</SelectItem>
+                                        <SelectItem value={STATUS_KEYS.PUBLISHED}>{t("history.status.published")}</SelectItem>
+                                        <SelectItem value={STATUS_KEYS.DRAFT}>{t("history.status.draft")}</SelectItem>
+                                        <SelectItem value={STATUS_KEYS.REVIEW}>{t("history.status.review")}</SelectItem>
+                                        <SelectItem value={STATUS_KEYS.ARCHIVED}>{t("history.status.archived")}</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <Select value={filterType} onValueChange={setFilterType}>
@@ -207,10 +225,10 @@ const PublicationsHistory = () => {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">Tous les types</SelectItem>
-                                        <SelectItem value="Article de blog">Article</SelectItem>
-                                        <SelectItem value="Guide">Guide</SelectItem>
-                                        <SelectItem value="Tutoriel">Tutoriel</SelectItem>
+                                        <SelectItem value="all">{t("history.filters.allTypes")}</SelectItem>
+                                        <SelectItem value={TYPE_KEYS.BLOG}>{t("history.type.article")}</SelectItem>
+                                        <SelectItem value={TYPE_KEYS.GUIDE}>{t("history.type.guide")}</SelectItem>
+                                        <SelectItem value={TYPE_KEYS.TUTORIAL}>{t("history.type.tutorial")}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -219,8 +237,8 @@ const PublicationsHistory = () => {
                     <CardContent>
                         <Tabs defaultValue="list" className="w-full">
                             <TabsList>
-                                <TabsTrigger value="list">Liste</TabsTrigger>
-                                <TabsTrigger value="calendar">Calendrier</TabsTrigger>
+                                <TabsTrigger value="list">{t("history.tabs.list")}</TabsTrigger>
+                                <TabsTrigger value="calendar">{t("history.tabs.calendar")}</TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="list" className="space-y-4">
@@ -228,47 +246,47 @@ const PublicationsHistory = () => {
                                     {filteredPublications.map((pub) => (
                                         <div
                                             key={pub.id}
-                                            className="flex items-center justify-between rounded-lg border bg-white p-4 transition-shadow hover:shadow-md"
+                                            className="flex items-center justify-between rounded-lg border dark:border-slate-800 bg-white dark:bg-slate-900 p-4 transition-shadow hover:shadow-md"
                                         >
                                             <div className="flex-1 space-y-2">
                                                 <div className="flex items-center gap-3">
-                                                    <h3 className="font-medium">{pub.title}</h3>
-                                                    <Badge variant={statusColors[pub.status]}>
-                                                        {pub.status}
+                                                    <h3 className="font-medium">{t(pub.titleKey)}</h3>
+                                                    <Badge variant={statusBadgeVariant[pub.status]}>
+                                                        {t(`history.status.${pub.status}`)}
                                                     </Badge>
                                                     {pub.notionSynced && (
                                                         <Badge variant="outline" className="text-xs">
-                                                            Synchro Notion
+                                                            {t("history.notionSynced")}
                                                         </Badge>
                                                     )}
                                                 </div>
-                                                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
-                                                    <span>{pub.type}</span>
+                                                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+                                                    <span>{t(`history.type.${pub.type}`)}</span>
                                                     <span>•</span>
                                                     <span>
-                            {format(pub.publishedDate, "d MMMM yyyy", { locale: fr })}
-                          </span>
+                                                        {format(pub.publishedDate, "d MMMM yyyy", { locale: dateLocale })}
+                                                    </span>
                                                     <span>•</span>
-                                                    <span>{pub.wordCount} mots</span>
-                                                    {pub.status === "Publié" && (
+                                                    <span>{t("history.wordsCount", { count: pub.wordCount })}</span>
+                                                    {pub.status === STATUS_KEYS.PUBLISHED && (
                                                         <>
                                                             <span>•</span>
                                                             <span className="flex items-center gap-1">
-                                <Eye className="h-3 w-3" />
-                                                                {pub.views} vues
-                              </span>
+                                                                <Eye className="h-3 w-3" />
+                                                                {t("history.views", { count: pub.views })}
+                                                            </span>
                                                             <span>•</span>
                                                             <span className="flex items-center gap-1">
-                                <TrendingUp className="h-3 w-3" />
-                                                                {pub.engagement}% engagement
-                              </span>
+                                                                <TrendingUp className="h-3 w-3" />
+                                                                {t("history.engagement", { value: pub.engagement })}
+                                                            </span>
                                                         </>
                                                     )}
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">
                                                 <div className="text-right">
-                                                    <p className="text-xs text-slate-500">Score SEO</p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400">{t("history.seoScoreLabel")}</p>
                                                     <p className="text-lg text-emerald-600">{pub.seoScore}%</p>
                                                 </div>
                                                 <DropdownMenu>
@@ -280,23 +298,23 @@ const PublicationsHistory = () => {
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuItem>
                                                             <Eye className="mr-2 h-4 w-4" />
-                                                            Voir
+                                                            {t("history.actions.view")}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem>
                                                             <Edit className="mr-2 h-4 w-4" />
-                                                            Modifier
+                                                            {t("history.actions.edit")}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem>
                                                             <Download className="mr-2 h-4 w-4" />
-                                                            Exporter
+                                                            {t("history.actions.export")}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem>
                                                             <Share2 className="mr-2 h-4 w-4" />
-                                                            Partager
+                                                            {t("history.actions.share")}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem className="text-red-600">
                                                             <Trash2 className="mr-2 h-4 w-4" />
-                                                            Supprimer
+                                                            {t("history.actions.delete")}
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
@@ -307,15 +325,11 @@ const PublicationsHistory = () => {
                             </TabsContent>
 
                             <TabsContent value="calendar">
-                                <div className="rounded-lg border bg-white p-8 text-center">
-                                    <Calendar className="mx-auto mb-4 h-12 w-12 text-slate-400" />
-                                    <h3 className="mb-2 text-lg">Vue calendrier</h3>
-                                    <p className="text-sm text-slate-600">
-                                        Visualisez vos publications dans un calendrier éditorial
-                                    </p>
-                                    <p className="mt-4 text-xs text-slate-500">
-                                        Cette fonctionnalité sera bientôt disponible
-                                    </p>
+                                <div className="rounded-lg border dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center">
+                                    <Calendar className="mx-auto mb-4 h-12 w-12 text-slate-400 dark:text-slate-500" />
+                                    <h3 className="mb-2 text-lg">{t("history.calendar.title")}</h3>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400">{t("history.calendar.description")}</p>
+                                    <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">{t("history.calendar.soon")}</p>
                                 </div>
                             </TabsContent>
                         </Tabs>
@@ -324,6 +338,6 @@ const PublicationsHistory = () => {
             </div>
         </div>
     );
-}
+};
 
 export default PublicationsHistory;

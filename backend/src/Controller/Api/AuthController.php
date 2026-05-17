@@ -6,6 +6,7 @@ use App\Controller\ApiAbstractController;
 use App\Entity\User;
 use App\Event\UserRegisteredEvent;
 use App\Repository\UserRepository;
+use App\Service\UserLoginIpRecorder;
 use Doctrine\ORM\EntityManagerInterface;
 use Firebase\JWT\JWT;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -27,6 +28,7 @@ class AuthController extends ApiAbstractController
         private ValidatorInterface $validator,
         private ParameterBagInterface $params,
         private EventDispatcherInterface $eventDispatcher,
+        private UserLoginIpRecorder $loginIpRecorder,
     ) {}
 
     #[Route('/signup', name: 'api_auth_signup', methods: ['POST'])]
@@ -77,6 +79,8 @@ class AuthController extends ApiAbstractController
 
         $this->eventDispatcher->dispatch(new UserRegisteredEvent($user), UserRegisteredEvent::NAME);
 
+        $this->loginIpRecorder->record($user, $request, 'signup');
+
         $token = $this->generateJWT($user);
 
         return $this->json([
@@ -118,6 +122,8 @@ class AuthController extends ApiAbstractController
 
         $user->setLastLogin(new \DateTime());
         $this->em->flush();
+
+        $this->loginIpRecorder->record($user, $request, 'login');
 
         $token = $this->generateJWT($user);
 
