@@ -443,11 +443,8 @@
     "addIntro": "Add an intro",
     "optimizeSeo": "Optimize SEO",
     "suggestionsTitle": "Suggestions",
-    "suggestions": {
-      "trends": "Add a section about 2026 trends to improve relevance",
-      "examples": "Include concrete examples to illustrate your points",
-      "stats": "Add recent statistics to strengthen your arguments"
-    },
+    "suggestionsEmpty": "No suggestions yet. Click Refresh to generate some.",
+    "suggestionsRefresh": "Refresh",
     "seo": {
       "scoreTitle": "SEO score",
       "global": "Overall score",
@@ -455,7 +452,8 @@
       "optimizedTitle": "Optimized title",
       "structure": "Structure",
       "keywords": "Keywords",
-      "detected": "Detected keywords"
+      "detected": "Detected keywords",
+      "detectedEmpty": "No keywords detected yet."
     },
     "export": {
       "title": "Export",
@@ -474,9 +472,22 @@
       "generateError": "Generation failed. Please try again.",
       "rewriteError": "Rewrite failed. Please try again.",
       "titleRequired": "Title must contain at least 2 characters.",
+      "contentRequired": "Content is required for this action.",
       "loading": "Loading article...",
       "notFound": "Article not found.",
-      "backToHistory": "Back to history"
+      "backToHistory": "Back to history",
+      "improvestyleSuccess": "Style improved successfully!",
+      "improvestyleError": "Style improvement failed. Please try again.",
+      "addintroSuccess": "Introduction added successfully!",
+      "addintroError": "Failed to add the introduction. Please try again.",
+      "optimizeseoSuccess": "Article optimized for SEO!",
+      "optimizeseoError": "SEO optimization failed. Please try again.",
+      "suggestionsError": "Could not generate suggestions. Please try again.",
+      "exportMd": "Article exported as Markdown.",
+      "exportPdf": "Article exported as PDF.",
+      "exportEmpty": "Add a title or content before exporting.",
+      "exportError": "Export failed. Please try again.",
+      "notionSoon": "Notion integration is coming soon."
     }
   },
   "settings": {

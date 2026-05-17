@@ -443,11 +443,8 @@
     "addIntro": "Ajouter une intro",
     "optimizeSeo": "Optimiser SEO",
     "suggestionsTitle": "Suggestions",
-    "suggestions": {
-      "trends": "Ajoutez une section sur les tendances 2026 pour améliorer la pertinence",
-      "examples": "Incluez des exemples concrets pour illustrer vos points",
-      "stats": "Ajoutez des statistiques récentes pour renforcer vos arguments"
-    },
+    "suggestionsEmpty": "Aucune suggestion pour le moment. Cliquez sur Actualiser pour en générer.",
+    "suggestionsRefresh": "Actualiser",
     "seo": {
       "scoreTitle": "Score SEO",
       "global": "Score global",
@@ -455,7 +452,8 @@
       "optimizedTitle": "Titre optimisé",
       "structure": "Structure",
       "keywords": "Mots-clés",
-      "detected": "Mots-clés détectés"
+      "detected": "Mots-clés détectés",
+      "detectedEmpty": "Aucun mot-clé détecté pour le moment."
     },
     "export": {
       "title": "Export",
@@ -474,9 +472,22 @@
       "generateError": "La génération a échoué. Réessayez.",
       "rewriteError": "La reformulation a échoué. Réessayez.",
       "titleRequired": "Le titre doit contenir au moins 2 caractères.",
+      "contentRequired": "Le contenu est requis pour cette action.",
       "loading": "Chargement de l'article...",
       "notFound": "Article introuvable.",
-      "backToHistory": "Retour à l'historique"
+      "backToHistory": "Retour à l'historique",
+      "improvestyleSuccess": "Style amélioré avec succès !",
+      "improvestyleError": "L'amélioration du style a échoué. Réessayez.",
+      "addintroSuccess": "Introduction ajoutée avec succès !",
+      "addintroError": "L'ajout de l'introduction a échoué. Réessayez.",
+      "optimizeseoSuccess": "Article optimisé pour le SEO !",
+      "optimizeseoError": "L'optimisation SEO a échoué. Réessayez.",
+      "suggestionsError": "Impossible de générer les suggestions. Réessayez.",
+      "exportMd": "Article exporté en Markdown.",
+      "exportPdf": "Article exporté en PDF.",
+      "exportEmpty": "Ajoutez un titre ou du contenu avant d'exporter.",
+      "exportError": "L'export a échoué. Réessayez.",
+      "notionSoon": "L'intégration Notion sera bientôt disponible."
     }
   },
   "settings": {

@@ -27,6 +27,8 @@ class ArticleController extends ApiAbstractController
     private const AUDIENCE_MAX = 30;
     private const PARAGRAPH_MAX = 5000;
     private const ALLOWED_LOCALES = ['fr', 'en'];
+    private const REWRITE_ACTIONS = ['improve-style', 'add-intro', 'optimize-seo'];
+    private const ALL_AI_ACTIONS = ['improve-style', 'add-intro', 'optimize-seo', 'suggestions'];
 
     public function __construct(
         private readonly JwtAuthService $jwtAuth,
@@ -127,6 +129,70 @@ class ArticleController extends ApiAbstractController
             'content' => $content,
             'wordCount' => $this->countWords($content),
         ]);
+    }
+
+    #[Route('/ai-action', name: 'api_articles_ai_action', methods: ['POST'])]
+    public function aiAction(Request $request): JsonResponse
+    {
+        $user = $this->jwtAuth->authenticate($request);
+        if (!$user) {
+            return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $data = $this->decodeBody($request);
+        if ($data === null) {
+            return $this->json(['error' => 'Corps de requête JSON invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $action = isset($data['action']) && is_string($data['action']) ? $data['action'] : '';
+        if (!in_array($action, self::ALL_AI_ACTIONS, true)) {
+            return $this->json(['error' => 'Action invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $title = isset($data['title']) && is_string($data['title']) ? trim($data['title']) : '';
+        if (mb_strlen($title) < self::TITLE_MIN || mb_strlen($title) > self::TITLE_MAX) {
+            return $this->json(
+                ['error' => 'Le titre doit contenir entre ' . self::TITLE_MIN . ' et ' . self::TITLE_MAX . ' caractères.'],
+                Response::HTTP_BAD_REQUEST,
+            );
+        }
+
+        $content = isset($data['content']) && is_string($data['content']) ? $data['content'] : '';
+        if (mb_strlen($content) > self::CONTENT_MAX) {
+            return $this->json(
+                ['error' => 'Le contenu est trop long (max ' . self::CONTENT_MAX . ' caractères).'],
+                Response::HTTP_BAD_REQUEST,
+            );
+        }
+
+        $locale = $this->parseLocale($data['locale'] ?? null);
+
+        // Suggestions n'a pas besoin de contenu obligatoirement, mais les 3 autres oui.
+        if (in_array($action, self::REWRITE_ACTIONS, true) && trim($content) === '') {
+            return $this->json(['error' => 'Le contenu est requis pour cette action.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $tone = $this->stringOrNull($data['tone'] ?? null, self::TONE_MAX);
+        $audience = $this->stringOrNull($data['audience'] ?? null, self::AUDIENCE_MAX);
+
+        try {
+            if ($action === 'suggestions') {
+                $suggestions = $this->generator->generateSuggestions($title, $content, $locale);
+                return $this->json(['suggestions' => $suggestions]);
+            }
+
+            $updatedContent = $this->generator->applyAction($action, $title, $content, $tone, $audience, $locale);
+            return $this->json([
+                'content' => $updatedContent,
+                'wordCount' => $this->countWords($updatedContent),
+            ]);
+        } catch (MistralGenerationException $e) {
+            $status = $this->mapHttpStatus($e->getCode());
+            return $this->json(['error' => $e->getMessage()], $status);
+        } catch (\Throwable $e) {
+            $this->logger->error('Erreur inattendue lors de l\'action IA.', ['action' => $action, 'exception' => $e->getMessage()]);
+            return $this->json(['error' => 'Erreur interne lors de l\'action IA.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     #[Route('/rewrite', name: 'api_articles_rewrite', methods: ['POST'])]

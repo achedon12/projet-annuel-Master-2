@@ -18,5 +18,6 @@ export const Urls = {
       publish: (id) => `/articles/${id}/publish`,
       generateContent: '/articles/generate-content',
       rewrite: '/articles/rewrite',
+      aiAction: '/articles/ai-action',
   },
 };

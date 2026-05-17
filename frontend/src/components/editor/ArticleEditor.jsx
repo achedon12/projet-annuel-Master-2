@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
@@ -14,6 +14,7 @@ import {
     TrendingUp,
     Share2,
     Loader2,
+    RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/Badge";
@@ -29,8 +30,14 @@ import { Progress } from "@/components/Progress";
 import { Slider } from "@/components/Slider";
 import { useTranslation } from "@/hooks/useI18n";
 import { API_URL, Urls } from "@/utils/Api";
+import { analyzeSeo, exportArticleAsMarkdown, exportArticleAsPdf } from "@/utils/articleSeo";
 
 const countWords = (text) => (text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0);
+
+const verdictBadgeVariant = (verdict) =>
+    verdict === "good" ? "default" : verdict === "fair" ? "secondary" : "outline";
+const verdictLabelKey = (verdict) =>
+    verdict === "good" ? "common.good" : verdict === "fair" ? "common.needsImprovement" : "common.needsImprovement";
 
 /**
  * Éditeur d'article : pilote la création (initialArticle=null) et l'édition (initialArticle=object).
@@ -54,6 +61,10 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
     const [isRewriting, setIsRewriting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
+    const [activeAction, setActiveAction] = useState(null); // 'improve-style' | 'add-intro' | 'optimize-seo' | null
+    const [suggestions, setSuggestions] = useState([]);
+    const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+    const [isExportingPdf, setIsExportingPdf] = useState(false);
 
     const token = session?.backendToken;
 
@@ -202,6 +213,132 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
         }
     };
 
+    const handleAiAction = async (action) => {
+        if (!token) {
+            toast.error(t("editor.toast.generateError"));
+            return;
+        }
+        if (title.trim().length < 2) {
+            toast.error(t("editor.toast.titleRequired"));
+            return;
+        }
+        if (!content.trim()) {
+            toast.error(t("editor.toast.contentRequired"));
+            return;
+        }
+        setActiveAction(action);
+        try {
+            const res = await fetch(`${API_URL}${Urls.articles.aiAction}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    action,
+                    title: title.trim(),
+                    content,
+                    tone: tone || null,
+                    audience: audience || null,
+                    locale,
+                }),
+            });
+            if (!res.ok) {
+                const message = await extractError(res, t(`editor.toast.${action.replace(/-/g, "")}Error`) || t("editor.toast.generateError"));
+                toast.error(message);
+                return;
+            }
+            const data = await res.json();
+            if (typeof data?.content === "string") {
+                setContent(data.content);
+                setWordCount(typeof data.wordCount === "number" ? data.wordCount : countWords(data.content));
+                toast.success(t(`editor.toast.${action.replace(/-/g, "")}Success`) || t("editor.toast.generated"));
+            } else {
+                toast.error(t("editor.toast.generateError"));
+            }
+        } catch (err) {
+            console.error("article.ai-action", action, err);
+            toast.error(t("editor.toast.generateError"));
+        } finally {
+            setActiveAction(null);
+        }
+    };
+
+    const handleLoadSuggestions = async () => {
+        if (!token) return;
+        if (title.trim().length < 2) {
+            toast.error(t("editor.toast.titleRequired"));
+            return;
+        }
+        setIsLoadingSuggestions(true);
+        try {
+            const res = await fetch(`${API_URL}${Urls.articles.aiAction}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    action: "suggestions",
+                    title: title.trim(),
+                    content,
+                    locale,
+                }),
+            });
+            if (!res.ok) {
+                const message = await extractError(res, t("editor.toast.suggestionsError"));
+                toast.error(message);
+                return;
+            }
+            const data = await res.json();
+            if (Array.isArray(data?.suggestions) && data.suggestions.length > 0) {
+                setSuggestions(data.suggestions);
+            } else {
+                toast.error(t("editor.toast.suggestionsError"));
+            }
+        } catch (err) {
+            console.error("article.suggestions", err);
+            toast.error(t("editor.toast.suggestionsError"));
+        } finally {
+            setIsLoadingSuggestions(false);
+        }
+    };
+
+    const handleExportMarkdown = () => {
+        if (!content.trim() && !title.trim()) {
+            toast.error(t("editor.toast.exportEmpty"));
+            return;
+        }
+        try {
+            exportArticleAsMarkdown(title, content);
+            toast.success(t("editor.toast.exportMd"));
+        } catch (err) {
+            console.error("article.export.md", err);
+            toast.error(t("editor.toast.exportError"));
+        }
+    };
+
+    const handleExportPdf = async () => {
+        if (!content.trim() && !title.trim()) {
+            toast.error(t("editor.toast.exportEmpty"));
+            return;
+        }
+        setIsExportingPdf(true);
+        try {
+            await exportArticleAsPdf(title, content);
+            toast.success(t("editor.toast.exportPdf"));
+        } catch (err) {
+            console.error("article.export.pdf", err);
+            toast.error(t("editor.toast.exportError"));
+        } finally {
+            setIsExportingPdf(false);
+        }
+    };
+
+    const handleExportNotion = () => {
+        toast.info(t("editor.toast.notionSoon"));
+    };
+
     const handleRewrite = async () => {
         if (!token || !content.trim()) {
             return;
@@ -241,12 +378,17 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
         }
     };
 
-    const seoScore = Math.min(100, Math.round((wordCount / targetWords[0]) * 85 + 15));
+    const seoAnalysis = useMemo(
+        () => analyzeSeo({ title, content, targetWords: targetWords[0] }),
+        [title, content, targetWords],
+    );
     const statusLabelKey = `history.status.${status}`;
     const statusLabel = (() => {
         const translated = t(statusLabelKey);
         return translated === statusLabelKey ? status : translated;
     })();
+    const isAnyAiActionRunning =
+        activeAction !== null || isGenerating || isRewriting || isLoadingSuggestions;
 
     return (
         <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
@@ -420,16 +562,46 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                                         <div className="space-y-3">
                                             <Label className="text-sm">{t("editor.quickActions")}</Label>
                                             <div className="space-y-2">
-                                                <Button variant="outline" size="sm" className="w-full justify-start" disabled>
-                                                    <Wand2 className="mr-2 h-4 w-4" />
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="w-full justify-start"
+                                                    onClick={() => handleAiAction("improve-style")}
+                                                    disabled={isAnyAiActionRunning || !content.trim() || title.trim().length < 2}
+                                                >
+                                                    {activeAction === "improve-style" ? (
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <Wand2 className="mr-2 h-4 w-4" />
+                                                    )}
                                                     {t("editor.improveStyle")}
                                                 </Button>
-                                                <Button variant="outline" size="sm" className="w-full justify-start" disabled>
-                                                    <FileText className="mr-2 h-4 w-4" />
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="w-full justify-start"
+                                                    onClick={() => handleAiAction("add-intro")}
+                                                    disabled={isAnyAiActionRunning || !content.trim() || title.trim().length < 2}
+                                                >
+                                                    {activeAction === "add-intro" ? (
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <FileText className="mr-2 h-4 w-4" />
+                                                    )}
                                                     {t("editor.addIntro")}
                                                 </Button>
-                                                <Button variant="outline" size="sm" className="w-full justify-start" disabled>
-                                                    <TrendingUp className="mr-2 h-4 w-4" />
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="w-full justify-start"
+                                                    onClick={() => handleAiAction("optimize-seo")}
+                                                    disabled={isAnyAiActionRunning || !content.trim() || title.trim().length < 2}
+                                                >
+                                                    {activeAction === "optimize-seo" ? (
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <TrendingUp className="mr-2 h-4 w-4" />
+                                                    )}
                                                     {t("editor.optimizeSeo")}
                                                 </Button>
                                             </div>
@@ -439,20 +611,37 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
 
                                 <Card>
                                     <CardHeader className="pb-3">
-                                        <CardTitle className="text-base">{t("editor.suggestionsTitle")}</CardTitle>
+                                        <div className="flex items-center justify-between gap-2">
+                                            <CardTitle className="text-base">{t("editor.suggestionsTitle")}</CardTitle>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={handleLoadSuggestions}
+                                                disabled={isLoadingSuggestions || title.trim().length < 2 || isAnyAiActionRunning}
+                                            >
+                                                {isLoadingSuggestions ? (
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <RefreshCw className="mr-2 h-4 w-4" />
+                                                )}
+                                                {t("editor.suggestionsRefresh")}
+                                            </Button>
+                                        </div>
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="space-y-3 text-sm">
-                                            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/40 p-3">
-                                                <p className="text-slate-600 dark:text-slate-300">{t("editor.suggestions.trends")}</p>
+                                        {suggestions.length === 0 ? (
+                                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                {t("editor.suggestionsEmpty")}
+                                            </p>
+                                        ) : (
+                                            <div className="space-y-3 text-sm">
+                                                {suggestions.map((suggestion, idx) => (
+                                                    <div key={idx} className="rounded-lg bg-slate-50 dark:bg-slate-800/40 p-3">
+                                                        <p className="text-slate-600 dark:text-slate-300">{suggestion}</p>
+                                                    </div>
+                                                ))}
                                             </div>
-                                            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/40 p-3">
-                                                <p className="text-slate-600 dark:text-slate-300">{t("editor.suggestions.examples")}</p>
-                                            </div>
-                                            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/40 p-3">
-                                                <p className="text-slate-600 dark:text-slate-300">{t("editor.suggestions.stats")}</p>
-                                            </div>
-                                        </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                             </TabsContent>
@@ -466,9 +655,9 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm">{t("editor.seo.global")}</span>
-                                                <span className="text-2xl text-emerald-600">{seoScore}%</span>
+                                                <span className="text-2xl text-emerald-600">{seoAnalysis.score}%</span>
                                             </div>
-                                            <Progress value={seoScore} className="h-2" />
+                                            <Progress value={seoAnalysis.score} className="h-2" />
                                         </div>
 
                                         <Separator />
@@ -476,25 +665,48 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="text-slate-600 dark:text-slate-400">{t("editor.seo.contentLength")}</span>
-                                                <Badge variant={wordCount >= targetWords[0] * 0.8 ? "default" : "secondary"}>
-                                                    {wordCount >= targetWords[0] * 0.8 ? t("common.good") : t("common.needsImprovement")}
+                                                <Badge variant={verdictBadgeVariant(seoAnalysis.checks.contentLength)}>
+                                                    {t(verdictLabelKey(seoAnalysis.checks.contentLength))}
                                                 </Badge>
                                             </div>
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="text-slate-600 dark:text-slate-400">{t("editor.seo.optimizedTitle")}</span>
-                                                <Badge variant={title.length > 30 ? "default" : "secondary"}>
-                                                    {title.length > 30 ? t("common.good") : t("common.needsImprovement")}
+                                                <Badge variant={verdictBadgeVariant(seoAnalysis.checks.optimizedTitle)}>
+                                                    {t(verdictLabelKey(seoAnalysis.checks.optimizedTitle))}
                                                 </Badge>
                                             </div>
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="text-slate-600 dark:text-slate-400">{t("editor.seo.structure")}</span>
-                                                <Badge variant="default">{t("common.good")}</Badge>
+                                                <Badge variant={verdictBadgeVariant(seoAnalysis.checks.structure)}>
+                                                    {t(verdictLabelKey(seoAnalysis.checks.structure))}
+                                                </Badge>
                                             </div>
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="text-slate-600 dark:text-slate-400">{t("editor.seo.keywords")}</span>
-                                                <Badge variant="secondary">{t("common.needsImprovement")}</Badge>
+                                                <Badge variant={verdictBadgeVariant(seoAnalysis.checks.keywords)}>
+                                                    {t(verdictLabelKey(seoAnalysis.checks.keywords))}
+                                                </Badge>
                                             </div>
                                         </div>
+                                    </CardContent>
+                                </Card>
+
+                                <Card>
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="text-base">{t("editor.seo.detected")}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {seoAnalysis.keywords.length === 0 ? (
+                                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                {t("editor.seo.detectedEmpty")}
+                                            </p>
+                                        ) : (
+                                            <div className="flex flex-wrap gap-2">
+                                                {seoAnalysis.keywords.map((kw) => (
+                                                    <Badge key={kw} variant="outline">{kw}</Badge>
+                                                ))}
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
 
@@ -503,15 +715,35 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                                         <CardTitle className="text-base">{t("editor.export.title")}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-2">
-                                        <Button variant="outline" size="sm" className="w-full justify-start" disabled>
-                                            <Share2 className="mr-2 h-4 w-4" />
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full justify-start"
+                                            onClick={handleExportPdf}
+                                            disabled={isExportingPdf}
+                                        >
+                                            {isExportingPdf ? (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Share2 className="mr-2 h-4 w-4" />
+                                            )}
                                             {t("editor.export.pdf")}
                                         </Button>
-                                        <Button variant="outline" size="sm" className="w-full justify-start" disabled>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full justify-start"
+                                            onClick={handleExportMarkdown}
+                                        >
                                             <Share2 className="mr-2 h-4 w-4" />
                                             {t("editor.export.markdown")}
                                         </Button>
-                                        <Button variant="outline" size="sm" className="w-full justify-start" disabled>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full justify-start"
+                                            onClick={handleExportNotion}
+                                        >
                                             <Share2 className="mr-2 h-4 w-4" />
                                             {t("editor.export.notion")}
                                         </Button>
