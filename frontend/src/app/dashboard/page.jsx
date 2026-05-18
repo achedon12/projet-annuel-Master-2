@@ -4,20 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/Card";
-import { Button } from "@/components/Button";
-import {
     FileText,
     TrendingUp,
     Calendar,
     Sparkles,
     ArrowRight,
     Loader2,
+    PenSquare,
+    Lightbulb,
+    History,
 } from "lucide-react";
 import {
     LineChart,
@@ -31,14 +26,16 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import { toast } from "sonner";
+import { Button } from "@/components/Button";
+import { PageShell, PageHeader, StatCard, SectionCard, EmptyState, StatusBadge } from "@/components/ui-kit";
 import { useTranslation } from "@/hooks/useI18n";
 import { API_URL, Urls } from "@/utils/Api";
 
-const STATUS_COLOR = {
-    published: "text-emerald-600 dark:text-emerald-400",
-    draft: "text-slate-500 dark:text-slate-400",
-    review: "text-amber-600 dark:text-amber-400",
-    archived: "text-slate-400 dark:text-slate-500",
+const STATUS_VARIANT = {
+    published: "published",
+    draft: "draft",
+    review: "review",
+    archived: "archived",
 };
 
 const shortDate = (iso, locale) => {
@@ -78,6 +75,11 @@ const formatCompactNumber = (value, locale) => {
     }
 };
 
+const firstName = (fullName) => {
+    if (!fullName || typeof fullName !== "string") return "";
+    return fullName.trim().split(/\s+/)[0] || "";
+};
+
 const Dashboard = () => {
     const { t, locale } = useTranslation();
     const { data: session, status: sessionStatus } = useSession();
@@ -87,6 +89,7 @@ const Dashboard = () => {
     const tRef = useRef(t);
     tRef.current = t;
     const token = session?.backendToken;
+    const userFirstName = firstName(session?.user?.name);
 
     useEffect(() => {
         if (sessionStatus !== "authenticated" || !token) return;
@@ -140,35 +143,36 @@ const Dashboard = () => {
     }));
     const recentArticles = stats.recentArticles || [];
 
+    const greetingTitle = userFirstName
+        ? t("dashboard.greeting", { name: userFirstName })
+        : t("dashboard.greetingGeneric");
+
     const kpis = [
         {
             key: "articles",
             icon: FileText,
-            iconBg: "bg-emerald-100 dark:bg-emerald-950/40",
-            iconColor: "text-emerald-600 dark:text-emerald-400",
+            tone: "emerald",
             value: totals.articles ?? 0,
         },
         {
             key: "words",
             icon: Sparkles,
-            iconBg: "bg-blue-100 dark:bg-blue-950/40",
-            iconColor: "text-blue-600 dark:text-blue-400",
+            tone: "blue",
             value: formatCompactNumber(totals.wordsTotal ?? 0, locale),
         },
         {
             key: "seoScore",
             icon: TrendingUp,
-            iconBg: "bg-amber-100 dark:bg-amber-950/40",
-            iconColor: "text-amber-600 dark:text-amber-400",
-            value: totals.seoAverage === null || totals.seoAverage === undefined
-                ? t("dashboard.stats.noSeo")
-                : `${totals.seoAverage}%`,
+            tone: "amber",
+            value:
+                totals.seoAverage === null || totals.seoAverage === undefined
+                    ? t("dashboard.stats.noSeo")
+                    : `${totals.seoAverage}%`,
         },
         {
             key: "lastActivity",
             icon: Calendar,
-            iconBg: "bg-slate-100 dark:bg-slate-800",
-            iconColor: "text-slate-600 dark:text-slate-300",
+            tone: "slate",
             value: totals.lastActivity
                 ? longDate(totals.lastActivity, locale)
                 : t("dashboard.stats.noActivity"),
@@ -176,176 +180,182 @@ const Dashboard = () => {
     ];
 
     return (
-        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
-            <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
-                <div>
-                    <h1 className="text-2xl md:text-3xl">{t("dashboard.title")}</h1>
-                    <p className="text-slate-600 dark:text-slate-400">{t("dashboard.subtitle")}</p>
-                </div>
+        <PageShell>
+            <PageHeader
+                eyebrow={t("dashboard.eyebrow")}
+                title={greetingTitle}
+                description={t("dashboard.subtitle")}
+                actions={
+                    <>
+                        <Button asChild variant="outline" className="rounded-lg">
+                            <Link href="/ideas">
+                                <Lightbulb className="mr-2 h-4 w-4" />
+                                {t("dashboard.quickActions.ideas")}
+                            </Link>
+                        </Button>
+                        <Button asChild className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
+                            <Link href="/editor">
+                                <PenSquare className="mr-2 h-4 w-4" />
+                                {t("dashboard.quickActions.newArticle")}
+                            </Link>
+                        </Button>
+                    </>
+                }
+            />
 
-                <div className="grid gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
-                    {kpis.map((kpi) => {
-                        const Icon = kpi.icon;
-                        return (
-                            <div
-                                key={kpi.key}
-                                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                                        {t(`dashboard.stats.${kpi.key}`)}
-                                    </span>
-                                    <span className={`grid h-9 w-9 place-items-center rounded-xl ${kpi.iconBg}`}>
-                                        <Icon className={`h-4 w-4 ${kpi.iconColor}`} />
-                                    </span>
-                                </div>
-                                <p className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-                                    {kpi.value}
-                                </p>
-                            </div>
-                        );
-                    })}
-                </div>
+            <div className="grid gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
+                {kpis.map((kpi) => (
+                    <StatCard
+                        key={kpi.key}
+                        label={t(`dashboard.stats.${kpi.key}`)}
+                        value={kpi.value}
+                        icon={kpi.icon}
+                        tone={kpi.tone}
+                    />
+                ))}
+            </div>
 
-                <div className="grid gap-6 lg:grid-cols-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t("dashboard.weekActivity.title")}</CardTitle>
-                            <CardDescription>
-                                {t("dashboard.weekActivity.description", { days: stats.windowDays })}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <ResponsiveContainer width="100%" height={280}>
-                                <AreaChart data={series} margin={{ left: -20, right: 8, top: 8, bottom: 0 }}>
-                                    <defs>
-                                        <linearGradient id="dashboardArticlesGrad" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#10b981" stopOpacity={0.35} />
-                                            <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-800" />
-                                    <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                                    <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                                    <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid #e2e8f0" }} />
-                                    <Area
-                                        type="monotone"
-                                        dataKey="articles"
-                                        stroke="#10b981"
-                                        strokeWidth={2.5}
-                                        fill="url(#dashboardArticlesGrad)"
-                                        name={t("dashboard.weekActivity.legend")}
-                                    />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
+            <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
+                <SectionCard
+                    title={t("dashboard.weekActivity.title")}
+                    description={t("dashboard.weekActivity.description", { days: stats.windowDays })}
+                    padding="md"
+                >
+                    <ResponsiveContainer width="100%" height={260}>
+                        <AreaChart data={series} margin={{ left: -16, right: 8, top: 4, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="dashboardArticlesGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.32} />
+                                    <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
+                            <XAxis dataKey="label" stroke="currentColor" className="text-slate-400 dark:text-slate-500" fontSize={11} tickLine={false} axisLine={false} />
+                            <YAxis allowDecimals={false} stroke="currentColor" className="text-slate-400 dark:text-slate-500" fontSize={11} tickLine={false} axisLine={false} />
+                            <Tooltip
+                                cursor={{ stroke: "#10b981", strokeOpacity: 0.2 }}
+                                contentStyle={{
+                                    borderRadius: 12,
+                                    fontSize: 12,
+                                    border: "1px solid rgb(226 232 240)",
+                                    background: "white",
+                                    boxShadow: "0 4px 12px -2px rgb(0 0 0 / 0.08)",
+                                }}
+                            />
+                            <Area
+                                type="monotone"
+                                dataKey="articles"
+                                stroke="#10b981"
+                                strokeWidth={2.5}
+                                fill="url(#dashboardArticlesGrad)"
+                                name={t("dashboard.weekActivity.legend")}
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </SectionCard>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t("dashboard.wordsChart.title")}</CardTitle>
-                            <CardDescription>
-                                {t("dashboard.wordsChart.description", { days: stats.windowDays })}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <ResponsiveContainer width="100%" height={280}>
-                                <LineChart data={series} margin={{ left: -20, right: 8, top: 8, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-800" />
-                                    <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                                    <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                                    <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid #e2e8f0" }} />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="words"
-                                        stroke="#3b82f6"
-                                        strokeWidth={2.5}
-                                        dot={false}
-                                        name={t("dashboard.wordsChart.legend")}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-                </div>
+                <SectionCard
+                    title={t("dashboard.wordsChart.title")}
+                    description={t("dashboard.wordsChart.description", { days: stats.windowDays })}
+                    padding="md"
+                >
+                    <ResponsiveContainer width="100%" height={260}>
+                        <LineChart data={series} margin={{ left: -16, right: 8, top: 4, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
+                            <XAxis dataKey="label" stroke="currentColor" className="text-slate-400 dark:text-slate-500" fontSize={11} tickLine={false} axisLine={false} />
+                            <YAxis allowDecimals={false} stroke="currentColor" className="text-slate-400 dark:text-slate-500" fontSize={11} tickLine={false} axisLine={false} />
+                            <Tooltip
+                                cursor={{ stroke: "#64748b", strokeOpacity: 0.2 }}
+                                contentStyle={{
+                                    borderRadius: 12,
+                                    fontSize: 12,
+                                    border: "1px solid rgb(226 232 240)",
+                                    background: "white",
+                                    boxShadow: "0 4px 12px -2px rgb(0 0 0 / 0.08)",
+                                }}
+                            />
+                            <Line
+                                type="monotone"
+                                dataKey="words"
+                                stroke="#475569"
+                                strokeWidth={2.5}
+                                dot={false}
+                                name={t("dashboard.wordsChart.legend")}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </SectionCard>
+            </div>
 
-                <div className="grid gap-6 lg:grid-cols-3">
-                    <Card className="lg:col-span-2">
-                        <CardHeader>
-                            <CardTitle>{t("dashboard.recent.title")}</CardTitle>
-                            <CardDescription>{t("dashboard.recent.description")}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {recentArticles.length === 0 ? (
-                                <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-700 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
-                                    {t("dashboard.recent.empty")}
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {recentArticles.map((article) => {
-                                        const statusLabel = t(`dashboard.recent.status.${article.status}`);
-                                        return (
-                                            <Link
-                                                key={article.id}
-                                                href={`/editor/${article.id}`}
-                                                className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-slate-300 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700"
-                                            >
-                                                <div className="min-w-0 space-y-1">
-                                                    <p className="truncate font-medium text-slate-900 dark:text-slate-100">{article.title}</p>
-                                                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                                                        <span>{longDate(article.updatedAt, locale)}</span>
-                                                        <span aria-hidden>•</span>
-                                                        <span className={STATUS_COLOR[article.status] || "text-slate-500 dark:text-slate-400"}>{statusLabel}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex shrink-0 items-center gap-3">
-                                                    <div className="text-right">
-                                                        <p className="text-[10px] uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                                                            {t("dashboard.recent.seoScoreLabel")}
-                                                        </p>
-                                                        <p className="text-base font-semibold text-emerald-600 dark:text-emerald-400">
-                                                            {article.seoScore === null || article.seoScore === undefined ? "—" : `${article.seoScore}%`}
-                                                        </p>
-                                                    </div>
-                                                    <ArrowRight className="h-4 w-4 text-slate-400 dark:text-slate-500" />
-                                                </div>
-                                            </Link>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t("dashboard.quickActions.title")}</CardTitle>
-                            <CardDescription>{t("dashboard.quickActions.description")}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            <Button asChild className="w-full justify-start" variant="outline">
-                                <Link href="/ideas">
-                                    <Sparkles className="mr-2 h-4 w-4" />
-                                    {t("dashboard.quickActions.ideas")}
-                                </Link>
-                            </Button>
-                            <Button asChild className="w-full justify-start">
+            <SectionCard
+                title={t("dashboard.recent.title")}
+                description={t("dashboard.recent.description")}
+                actions={
+                    <Button asChild variant="ghost" size="sm" className="rounded-lg text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-950/40">
+                        <Link href="/history">
+                            <History className="mr-2 h-4 w-4" />
+                            {t("dashboard.quickActions.history")}
+                        </Link>
+                    </Button>
+                }
+                padding="md"
+            >
+                {recentArticles.length === 0 ? (
+                    <EmptyState
+                        icon={FileText}
+                        title={t("dashboard.recent.emptyTitle")}
+                        description={t("dashboard.recent.empty")}
+                        action={
+                            <Button asChild className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
                                 <Link href="/editor">
-                                    <FileText className="mr-2 h-4 w-4" />
+                                    <PenSquare className="mr-2 h-4 w-4" />
                                     {t("dashboard.quickActions.newArticle")}
                                 </Link>
                             </Button>
-                            <Button asChild className="w-full justify-start" variant="outline">
-                                <Link href="/history">
-                                    <Calendar className="mr-2 h-4 w-4" />
-                                    {t("dashboard.quickActions.history")}
-                                </Link>
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-        </div>
+                        }
+                    />
+                ) : (
+                    <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {recentArticles.map((article) => {
+                            const statusLabel = t(`dashboard.recent.status.${article.status}`);
+                            const variant = STATUS_VARIANT[article.status] || "draft";
+                            return (
+                                <li key={article.id}>
+                                    <Link
+                                        href={`/editor/${article.id}`}
+                                        className="group flex items-center justify-between gap-4 rounded-xl px-3 py-3.5 -mx-3 transition hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                                    >
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                                {article.title}
+                                            </p>
+                                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                                                <StatusBadge variant={variant}>{statusLabel}</StatusBadge>
+                                                <span aria-hidden>•</span>
+                                                <span>{longDate(article.updatedAt, locale)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex shrink-0 items-center gap-4">
+                                            <div className="text-right">
+                                                <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                                    {t("dashboard.recent.seoScoreLabel")}
+                                                </p>
+                                                <p className="text-base font-semibold text-emerald-600 dark:text-emerald-400">
+                                                    {article.seoScore === null || article.seoScore === undefined
+                                                        ? "—"
+                                                        : `${article.seoScore}%`}
+                                                </p>
+                                            </div>
+                                            <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-emerald-500 dark:text-slate-600 dark:group-hover:text-emerald-400" />
+                                        </div>
+                                    </Link>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
+            </SectionCard>
+        </PageShell>
     );
 };
 

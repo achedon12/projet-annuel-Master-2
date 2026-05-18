@@ -8,10 +8,13 @@ import { useTranslation } from "@/hooks/useI18n";
 
 const SIDEBAR_ROUTES = ["/dashboard", "/history", "/ideas", "/settings", "/editor"];
 
+const matchesSidebarRoute = (pathname) =>
+    SIDEBAR_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"));
+
 export const LayoutWrapper = ({ children }) => {
     const pathname = usePathname();
     const { t } = useTranslation();
-    const showSidebar = SIDEBAR_ROUTES.includes(pathname);
+    const showSidebar = matchesSidebarRoute(pathname);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const toggleSidebar = () => setSidebarOpen(!sidebarOpen);

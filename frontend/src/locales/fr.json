@@ -262,7 +262,10 @@
   },
   "dashboard": {
     "title": "Bienvenue sur SEO Content AI",
-    "subtitle": "Voici un aperçu de votre activité",
+    "eyebrow": "Tableau de bord",
+    "greeting": "Bonjour, {name}",
+    "greetingGeneric": "Bonjour",
+    "subtitle": "Voici un aperçu de votre activité de création de contenu.",
     "loading": "Chargement de votre tableau de bord...",
     "loadError": "Impossible de charger votre tableau de bord.",
     "stats": {
@@ -287,7 +290,8 @@
       "title": "Articles récents",
       "description": "Vos derniers contenus mis à jour",
       "seoScoreLabel": "Score SEO",
-      "empty": "Aucun article pour le moment. Commencez par générer une idée ou écrire dans l'éditeur.",
+      "emptyTitle": "Pas encore d'article",
+      "empty": "Commencez par générer une idée ou écrire votre premier article dans l'éditeur.",
       "status": {
         "published": "Publié",
         "draft": "Brouillon",
@@ -305,7 +309,10 @@
   },
   "history": {
     "title": "Historique des publications",
-    "subtitle": "Gérez et suivez tous vos contenus",
+    "eyebrow": "Bibliothèque",
+    "subtitle": "Gérez et suivez tous vos contenus.",
+    "emptyTitle": "Aucun article",
+    "noMatchTitle": "Aucun résultat",
     "stats": {
       "total": "Total",
       "published": "Publiés",
@@ -363,7 +370,14 @@
   },
   "ideas": {
     "title": "Générateur d'idées",
-    "subtitle": "Laissez l'IA vous suggérer des sujets pertinents",
+    "eyebrow": "Idées",
+    "subtitle": "Laissez l'IA vous suggérer des sujets pertinents pour vos contenus.",
+    "emptyTitle": "Aucune idée générée",
+    "actions": {
+      "copy": "Copier le titre",
+      "like": "Idée intéressante",
+      "dislike": "Idée non pertinente"
+    },
     "configTitle": "Configuration de la génération",
     "configDescription": "Définissez vos paramètres pour obtenir des suggestions personnalisées",
     "mainKeyword": "Mot-clé principal",
@@ -518,7 +532,9 @@
   },
   "settings": {
     "title": "Paramètres",
-    "subTitle": "Gérez votre compte et vos préférences",
+    "eyebrow": "Compte",
+    "subTitle": "Gérez votre compte et vos préférences.",
+    "passwordDescription": "Modifiez votre mot de passe régulièrement pour garder votre compte en sécurité.",
     "tabs": {
       "profile": "Profil",
       "preferences": "Préférences",
@@ -592,10 +608,11 @@
     },
     "preferences": {
       "title": "Préférences de l'application",
-      "description": "Personnalisez votre expérience utilisateur",
+      "description": "Personnalisez votre expérience utilisateur.",
       "language": "Langue de l'interface",
       "timezone": "Fuseau horaire",
       "aiSettings": "Paramètres IA par défaut",
+      "aiDescription": "Configuration utilisée par défaut lors de la génération de contenu.",
       "defaultTone": "Ton de voix par défaut",
       "defaultWords": "Nombre de mots par défaut",
       "darkMode": "Mode sombre",
