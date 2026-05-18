@@ -4,9 +4,7 @@ import { use, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card";
 import { Button } from "@/components/Button";
-import { Badge } from "@/components/Badge";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -20,8 +18,16 @@ import {
 import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useI18n";
-import { AdminGuard } from "@/components/admin/AdminGuard";
-import { AdminNav } from "@/components/admin/AdminNav";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import {
+    Panel,
+    PanelBody,
+    PanelHeader,
+    LoadingState,
+    ErrorState,
+    EmptyState,
+    StatusPill,
+} from "@/components/admin/AdminUI";
 import { API_URL, Urls } from "@/utils/Api";
 
 const formatDate = (iso, locale) => {
@@ -36,6 +42,13 @@ const formatDate = (iso, locale) => {
         return iso;
     }
 };
+
+const MetaRow = ({ label, value }) => (
+    <div className="flex items-center justify-between gap-3 py-2.5 text-sm">
+        <span className="text-slate-500 dark:text-slate-400">{label}</span>
+        <span className="font-medium text-slate-900 dark:text-slate-100 text-right">{value}</span>
+    </div>
+);
 
 const AdminArticleDetailInner = ({ articleId }) => {
     const { t, locale } = useTranslation();
@@ -105,119 +118,89 @@ const AdminArticleDetailInner = ({ articleId }) => {
         }
     };
 
+    const statusLabel = (s) => {
+        if (!s) return "";
+        const key = `history.status.${s}`;
+        const v = t(key);
+        return v === key ? s : v;
+    };
+
+    const headerActions = (
+        <>
+            <Button asChild variant="outline" size="sm">
+                <Link href="/admin/articles">
+                    <ArrowLeft className="mr-1 h-4 w-4" />
+                    {t("admin.articles.detail.back")}
+                </Link>
+            </Button>
+            {article && (
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-900/40 dark:hover:bg-red-950/30"
+                    onClick={() => setConfirmDelete(true)}
+                >
+                    <Trash2 className="mr-1 h-4 w-4" />
+                    {t("admin.articles.detail.delete")}
+                </Button>
+            )}
+        </>
+    );
+
     return (
-        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
-            <div className="mx-auto max-w-5xl space-y-6">
-                <div>
-                    <h1 className="text-2xl md:text-3xl">{t("admin.articles.detail.title")}</h1>
+        <>
+            <AdminPageHeader
+                breadcrumb={[
+                    { label: t("admin.nav.articles"), href: "/admin/articles" },
+                    { label: article?.title || t("admin.articles.detail.title") },
+                ]}
+                title={article?.title || t("admin.articles.detail.title")}
+                description={article?.author ? `${article.author.name} · ${article.author.email}` : undefined}
+                actions={headerActions}
+            />
+
+            {loadState === "loading" ? (
+                <LoadingState />
+            ) : loadState === "notfound" ? (
+                <EmptyState label={t("admin.articles.detail.notFound")} />
+            ) : loadState === "error" || !article ? (
+                <ErrorState />
+            ) : (
+                <div className="grid gap-6 lg:grid-cols-3">
+                    <Panel className="lg:col-span-2">
+                        <PanelHeader title={t("admin.articles.detail.contentTitle")} />
+                        <PanelBody>
+                            <div className="prose prose-slate dark:prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed">
+                                {article.content || (
+                                    <p className="text-slate-500 dark:text-slate-400 italic">
+                                        {t("admin.articles.detail.noContent")}
+                                    </p>
+                                )}
+                            </div>
+                        </PanelBody>
+                    </Panel>
+
+                    <Panel>
+                        <PanelHeader title={t("admin.articles.detail.metaTitle")} />
+                        <PanelBody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            <div className="flex items-center justify-between py-2.5 text-sm">
+                                <span className="text-slate-500 dark:text-slate-400">{t("admin.articles.table.status")}</span>
+                                <StatusPill status={article.status}>{statusLabel(article.status)}</StatusPill>
+                            </div>
+                            {article.tone && <MetaRow label={t("admin.articles.detail.tone")} value={article.tone} />}
+                            {article.audience && <MetaRow label={t("admin.articles.detail.audience")} value={article.audience} />}
+                            {article.type && <MetaRow label={t("admin.articles.detail.type")} value={article.type} />}
+                            <MetaRow label={t("admin.articles.detail.wordCount")} value={article.wordCount ?? "—"} />
+                            <MetaRow label={t("admin.articles.detail.seoScore")} value={article.seoScore ?? "—"} />
+                            <MetaRow label={t("admin.articles.table.createdAt")} value={formatDate(article.createdAt, locale)} />
+                            <MetaRow label={t("admin.articles.detail.updatedAt")} value={formatDate(article.updatedAt, locale)} />
+                            {article.publishedAt && (
+                                <MetaRow label={t("admin.articles.detail.publishedAt")} value={formatDate(article.publishedAt, locale)} />
+                            )}
+                        </PanelBody>
+                    </Panel>
                 </div>
-
-                <AdminNav />
-
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <Button asChild variant="outline" size="sm">
-                        <Link href="/admin/articles">
-                            <ArrowLeft className="mr-1 h-4 w-4" />
-                            {t("admin.articles.detail.back")}
-                        </Link>
-                    </Button>
-                    {article && (
-                        <Button variant="outline" size="sm" className="text-red-600" onClick={() => setConfirmDelete(true)}>
-                            <Trash2 className="mr-1 h-4 w-4" />
-                            {t("admin.articles.detail.delete")}
-                        </Button>
-                    )}
-                </div>
-
-                {loadState === "loading" ? (
-                    <div className="flex items-center justify-center py-10 text-slate-500 dark:text-slate-400">
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t("admin.toast.loading")}
-                    </div>
-                ) : loadState === "notfound" ? (
-                    <div className="rounded-md border border-dashed dark:border-slate-700 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
-                        {t("admin.articles.detail.notFound")}
-                    </div>
-                ) : loadState === "error" || !article ? (
-                    <div className="rounded-md bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-600 dark:text-red-400">
-                        {t("admin.toast.loadError")}
-                    </div>
-                ) : (
-                    <div className="grid gap-6 lg:grid-cols-3">
-                        <Card className="lg:col-span-2">
-                            <CardHeader>
-                                <CardTitle>{article.title}</CardTitle>
-                                {article.author && (
-                                    <CardDescription>
-                                        {article.author.name} · {article.author.email}
-                                    </CardDescription>
-                                )}
-                            </CardHeader>
-                            <CardContent>
-                                <div className="prose prose-slate dark:prose-invert max-w-none whitespace-pre-wrap text-sm">
-                                    {article.content || (
-                                        <p className="text-slate-500 dark:text-slate-400 italic">
-                                            {t("admin.articles.detail.noContent")}
-                                        </p>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>{t("admin.articles.detail.metaTitle")}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">{t("admin.articles.table.status")}</span>
-                                    <Badge variant="secondary">{article.status}</Badge>
-                                </div>
-                                {article.tone && (
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-600 dark:text-slate-400">{t("admin.articles.detail.tone")}</span>
-                                        <span>{article.tone}</span>
-                                    </div>
-                                )}
-                                {article.audience && (
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-600 dark:text-slate-400">{t("admin.articles.detail.audience")}</span>
-                                        <span>{article.audience}</span>
-                                    </div>
-                                )}
-                                {article.type && (
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-600 dark:text-slate-400">{t("admin.articles.detail.type")}</span>
-                                        <span>{article.type}</span>
-                                    </div>
-                                )}
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">{t("admin.articles.detail.wordCount")}</span>
-                                    <span>{article.wordCount ?? "—"}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">{t("admin.articles.detail.seoScore")}</span>
-                                    <span>{article.seoScore ?? "—"}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">{t("admin.articles.table.createdAt")}</span>
-                                    <span>{formatDate(article.createdAt, locale)}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">{t("admin.articles.detail.updatedAt")}</span>
-                                    <span>{formatDate(article.updatedAt, locale)}</span>
-                                </div>
-                                {article.publishedAt && (
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-600 dark:text-slate-400">{t("admin.articles.detail.publishedAt")}</span>
-                                        <span>{formatDate(article.publishedAt, locale)}</span>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-                )}
-            </div>
+            )}
 
             <AlertDialog
                 open={confirmDelete}
@@ -245,17 +228,13 @@ const AdminArticleDetailInner = ({ articleId }) => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </>
     );
 };
 
 const AdminArticleDetailPage = ({ params }) => {
     const resolved = use(params);
-    return (
-        <AdminGuard>
-            <AdminArticleDetailInner articleId={resolved.id} />
-        </AdminGuard>
-    );
+    return <AdminArticleDetailInner articleId={resolved.id} />;
 };
 
 export default AdminArticleDetailPage;

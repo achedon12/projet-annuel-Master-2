@@ -2,15 +2,22 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card";
-import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
-import { Badge } from "@/components/Badge";
-import { Search, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useI18n";
-import { AdminGuard } from "@/components/admin/AdminGuard";
-import { AdminNav } from "@/components/admin/AdminNav";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import {
+    Panel,
+    PanelHeader,
+    PanelBody,
+    SearchInput,
+    LoadingState,
+    ErrorState,
+    EmptyState,
+    Pagination,
+    TableShell,
+    Th,
+    Td,
+} from "@/components/admin/AdminUI";
 import { API_URL, Urls } from "@/utils/Api";
 
 const PER_PAGE = 20;
@@ -28,7 +35,13 @@ const formatDate = (iso, locale) => {
     }
 };
 
-const AdminIdeasInner = () => {
+const Tag = ({ children }) => (
+    <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+        {children}
+    </span>
+);
+
+const AdminIdeasPage = () => {
     const { t, locale } = useTranslation();
     const { data: session, status: sessionStatus } = useSession();
     const [items, setItems] = useState([]);
@@ -73,139 +86,100 @@ const AdminIdeasInner = () => {
     }, [sessionStatus, fetchItems]);
 
     const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-    const onSearchChange = (value) => {
-        setSearch(value);
-        setPage(1);
-    };
+    const onSearchChange = (value) => { setSearch(value); setPage(1); };
 
     return (
-        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
-            <div className="mx-auto max-w-7xl space-y-6">
-                <div>
-                    <h1 className="text-2xl md:text-3xl">{t("admin.ideas.title")}</h1>
-                    <p className="text-slate-600 dark:text-slate-400">{t("admin.ideas.subtitle")}</p>
-                </div>
+        <>
+            <AdminPageHeader
+                breadcrumb={[{ label: t("admin.nav.ideas") }]}
+                title={t("admin.ideas.title")}
+                description={t("admin.users.subtitle", { count: total })}
+            />
 
-                <AdminNav />
-
-                <Card>
-                    <CardHeader>
-                        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                            <div>
-                                <CardTitle>{t("admin.ideas.listTitle")}</CardTitle>
-                                <CardDescription>{t("admin.users.subtitle", { count: total })}</CardDescription>
-                            </div>
-                            <div className="relative w-full md:w-72">
-                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-                                <Input
-                                    placeholder={t("admin.ideas.searchPlaceholder")}
-                                    value={search}
-                                    onChange={(e) => onSearchChange(e.target.value)}
-                                    className="pl-9"
-                                />
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        {loadState === "loading" ? (
-                            <div className="flex items-center justify-center py-10 text-slate-500 dark:text-slate-400">
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                {t("admin.toast.loading")}
-                            </div>
-                        ) : loadState === "error" ? (
-                            <div className="rounded-md bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-600 dark:text-red-400">
-                                {t("admin.toast.loadError")}
-                            </div>
-                        ) : items.length === 0 ? (
-                            <div className="rounded-md border border-dashed dark:border-slate-700 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
-                                {t("admin.ideas.empty")}
-                            </div>
-                        ) : (
-                            <>
-                                <div className="hidden md:block overflow-x-auto rounded-md border dark:border-slate-800">
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-slate-50 dark:bg-slate-800/40 text-left text-xs uppercase text-slate-500 dark:text-slate-400">
-                                            <tr>
-                                                <th className="px-4 py-2">{t("admin.ideas.table.keyword")}</th>
-                                                <th className="px-4 py-2">{t("admin.ideas.table.audience")}</th>
-                                                <th className="px-4 py-2">{t("admin.ideas.table.type")}</th>
-                                                <th className="px-4 py-2">{t("admin.ideas.table.author")}</th>
-                                                <th className="px-4 py-2">{t("admin.ideas.table.createdAt")}</th>
+            <Panel>
+                <PanelHeader
+                    title={t("admin.ideas.listTitle")}
+                    actions={
+                        <SearchInput
+                            value={search}
+                            onChange={onSearchChange}
+                            placeholder={t("admin.ideas.searchPlaceholder")}
+                            className="w-full md:w-72"
+                        />
+                    }
+                />
+                <PanelBody>
+                    {loadState === "loading" ? (
+                        <LoadingState />
+                    ) : loadState === "error" ? (
+                        <ErrorState />
+                    ) : items.length === 0 ? (
+                        <EmptyState label={t("admin.ideas.empty")} />
+                    ) : (
+                        <>
+                            <div className="hidden md:block">
+                                <TableShell>
+                                    <thead>
+                                        <tr>
+                                            <Th>{t("admin.ideas.table.keyword")}</Th>
+                                            <Th>{t("admin.ideas.table.audience")}</Th>
+                                            <Th>{t("admin.ideas.table.type")}</Th>
+                                            <Th>{t("admin.ideas.table.author")}</Th>
+                                            <Th>{t("admin.ideas.table.createdAt")}</Th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        {items.map((idea) => (
+                                            <tr key={idea.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                                                <Td>
+                                                    <p className="font-medium text-slate-900 dark:text-slate-100">{idea.keyword}</p>
+                                                </Td>
+                                                <Td className="text-slate-500 dark:text-slate-400">{idea.audience || "—"}</Td>
+                                                <Td>{idea.type ? <Tag>{idea.type}</Tag> : <span className="text-slate-400">—</span>}</Td>
+                                                <Td className="text-slate-500 dark:text-slate-400">
+                                                    {idea.author ? (
+                                                        <div>
+                                                            <p className="text-slate-700 dark:text-slate-300">{idea.author.name}</p>
+                                                            <p className="text-xs opacity-75 truncate">{idea.author.email}</p>
+                                                        </div>
+                                                    ) : "—"}
+                                                </Td>
+                                                <Td className="text-slate-500 dark:text-slate-400">{formatDate(idea.createdAt, locale)}</Td>
                                             </tr>
-                                        </thead>
-                                        <tbody className="divide-y dark:divide-slate-800">
-                                            {items.map((idea) => (
-                                                <tr key={idea.id}>
-                                                    <td className="px-4 py-3 font-medium">{idea.keyword}</td>
-                                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{idea.audience || "—"}</td>
-                                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{idea.type || "—"}</td>
-                                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                                                        {idea.author ? (
-                                                            <div>
-                                                                <p>{idea.author.name}</p>
-                                                                <p className="text-xs opacity-75">{idea.author.email}</p>
-                                                            </div>
-                                                        ) : "—"}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                                                        {formatDate(idea.createdAt, locale)}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <div className="md:hidden space-y-3">
-                                    {items.map((idea) => (
-                                        <div key={idea.id} className="rounded-md border dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-                                            <div className="flex items-start justify-between gap-2">
-                                                <p className="font-medium">{idea.keyword}</p>
-                                                {idea.type && <Badge variant="secondary">{idea.type}</Badge>}
-                                            </div>
-                                            {idea.audience && (
-                                                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{idea.audience}</p>
-                                            )}
-                                            {idea.author && (
-                                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                                    {idea.author.name} · {idea.author.email}
-                                                </p>
-                                            )}
-                                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                                {formatDate(idea.createdAt, locale)}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {total > PER_PAGE && (
-                            <div className="mt-4 flex items-center justify-between text-sm text-slate-600 dark:text-slate-400">
-                                <span>{t("admin.users.pagination", { page, totalPages })}</span>
-                                <div className="flex gap-2">
-                                    <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
-                                        <ChevronLeft className="mr-1 h-4 w-4" />
-                                        {t("admin.users.prev")}
-                                    </Button>
-                                    <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>
-                                        {t("admin.users.next")}
-                                        <ChevronRight className="ml-1 h-4 w-4" />
-                                    </Button>
-                                </div>
+                                        ))}
+                                    </tbody>
+                                </TableShell>
                             </div>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
+
+                            <div className="md:hidden space-y-3">
+                                {items.map((idea) => (
+                                    <div key={idea.id} className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <p className="font-medium text-slate-900 dark:text-slate-100">{idea.keyword}</p>
+                                            {idea.type && <Tag>{idea.type}</Tag>}
+                                        </div>
+                                        {idea.audience && (
+                                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{idea.audience}</p>
+                                        )}
+                                        {idea.author && (
+                                            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 truncate">
+                                                {idea.author.name} · {idea.author.email}
+                                            </p>
+                                        )}
+                                        <p className="mt-1 text-xs text-slate-400">
+                                            {formatDate(idea.createdAt, locale)}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    )}
+
+                    <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+                </PanelBody>
+            </Panel>
+        </>
     );
 };
-
-const AdminIdeasPage = () => (
-    <AdminGuard>
-        <AdminIdeasInner />
-    </AdminGuard>
-);
 
 export default AdminIdeasPage;

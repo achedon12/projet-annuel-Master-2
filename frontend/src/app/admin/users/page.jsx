@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card";
+import Link from "next/link";
 import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
-import { Badge } from "@/components/Badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -16,12 +15,23 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/AlertDialog";
-import { Search, Trash2, Loader2, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
-import Link from "next/link";
+import { Trash2, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useI18n";
-import { AdminGuard } from "@/components/admin/AdminGuard";
-import { AdminNav } from "@/components/admin/AdminNav";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import {
+    Panel,
+    PanelHeader,
+    PanelBody,
+    SearchInput,
+    LoadingState,
+    ErrorState,
+    EmptyState,
+    Pagination,
+    TableShell,
+    Th,
+    Td,
+} from "@/components/admin/AdminUI";
 import { API_URL, Urls } from "@/utils/Api";
 
 const PER_PAGE = 20;
@@ -39,7 +49,27 @@ const formatDate = (iso, locale) => {
     }
 };
 
-const AdminUsersInner = () => {
+const initialsOf = (name) =>
+    (name || "?")
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((s) => s[0]?.toUpperCase() ?? "")
+        .join("") || "?";
+
+const RoleBadge = ({ role }) => {
+    const cls =
+        role === "admin"
+            ? "bg-violet-100 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300"
+            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300";
+    return (
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${cls}`}>
+            {role}
+        </span>
+    );
+};
+
+const AdminUsersPage = () => {
     const { t, locale } = useTranslation();
     const { data: session, status: sessionStatus } = useSession();
     const [users, setUsers] = useState([]);
@@ -127,187 +157,159 @@ const AdminUsersInner = () => {
     };
 
     return (
-        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
-            <div className="mx-auto max-w-7xl space-y-6">
-                <div>
-                    <h1 className="text-2xl md:text-3xl">{t("admin.users.title")}</h1>
-                    <p className="text-slate-600 dark:text-slate-400">
-                        {t("admin.users.subtitle", { count: total })}
-                    </p>
-                </div>
+        <>
+            <AdminPageHeader
+                breadcrumb={[{ label: t("admin.nav.users") }]}
+                title={t("admin.users.title")}
+                description={t("admin.users.subtitle", { count: total })}
+            />
 
-                <AdminNav />
-
-                <Card>
-                    <CardHeader>
-                        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                            <div>
-                                <CardTitle>{t("admin.users.listTitle")}</CardTitle>
-                                <CardDescription>{t("admin.users.listHint")}</CardDescription>
-                            </div>
-                            <div className="relative w-full md:w-72">
-                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-                                <Input
-                                    placeholder={t("admin.users.searchPlaceholder")}
-                                    value={search}
-                                    onChange={(e) => handleSearchChange(e.target.value)}
-                                    className="pl-9"
-                                />
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        {loadState === "loading" ? (
-                            <div className="flex items-center justify-center py-10 text-slate-500 dark:text-slate-400">
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                {t("admin.toast.loading")}
-                            </div>
-                        ) : loadState === "error" ? (
-                            <div className="rounded-md bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-600 dark:text-red-400">
-                                {t("admin.toast.loadError")}
-                            </div>
-                        ) : users.length === 0 ? (
-                            <div className="rounded-md border border-dashed dark:border-slate-700 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
-                                {t("admin.users.empty")}
-                            </div>
-                        ) : (
-                            <>
-                                <div className="hidden md:block overflow-x-auto rounded-md border dark:border-slate-800">
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-slate-50 dark:bg-slate-800/40 text-left text-xs uppercase text-slate-500 dark:text-slate-400">
-                                            <tr>
-                                                <th className="px-4 py-2">{t("admin.users.table.user")}</th>
-                                                <th className="px-4 py-2">{t("admin.users.table.role")}</th>
-                                                <th className="px-4 py-2">{t("admin.users.table.articles")}</th>
-                                                <th className="px-4 py-2">{t("admin.users.table.createdAt")}</th>
-                                                <th className="px-4 py-2">{t("admin.users.table.lastLogin")}</th>
-                                                <th className="px-4 py-2 text-right">{t("admin.users.table.actions")}</th>
+            <Panel>
+                <PanelHeader
+                    title={t("admin.users.listTitle")}
+                    hint={t("admin.users.listHint")}
+                    actions={
+                        <SearchInput
+                            value={search}
+                            onChange={handleSearchChange}
+                            placeholder={t("admin.users.searchPlaceholder")}
+                            className="w-full md:w-72"
+                        />
+                    }
+                />
+                <PanelBody>
+                    {loadState === "loading" ? (
+                        <LoadingState />
+                    ) : loadState === "error" ? (
+                        <ErrorState />
+                    ) : users.length === 0 ? (
+                        <EmptyState label={t("admin.users.empty")} />
+                    ) : (
+                        <>
+                            <div className="hidden md:block">
+                                <TableShell>
+                                    <thead>
+                                        <tr>
+                                            <Th>{t("admin.users.table.user")}</Th>
+                                            <Th>{t("admin.users.table.role")}</Th>
+                                            <Th>{t("admin.users.table.articles")}</Th>
+                                            <Th>{t("admin.users.table.createdAt")}</Th>
+                                            <Th>{t("admin.users.table.lastLogin")}</Th>
+                                            <Th className="text-right">{t("admin.users.table.actions")}</Th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        {users.map((user) => (
+                                            <tr
+                                                key={user.id}
+                                                className={
+                                                    user.id === currentUserId
+                                                        ? "bg-emerald-50/40 dark:bg-emerald-950/10"
+                                                        : "hover:bg-slate-50 dark:hover:bg-slate-800/30"
+                                                }
+                                            >
+                                                <Td>
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-8 w-8">
+                                                            <AvatarImage src={user.avatar || ""} alt={user.name} />
+                                                            <AvatarFallback>{initialsOf(user.name)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div className="min-w-0">
+                                                            <p className="font-medium text-slate-900 dark:text-slate-100 truncate">{user.name}</p>
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                                                        </div>
+                                                    </div>
+                                                </Td>
+                                                <Td><RoleBadge role={user.role} /></Td>
+                                                <Td className="text-slate-500 dark:text-slate-400">{user.articleCount ?? 0}</Td>
+                                                <Td className="text-slate-500 dark:text-slate-400">{formatDate(user.createdAt, locale)}</Td>
+                                                <Td className="text-slate-500 dark:text-slate-400">{formatDate(user.lastLogin, locale)}</Td>
+                                                <Td className="text-right">
+                                                    <div className="flex justify-end gap-1">
+                                                        <Button asChild variant="ghost" size="icon" title={t("admin.userDetail.title")}>
+                                                            <Link href={`/admin/users/${user.id}`}>
+                                                                <Pencil className="h-4 w-4" />
+                                                            </Link>
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => setPendingDeleteId(user.id)}
+                                                            disabled={user.id === currentUserId}
+                                                            title={user.id === currentUserId ? t("admin.users.selfDeleteHint") : ""}
+                                                            className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </Td>
                                             </tr>
-                                        </thead>
-                                        <tbody className="divide-y dark:divide-slate-800">
-                                            {users.map((user) => (
-                                                <tr key={user.id} className={user.id === currentUserId ? "bg-emerald-50/40 dark:bg-emerald-950/20" : ""}>
-                                                    <td className="px-4 py-3">
-                                                        <div>
-                                                            <p className="font-medium">{user.name}</p>
-                                                            <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-3">
-                                                        <Badge variant={user.role === "admin" ? "default" : "secondary"}>
-                                                            {user.role}
-                                                        </Badge>
-                                                    </td>
-                                                    <td className="px-4 py-3">{user.articleCount ?? 0}</td>
-                                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                                                        {formatDate(user.createdAt, locale)}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                                                        {formatDate(user.lastLogin, locale)}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-right">
-                                                        <div className="flex justify-end gap-1">
-                                                            <Button asChild variant="ghost" size="icon" title={t("admin.userDetail.title")}>
-                                                                <Link href={`/admin/users/${user.id}`}>
-                                                                    <Pencil className="h-4 w-4" />
-                                                                </Link>
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => setPendingDeleteId(user.id)}
-                                                                disabled={user.id === currentUserId}
-                                                                title={user.id === currentUserId ? t("admin.users.selfDeleteHint") : ""}
-                                                                className="text-red-600"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                        ))}
+                                    </tbody>
+                                </TableShell>
+                            </div>
 
-                                <div className="md:hidden space-y-3">
-                                    {users.map((user) => (
-                                        <div
-                                            key={user.id}
-                                            className={
-                                                "rounded-md border dark:border-slate-800 p-4 " +
-                                                (user.id === currentUserId ? "bg-emerald-50/40 dark:bg-emerald-950/20" : "bg-white dark:bg-slate-900")
-                                            }
-                                        >
-                                            <div className="flex items-start justify-between gap-2">
+                            <div className="md:hidden space-y-3">
+                                {users.map((user) => (
+                                    <div
+                                        key={user.id}
+                                        className={
+                                            "rounded-xl border p-4 " +
+                                            (user.id === currentUserId
+                                                ? "border-emerald-200 bg-emerald-50/40 dark:border-emerald-900/40 dark:bg-emerald-950/10"
+                                                : "border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900")
+                                        }
+                                    >
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <Avatar className="h-9 w-9">
+                                                    <AvatarImage src={user.avatar || ""} alt={user.name} />
+                                                    <AvatarFallback>{initialsOf(user.name)}</AvatarFallback>
+                                                </Avatar>
                                                 <div className="min-w-0">
-                                                    <p className="font-medium truncate">{user.name}</p>
+                                                    <p className="font-medium truncate text-slate-900 dark:text-slate-100">{user.name}</p>
                                                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
                                                 </div>
-                                                <Badge variant={user.role === "admin" ? "default" : "secondary"}>{user.role}</Badge>
                                             </div>
-                                            <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400">
-                                                <div>
-                                                    <p className="uppercase text-[10px] opacity-70">{t("admin.users.table.articles")}</p>
-                                                    <p>{user.articleCount ?? 0}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="uppercase text-[10px] opacity-70">{t("admin.users.table.lastLogin")}</p>
-                                                    <p>{formatDate(user.lastLogin, locale)}</p>
-                                                </div>
+                                            <RoleBadge role={user.role} />
+                                        </div>
+                                        <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-500 dark:text-slate-400">
+                                            <div>
+                                                <p className="uppercase text-[10px] tracking-wide opacity-70">{t("admin.users.table.articles")}</p>
+                                                <p className="text-slate-700 dark:text-slate-200">{user.articleCount ?? 0}</p>
                                             </div>
-                                            <div className="mt-3 flex justify-end gap-2">
-                                                <Button asChild variant="outline" size="sm">
-                                                    <Link href={`/admin/users/${user.id}`}>
-                                                        <Pencil className="mr-1 h-3.5 w-3.5" />
-                                                        {t("admin.userDetail.title")}
-                                                    </Link>
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => setPendingDeleteId(user.id)}
-                                                    disabled={user.id === currentUserId}
-                                                    className="text-red-600"
-                                                >
-                                                    <Trash2 className="mr-1 h-3.5 w-3.5" />
-                                                    {t("admin.users.deleteOk")}
-                                                </Button>
+                                            <div>
+                                                <p className="uppercase text-[10px] tracking-wide opacity-70">{t("admin.users.table.lastLogin")}</p>
+                                                <p className="text-slate-700 dark:text-slate-200">{formatDate(user.lastLogin, locale)}</p>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {total > PER_PAGE && (
-                            <div className="mt-4 flex items-center justify-between text-sm text-slate-600 dark:text-slate-400">
-                                <span>{t("admin.users.pagination", { page, totalPages })}</span>
-                                <div className="flex gap-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                        disabled={page <= 1}
-                                    >
-                                        <ChevronLeft className="mr-1 h-4 w-4" />
-                                        {t("admin.users.prev")}
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                                        disabled={page >= totalPages}
-                                    >
-                                        {t("admin.users.next")}
-                                        <ChevronRight className="ml-1 h-4 w-4" />
-                                    </Button>
-                                </div>
+                                        <div className="mt-3 flex justify-end gap-2">
+                                            <Button asChild variant="outline" size="sm">
+                                                <Link href={`/admin/users/${user.id}`}>
+                                                    <Pencil className="mr-1 h-3.5 w-3.5" />
+                                                    {t("admin.userDetail.title")}
+                                                </Link>
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setPendingDeleteId(user.id)}
+                                                disabled={user.id === currentUserId}
+                                                className="text-red-600 border-red-200 dark:border-red-900/40"
+                                            >
+                                                <Trash2 className="mr-1 h-3.5 w-3.5" />
+                                                {t("admin.users.deleteOk")}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
+                        </>
+                    )}
+
+                    <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+                </PanelBody>
+            </Panel>
 
             <AlertDialog
                 open={pendingDeleteId !== null}
@@ -335,14 +337,8 @@ const AdminUsersInner = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </>
     );
 };
-
-const AdminUsersPage = () => (
-    <AdminGuard>
-        <AdminUsersInner />
-    </AdminGuard>
-);
 
 export default AdminUsersPage;

@@ -3,11 +3,10 @@
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Label } from "@/components/Label";
-import { Badge } from "@/components/Badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar";
 import {
     Select,
     SelectContent,
@@ -15,11 +14,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/Select";
-import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { ArrowLeft, Loader2, Save, FileText, Lightbulb, ShieldCheck, Calendar, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useI18n";
-import { AdminGuard } from "@/components/admin/AdminGuard";
-import { AdminNav } from "@/components/admin/AdminNav";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { Panel, PanelBody, PanelHeader, LoadingState, ErrorState, EmptyState } from "@/components/admin/AdminUI";
 import { API_URL, Urls } from "@/utils/Api";
 
 const formatDate = (iso, locale) => {
@@ -34,6 +33,26 @@ const formatDate = (iso, locale) => {
         return iso;
     }
 };
+
+const initialsOf = (name) =>
+    (name || "?")
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((s) => s[0]?.toUpperCase() ?? "")
+        .join("") || "?";
+
+const StatRow = ({ icon: Icon, label, value, iconBg, iconColor }) => (
+    <div className="flex items-center justify-between gap-3 py-2.5">
+        <div className="flex items-center gap-3">
+            <span className={`grid h-8 w-8 place-items-center rounded-lg ${iconBg}`}>
+                <Icon className={`h-4 w-4 ${iconColor}`} />
+            </span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">{label}</span>
+        </div>
+        <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{value}</span>
+    </div>
+);
 
 const AdminUserDetailInner = ({ userId }) => {
     const { t, locale } = useTranslation();
@@ -117,44 +136,50 @@ const AdminUserDetailInner = ({ userId }) => {
         }
     };
 
+    const backAction = (
+        <Button asChild variant="outline" size="sm">
+            <Link href="/admin/users">
+                <ArrowLeft className="mr-1 h-4 w-4" />
+                {t("admin.userDetail.back")}
+            </Link>
+        </Button>
+    );
+
     return (
-        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
-            <div className="mx-auto max-w-4xl space-y-6">
-                <div>
-                    <h1 className="text-2xl md:text-3xl">{t("admin.userDetail.title")}</h1>
-                    <p className="text-slate-600 dark:text-slate-400">{t("admin.userDetail.subtitle")}</p>
-                </div>
+        <>
+            <AdminPageHeader
+                breadcrumb={[
+                    { label: t("admin.nav.users"), href: "/admin/users" },
+                    { label: user?.name || t("admin.userDetail.title") },
+                ]}
+                title={user?.name || t("admin.userDetail.title")}
+                description={t("admin.userDetail.subtitle")}
+                actions={backAction}
+            />
 
-                <AdminNav />
+            {loadState === "loading" ? (
+                <LoadingState />
+            ) : loadState === "notfound" ? (
+                <EmptyState label={t("admin.userDetail.notFound")} />
+            ) : loadState === "error" || !user ? (
+                <ErrorState />
+            ) : (
+                <div className="grid gap-6 lg:grid-cols-3">
+                    <Panel className="lg:col-span-2">
+                        <PanelHeader title={t("admin.userDetail.infoTitle")} hint={t("admin.userDetail.infoHint")} />
+                        <PanelBody className="space-y-5">
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-16 w-16">
+                                    <AvatarImage src={user.avatar || ""} alt={user.name} />
+                                    <AvatarFallback className="text-lg">{initialsOf(user.name)}</AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0">
+                                    <p className="text-base font-semibold text-slate-900 dark:text-slate-100 truncate">{user.name}</p>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                                </div>
+                            </div>
 
-                <Button asChild variant="outline" size="sm">
-                    <Link href="/admin/users">
-                        <ArrowLeft className="mr-1 h-4 w-4" />
-                        {t("admin.userDetail.back")}
-                    </Link>
-                </Button>
-
-                {loadState === "loading" ? (
-                    <div className="flex items-center justify-center py-10 text-slate-500 dark:text-slate-400">
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t("admin.toast.loading")}
-                    </div>
-                ) : loadState === "notfound" ? (
-                    <div className="rounded-md border border-dashed dark:border-slate-700 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
-                        {t("admin.userDetail.notFound")}
-                    </div>
-                ) : loadState === "error" || !user ? (
-                    <div className="rounded-md bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-600 dark:text-red-400">
-                        {t("admin.toast.loadError")}
-                    </div>
-                ) : (
-                    <div className="grid gap-6 lg:grid-cols-3">
-                        <Card className="lg:col-span-2">
-                            <CardHeader>
-                                <CardTitle>{t("admin.userDetail.infoTitle")}</CardTitle>
-                                <CardDescription>{t("admin.userDetail.infoHint")}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
+                            <div className="grid gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
                                     <Label htmlFor="name">{t("admin.userDetail.nameLabel")}</Label>
                                     <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={100} />
@@ -163,77 +188,88 @@ const AdminUserDetailInner = ({ userId }) => {
                                     <Label htmlFor="email">{t("admin.userDetail.emailLabel")}</Label>
                                     <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="role">{t("admin.userDetail.roleLabel")}</Label>
-                                    <Select value={role} onValueChange={setRole} disabled={isSelf}>
-                                        <SelectTrigger id="role">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="user">{t("admin.userDetail.roleUser")}</SelectItem>
-                                            <SelectItem value="admin">{t("admin.userDetail.roleAdmin")}</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    {isSelf && (
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                                            {t("admin.userDetail.selfRoleHint")}
-                                        </p>
-                                    )}
-                                </div>
-                                <div className="flex justify-end">
-                                    <Button onClick={handleSave} disabled={isSaving}>
-                                        {isSaving ? (
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <Save className="mr-2 h-4 w-4" />
-                                        )}
-                                        {isSaving ? t("admin.userDetail.saving") : t("admin.userDetail.save")}
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
+                            </div>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>{t("admin.userDetail.statsTitle")}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">{t("admin.userDetail.articlesCount")}</span>
-                                    <Badge variant="secondary">{user.articleCount ?? 0}</Badge>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">{t("admin.userDetail.ideasCount")}</span>
-                                    <Badge variant="secondary">{user.ideaCount ?? 0}</Badge>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">{t("admin.userDetail.loginIpsCount")}</span>
-                                    <Badge variant="secondary">{user.loginIpCount ?? 0}</Badge>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">{t("admin.userDetail.createdAt")}</span>
-                                    <span>{formatDate(user.createdAt, locale)}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">{t("admin.userDetail.lastLogin")}</span>
-                                    <span>{formatDate(user.lastLogin, locale)}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                )}
-            </div>
-        </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="role">{t("admin.userDetail.roleLabel")}</Label>
+                                <Select value={role} onValueChange={setRole} disabled={isSelf}>
+                                    <SelectTrigger id="role" className="w-full md:w-64">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="user">{t("admin.userDetail.roleUser")}</SelectItem>
+                                        <SelectItem value="admin">{t("admin.userDetail.roleAdmin")}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {isSelf && (
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        {t("admin.userDetail.selfRoleHint")}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="flex justify-end pt-2">
+                                <Button onClick={handleSave} disabled={isSaving}>
+                                    {isSaving ? (
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Save className="mr-2 h-4 w-4" />
+                                    )}
+                                    {isSaving ? t("admin.userDetail.saving") : t("admin.userDetail.save")}
+                                </Button>
+                            </div>
+                        </PanelBody>
+                    </Panel>
+
+                    <Panel>
+                        <PanelHeader title={t("admin.userDetail.statsTitle")} />
+                        <PanelBody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            <StatRow
+                                icon={FileText}
+                                iconBg="bg-emerald-100 dark:bg-emerald-950/40"
+                                iconColor="text-emerald-600 dark:text-emerald-400"
+                                label={t("admin.userDetail.articlesCount")}
+                                value={user.articleCount ?? 0}
+                            />
+                            <StatRow
+                                icon={Lightbulb}
+                                iconBg="bg-amber-100 dark:bg-amber-950/40"
+                                iconColor="text-amber-600 dark:text-amber-400"
+                                label={t("admin.userDetail.ideasCount")}
+                                value={user.ideaCount ?? 0}
+                            />
+                            <StatRow
+                                icon={ShieldCheck}
+                                iconBg="bg-blue-100 dark:bg-blue-950/40"
+                                iconColor="text-blue-600 dark:text-blue-400"
+                                label={t("admin.userDetail.loginIpsCount")}
+                                value={user.loginIpCount ?? 0}
+                            />
+                            <StatRow
+                                icon={Calendar}
+                                iconBg="bg-slate-100 dark:bg-slate-800"
+                                iconColor="text-slate-600 dark:text-slate-300"
+                                label={t("admin.userDetail.createdAt")}
+                                value={formatDate(user.createdAt, locale)}
+                            />
+                            <StatRow
+                                icon={Clock}
+                                iconBg="bg-slate-100 dark:bg-slate-800"
+                                iconColor="text-slate-600 dark:text-slate-300"
+                                label={t("admin.userDetail.lastLogin")}
+                                value={formatDate(user.lastLogin, locale)}
+                            />
+                        </PanelBody>
+                    </Panel>
+                </div>
+            )}
+        </>
     );
 };
 
 const AdminUserDetailPage = ({ params }) => {
     const resolved = use(params);
-    return (
-        <AdminGuard>
-            <AdminUserDetailInner userId={resolved.id} />
-        </AdminGuard>
-    );
+    return <AdminUserDetailInner userId={resolved.id} />;
 };
 
 export default AdminUserDetailPage;

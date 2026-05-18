@@ -5,41 +5,20 @@ import { useSession } from "next-auth/react";
 import {
     Area,
     AreaChart,
-    Bar,
-    BarChart,
     CartesianGrid,
-    Cell,
-    Legend,
     Line,
     LineChart,
-    Pie,
-    PieChart,
     ResponsiveContainer,
     Tooltip,
     XAxis,
     YAxis,
 } from "recharts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card";
-import { Badge } from "@/components/Badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar";
 import { Users, FileText, Lightbulb, Mail, Ban, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useI18n";
-import { AdminGuard } from "@/components/admin/AdminGuard";
-import { AdminNav } from "@/components/admin/AdminNav";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { API_URL, Urls } from "@/utils/Api";
-
-const STATUS_COLOR = {
-    draft: "#94a3b8",
-    review: "#f59e0b",
-    published: "#10b981",
-    archived: "#64748b",
-    pending: "#f59e0b",
-    processing: "#3b82f6",
-    sent: "#10b981",
-    failed: "#ef4444",
-    unknown: "#cbd5e1",
-};
 
 const initialsOf = (name) =>
     (name || "?")
@@ -61,7 +40,72 @@ const shortDate = (iso, locale) => {
     }
 };
 
-const AdminDashboardInner = () => {
+const KPIS = [
+    {
+        key: "users",
+        icon: Users,
+        iconBg: "bg-blue-100 dark:bg-blue-950/40",
+        iconColor: "text-blue-600 dark:text-blue-400",
+    },
+    {
+        key: "articles",
+        icon: FileText,
+        iconBg: "bg-emerald-100 dark:bg-emerald-950/40",
+        iconColor: "text-emerald-600 dark:text-emerald-400",
+    },
+    {
+        key: "ideas",
+        icon: Lightbulb,
+        iconBg: "bg-amber-100 dark:bg-amber-950/40",
+        iconColor: "text-amber-600 dark:text-amber-400",
+    },
+    {
+        key: "mails",
+        icon: Mail,
+        iconBg: "bg-purple-100 dark:bg-purple-950/40",
+        iconColor: "text-purple-600 dark:text-purple-400",
+    },
+    {
+        key: "bannedIps",
+        icon: Ban,
+        iconBg: "bg-red-100 dark:bg-red-950/40",
+        iconColor: "text-red-600 dark:text-red-400",
+    },
+    {
+        key: "loginEvents",
+        icon: ShieldCheck,
+        iconBg: "bg-slate-100 dark:bg-slate-800",
+        iconColor: "text-slate-600 dark:text-slate-300",
+    },
+];
+
+const KpiCard = ({ icon: Icon, iconBg, iconColor, label, value }) => (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-center justify-between">
+            <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                {label}
+            </span>
+            <span className={`grid h-9 w-9 place-items-center rounded-xl ${iconBg}`}>
+                <Icon className={`h-4 w-4 ${iconColor}`} />
+            </span>
+        </div>
+        <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+            {value}
+        </p>
+    </div>
+);
+
+const ChartCard = ({ title, hint, children }) => (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-4">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
+            {hint && <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{hint}</p>}
+        </div>
+        <div className="h-64">{children}</div>
+    </div>
+);
+
+const AdminDashboard = () => {
     const { t, locale } = useTranslation();
     const { data: session, status: sessionStatus } = useSession();
     const [stats, setStats] = useState(null);
@@ -102,7 +146,7 @@ const AdminDashboardInner = () => {
 
     if (loadState === "loading") {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
+            <div className="flex h-64 items-center justify-center text-slate-600 dark:text-slate-400">
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 {t("admin.toast.loading")}
             </div>
@@ -111,7 +155,7 @@ const AdminDashboardInner = () => {
 
     if (loadState === "error" || !stats) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
                 {t("admin.toast.loadError")}
             </div>
         );
@@ -123,203 +167,118 @@ const AdminDashboardInner = () => {
             label: shortDate(bucket.date, locale),
         }));
 
-    const articlesStatusData = Object.entries(stats.articlesByStatus || {}).map(([status, count]) => ({
-        status,
-        statusLabel: (() => {
-            const key = `history.status.${status}`;
-            const translated = t(key);
-            return translated === key ? status : translated;
-        })(),
-        count,
-        fill: STATUS_COLOR[status] || STATUS_COLOR.unknown,
-    }));
-
-    const mailsStatusData = Object.entries(stats.mailsByStatus || {}).map(([status, count]) => ({
-        name: status,
-        value: count,
-        fill: STATUS_COLOR[status] || STATUS_COLOR.unknown,
-    }));
-
-    const kpis = [
-        { key: "users", icon: Users, color: "text-blue-600", value: stats.totals.users },
-        { key: "articles", icon: FileText, color: "text-emerald-600", value: stats.totals.articles },
-        { key: "ideas", icon: Lightbulb, color: "text-amber-600", value: stats.totals.ideas },
-        { key: "mails", icon: Mail, color: "text-purple-600", value: stats.totals.mails },
-        { key: "bannedIps", icon: Ban, color: "text-red-600", value: stats.totals.bannedIps },
-        { key: "loginEvents", icon: ShieldCheck, color: "text-slate-600 dark:text-slate-300", value: stats.totals.loginEvents },
-    ];
-
     return (
-        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
-            <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
-                <div>
-                    <h1 className="text-2xl md:text-3xl">{t("admin.title")}</h1>
-                    <p className="text-slate-600 dark:text-slate-400">
-                        {t("admin.subtitle", { days: stats.windowDays })}
+        <>
+            <AdminPageHeader
+                title={t("admin.title")}
+                description={t("admin.subtitle", { days: stats.windowDays })}
+            />
+
+            <section className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 mb-8">
+                {KPIS.map((kpi) => (
+                    <KpiCard
+                        key={kpi.key}
+                        icon={kpi.icon}
+                        iconBg={kpi.iconBg}
+                        iconColor={kpi.iconColor}
+                        label={t(`admin.kpi.${kpi.key}`)}
+                        value={stats.totals[kpi.key]}
+                    />
+                ))}
+            </section>
+
+            <section className="grid gap-6 lg:grid-cols-2 mb-8">
+                <ChartCard
+                    title={t("admin.charts.signups")}
+                    hint={t("admin.charts.signupsHint", { days: stats.windowDays })}
+                >
+                    <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={seriesForChart(stats.series.signups)} margin={{ left: -20, right: 8, top: 8, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-800" />
+                            <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                            <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                            <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid #e2e8f0" }} />
+                            <Line
+                                type="monotone"
+                                dataKey="count"
+                                stroke="#3b82f6"
+                                strokeWidth={2.5}
+                                dot={false}
+                                name={t("admin.charts.signups")}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+
+                <ChartCard
+                    title={t("admin.charts.articlesPerDay")}
+                    hint={t("admin.charts.articlesHint", { days: stats.windowDays })}
+                >
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={seriesForChart(stats.series.articles)} margin={{ left: -20, right: 8, top: 8, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="articlesGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.35} />
+                                    <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-800" />
+                            <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                            <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                            <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid #e2e8f0" }} />
+                            <Area
+                                type="monotone"
+                                dataKey="count"
+                                stroke="#10b981"
+                                strokeWidth={2.5}
+                                fill="url(#articlesGrad)"
+                                name={t("admin.charts.articlesPerDay")}
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </ChartCard>
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="mb-4">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {t("admin.topAuthors.title")}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        {t("admin.topAuthors.description")}
                     </p>
                 </div>
-
-                <AdminNav />
-
-                <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-                    {kpis.map((kpi) => {
-                        const Icon = kpi.icon;
-                        return (
-                            <Card key={kpi.key}>
-                                <CardHeader className="pb-3">
-                                    <div className="flex items-center justify-between">
-                                        <CardDescription>{t(`admin.kpi.${kpi.key}`)}</CardDescription>
-                                        <Icon className={`h-5 w-5 ${kpi.color}`} />
+                {stats.topAuthors.length === 0 ? (
+                    <p className="rounded-xl border border-dashed border-slate-200 dark:border-slate-700 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                        {t("admin.topAuthors.empty")}
+                    </p>
+                ) : (
+                    <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {stats.topAuthors.map((author, idx) => (
+                            <li key={author.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-slate-100 text-[11px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                                        {idx + 1}
+                                    </span>
+                                    <Avatar className="h-9 w-9 shrink-0">
+                                        <AvatarImage src={author.avatar || ""} alt={author.name} />
+                                        <AvatarFallback>{initialsOf(author.name)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="min-w-0">
+                                        <p className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">{author.name}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{author.email}</p>
                                     </div>
-                                    <CardTitle className="text-3xl">{kpi.value}</CardTitle>
-                                </CardHeader>
-                            </Card>
-                        );
-                    })}
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t("admin.charts.signups")}</CardTitle>
-                            <CardDescription>{t("admin.charts.signupsHint", { days: stats.windowDays })}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="h-72">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={seriesForChart(stats.series.signups)}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-800" />
-                                    <XAxis dataKey="label" stroke="#94a3b8" fontSize={12} />
-                                    <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={12} />
-                                    <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
-                                    <Line type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2} dot={false} name={t("admin.charts.signups")} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t("admin.charts.articlesPerDay")}</CardTitle>
-                            <CardDescription>{t("admin.charts.articlesHint", { days: stats.windowDays })}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="h-72">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={seriesForChart(stats.series.articles)}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-800" />
-                                    <XAxis dataKey="label" stroke="#94a3b8" fontSize={12} />
-                                    <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={12} />
-                                    <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
-                                    <Area type="monotone" dataKey="count" stroke="#10b981" fill="#10b981" fillOpacity={0.2} name={t("admin.charts.articlesPerDay")} />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t("admin.charts.articlesByStatus")}</CardTitle>
-                            <CardDescription>{t("admin.charts.articlesByStatusHint")}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="h-72">
-                            {articlesStatusData.length === 0 ? (
-                                <div className="flex h-full items-center justify-center text-sm text-slate-500 dark:text-slate-400">
-                                    {t("admin.charts.empty")}
                                 </div>
-                            ) : (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={articlesStatusData}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-800" />
-                                        <XAxis dataKey="statusLabel" stroke="#94a3b8" fontSize={12} />
-                                        <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={12} />
-                                        <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
-                                        <Bar dataKey="count" name={t("admin.kpi.articles")}>
-                                            {articlesStatusData.map((entry) => (
-                                                <Cell key={entry.status} fill={entry.fill} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t("admin.charts.mailsByStatus")}</CardTitle>
-                            <CardDescription>{t("admin.charts.mailsByStatusHint")}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="h-72">
-                            {mailsStatusData.length === 0 ? (
-                                <div className="flex h-full items-center justify-center text-sm text-slate-500 dark:text-slate-400">
-                                    {t("admin.charts.empty")}
-                                </div>
-                            ) : (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={mailsStatusData}
-                                            dataKey="value"
-                                            nameKey="name"
-                                            cx="50%"
-                                            cy="50%"
-                                            outerRadius={80}
-                                            label
-                                        >
-                                            {mailsStatusData.map((entry) => (
-                                                <Cell key={entry.name} fill={entry.fill} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
-                                        <Legend />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{t("admin.topAuthors.title")}</CardTitle>
-                        <CardDescription>{t("admin.topAuthors.description")}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {stats.topAuthors.length === 0 ? (
-                            <p className="text-sm text-slate-500 dark:text-slate-400">{t("admin.topAuthors.empty")}</p>
-                        ) : (
-                            <div className="space-y-3">
-                                {stats.topAuthors.map((author, idx) => (
-                                    <div
-                                        key={author.id}
-                                        className="flex items-center justify-between rounded-lg border dark:border-slate-800 bg-white dark:bg-slate-900 p-3"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <Badge variant="secondary" className="w-7 justify-center">{idx + 1}</Badge>
-                                            <Avatar className="h-9 w-9">
-                                                <AvatarImage src={author.avatar || ""} alt={author.name} />
-                                                <AvatarFallback>{initialsOf(author.name)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="font-medium">{author.name}</p>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400">{author.email}</p>
-                                            </div>
-                                        </div>
-                                        <Badge variant="default">{t("admin.topAuthors.articles", { count: author.articleCount })}</Badge>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
+                                <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                                    {t("admin.topAuthors.articles", { count: author.articleCount })}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </section>
+        </>
     );
 };
-
-const AdminDashboard = () => (
-    <AdminGuard>
-        <AdminDashboardInner />
-    </AdminGuard>
-);
 
 export default AdminDashboard;

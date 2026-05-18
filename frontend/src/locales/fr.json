@@ -599,6 +599,10 @@
   "admin": {
     "title": "Panneau d'administration",
     "subtitle": "Vue d'ensemble de la plateforme sur les {days} derniers jours",
+    "shell": {
+      "brand": "Admin",
+      "backToApp": "Retour à l'app"
+    },
     "toast": {
       "loading": "Chargement des statistiques...",
       "loadError": "Impossible de charger les données admin."

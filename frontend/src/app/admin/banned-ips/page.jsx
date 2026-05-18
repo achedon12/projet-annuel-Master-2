@@ -2,12 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Label } from "@/components/Label";
 import { Switch } from "@/components/Switch";
-import { Badge } from "@/components/Badge";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -21,8 +19,19 @@ import {
 import { Ban, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useI18n";
-import { AdminGuard } from "@/components/admin/AdminGuard";
-import { AdminNav } from "@/components/admin/AdminNav";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import {
+    Panel,
+    PanelHeader,
+    PanelBody,
+    StatusPill,
+    LoadingState,
+    ErrorState,
+    EmptyState,
+    TableShell,
+    Th,
+    Td,
+} from "@/components/admin/AdminUI";
 import { API_URL, Urls } from "@/utils/Api";
 
 const formatDateTime = (iso, locale) => {
@@ -37,7 +46,7 @@ const formatDateTime = (iso, locale) => {
     }
 };
 
-const AdminBannedIpsInner = () => {
+const AdminBannedIpsPage = () => {
     const { t, locale } = useTranslation();
     const { data: session, status: sessionStatus } = useSession();
     const [items, setItems] = useState([]);
@@ -159,67 +168,60 @@ const AdminBannedIpsInner = () => {
     };
 
     return (
-        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
-            <div className="mx-auto max-w-5xl space-y-6">
-                <div>
-                    <h1 className="text-2xl md:text-3xl">{t("admin.bans.title")}</h1>
-                    <p className="text-slate-600 dark:text-slate-400">{t("admin.bans.subtitle")}</p>
-                </div>
+        <>
+            <AdminPageHeader
+                breadcrumb={[{ label: t("admin.nav.bans") }]}
+                title={t("admin.bans.title")}
+                description={t("admin.bans.subtitle")}
+            />
 
-                <AdminNav />
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{t("admin.bans.create.title")}</CardTitle>
-                        <CardDescription>{t("admin.bans.create.description")}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <div className="space-y-2">
-                                <Label htmlFor="ipAddress">{t("admin.bans.create.ipLabel")}</Label>
-                                <Input
-                                    id="ipAddress"
-                                    value={ipAddress}
-                                    onChange={(e) => setIpAddress(e.target.value)}
-                                    placeholder="192.0.2.1"
-                                    maxLength={45}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="reason">{t("admin.bans.create.reasonLabel")}</Label>
-                                <Input
-                                    id="reason"
-                                    value={reason}
-                                    onChange={(e) => setReason(e.target.value)}
-                                    placeholder={t("admin.bans.create.reasonPlaceholder")}
-                                    maxLength={500}
-                                />
-                            </div>
+            <div className="grid gap-6 lg:grid-cols-5 mb-6">
+                <Panel className="lg:col-span-2">
+                    <PanelHeader title={t("admin.bans.create.title")} hint={t("admin.bans.create.description")} />
+                    <PanelBody className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="ipAddress">{t("admin.bans.create.ipLabel")}</Label>
+                            <Input
+                                id="ipAddress"
+                                value={ipAddress}
+                                onChange={(e) => setIpAddress(e.target.value)}
+                                placeholder="192.0.2.1"
+                                maxLength={45}
+                                className="font-mono"
+                            />
                         </div>
-                        <div className="grid gap-4 md:grid-cols-2 items-end">
-                            <div className="flex items-center justify-between rounded-md border dark:border-slate-800 px-3 py-2">
-                                <div>
-                                    <Label className="cursor-pointer" htmlFor="isPermanent">
-                                        {t("admin.bans.create.permanent")}
-                                    </Label>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                                        {t("admin.bans.create.permanentHint")}
-                                    </p>
-                                </div>
-                                <Switch id="isPermanent" checked={isPermanent} onCheckedChange={setIsPermanent} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="bannedUntil">{t("admin.bans.create.untilLabel")}</Label>
-                                <Input
-                                    id="bannedUntil"
-                                    type="datetime-local"
-                                    value={bannedUntil}
-                                    onChange={(e) => setBannedUntil(e.target.value)}
-                                    disabled={isPermanent}
-                                />
-                            </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="reason">{t("admin.bans.create.reasonLabel")}</Label>
+                            <Input
+                                id="reason"
+                                value={reason}
+                                onChange={(e) => setReason(e.target.value)}
+                                placeholder={t("admin.bans.create.reasonPlaceholder")}
+                                maxLength={500}
+                            />
                         </div>
-                        <div className="flex justify-end">
+                        <div className="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-2.5 dark:border-slate-800">
+                            <div className="min-w-0">
+                                <Label className="cursor-pointer" htmlFor="isPermanent">
+                                    {t("admin.bans.create.permanent")}
+                                </Label>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                    {t("admin.bans.create.permanentHint")}
+                                </p>
+                            </div>
+                            <Switch id="isPermanent" checked={isPermanent} onCheckedChange={setIsPermanent} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="bannedUntil">{t("admin.bans.create.untilLabel")}</Label>
+                            <Input
+                                id="bannedUntil"
+                                type="datetime-local"
+                                value={bannedUntil}
+                                onChange={(e) => setBannedUntil(e.target.value)}
+                                disabled={isPermanent}
+                            />
+                        </div>
+                        <div className="flex justify-end pt-1">
                             <Button onClick={handleCreate} disabled={isCreating}>
                                 {isCreating ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -229,88 +231,77 @@ const AdminBannedIpsInner = () => {
                                 {t("admin.bans.create.submit")}
                             </Button>
                         </div>
-                    </CardContent>
-                </Card>
+                    </PanelBody>
+                </Panel>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{t("admin.bans.list.title")}</CardTitle>
-                        <CardDescription>{t("admin.bans.list.count", { count: items.length })}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                <Panel className="lg:col-span-3">
+                    <PanelHeader
+                        title={t("admin.bans.list.title")}
+                        hint={t("admin.bans.list.count", { count: items.length })}
+                    />
+                    <PanelBody>
                         {loadState === "loading" ? (
-                            <div className="flex items-center justify-center py-10 text-slate-500 dark:text-slate-400">
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                {t("admin.toast.loading")}
-                            </div>
+                            <LoadingState />
                         ) : loadState === "error" ? (
-                            <div className="rounded-md bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-600 dark:text-red-400">
-                                {t("admin.toast.loadError")}
-                            </div>
+                            <ErrorState />
                         ) : items.length === 0 ? (
-                            <div className="rounded-md border border-dashed dark:border-slate-700 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
-                                {t("admin.bans.list.empty")}
-                            </div>
+                            <EmptyState label={t("admin.bans.list.empty")} />
                         ) : (
                             <>
-                                <div className="hidden md:block overflow-x-auto rounded-md border dark:border-slate-800">
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-slate-50 dark:bg-slate-800/40 text-left text-xs uppercase text-slate-500 dark:text-slate-400">
+                                <div className="hidden md:block">
+                                    <TableShell>
+                                        <thead>
                                             <tr>
-                                                <th className="px-4 py-2">{t("admin.bans.list.ip")}</th>
-                                                <th className="px-4 py-2">{t("admin.bans.list.reason")}</th>
-                                                <th className="px-4 py-2">{t("admin.bans.list.scope")}</th>
-                                                <th className="px-4 py-2">{t("admin.bans.list.status")}</th>
-                                                <th className="px-4 py-2">{t("admin.bans.list.createdAt")}</th>
-                                                <th className="px-4 py-2 text-right">{t("admin.bans.list.actions")}</th>
+                                                <Th>{t("admin.bans.list.ip")}</Th>
+                                                <Th>{t("admin.bans.list.reason")}</Th>
+                                                <Th>{t("admin.bans.list.scope")}</Th>
+                                                <Th>{t("admin.bans.list.status")}</Th>
+                                                <Th className="text-right">{t("admin.bans.list.actions")}</Th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y dark:divide-slate-800">
+                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                             {items.map((ban) => (
-                                                <tr key={ban.id}>
-                                                    <td className="px-4 py-3 font-mono">{ban.ipAddress}</td>
-                                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{ban.reason || "—"}</td>
-                                                    <td className="px-4 py-3">
+                                                <tr key={ban.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                                                    <Td className="font-mono text-xs text-slate-900 dark:text-slate-100">{ban.ipAddress}</Td>
+                                                    <Td className="text-slate-500 dark:text-slate-400 max-w-[260px] truncate">{ban.reason || "—"}</Td>
+                                                    <Td>
                                                         {ban.isPermanent ? (
-                                                            <Badge variant="destructive">{t("admin.bans.list.permanent")}</Badge>
+                                                            <StatusPill status="permanent">{t("admin.bans.list.permanent")}</StatusPill>
                                                         ) : (
-                                                            <span className="text-slate-600 dark:text-slate-400">
+                                                            <span className="text-xs text-slate-500 dark:text-slate-400">
                                                                 {t("admin.bans.list.until")} {formatDateTime(ban.bannedUntil, locale)}
                                                             </span>
                                                         )}
-                                                    </td>
-                                                    <td className="px-4 py-3">
-                                                        <Badge variant={ban.active ? "default" : "secondary"}>
+                                                    </Td>
+                                                    <Td>
+                                                        <StatusPill status={ban.active ? "active" : "expired"}>
                                                             {ban.active ? t("admin.bans.list.active") : t("admin.bans.list.expired")}
-                                                        </Badge>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                                                        {formatDateTime(ban.createdAt, locale)}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-right">
+                                                        </StatusPill>
+                                                    </Td>
+                                                    <Td className="text-right">
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="text-red-600"
+                                                            className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40"
                                                             onClick={() => setPendingDeleteId(ban.id)}
                                                         >
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
-                                                    </td>
+                                                    </Td>
                                                 </tr>
                                             ))}
                                         </tbody>
-                                    </table>
+                                    </TableShell>
                                 </div>
 
                                 <div className="md:hidden space-y-3">
                                     {items.map((ban) => (
-                                        <div key={ban.id} className="rounded-md border dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+                                        <div key={ban.id} className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                                             <div className="flex items-start justify-between gap-2">
-                                                <p className="font-mono text-sm">{ban.ipAddress}</p>
-                                                <Badge variant={ban.active ? "default" : "secondary"}>
+                                                <p className="font-mono text-sm text-slate-900 dark:text-slate-100">{ban.ipAddress}</p>
+                                                <StatusPill status={ban.active ? "active" : "expired"}>
                                                     {ban.active ? t("admin.bans.list.active") : t("admin.bans.list.expired")}
-                                                </Badge>
+                                                </StatusPill>
                                             </div>
                                             {ban.reason && (
                                                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{ban.reason}</p>
@@ -320,14 +311,11 @@ const AdminBannedIpsInner = () => {
                                                     ? t("admin.bans.list.permanent")
                                                     : `${t("admin.bans.list.until")} ${formatDateTime(ban.bannedUntil, locale)}`}
                                             </p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">
-                                                {t("admin.bans.list.createdAt")} : {formatDateTime(ban.createdAt, locale)}
-                                            </p>
                                             <div className="mt-3 flex justify-end">
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    className="text-red-600"
+                                                    className="text-red-600 border-red-200 dark:border-red-900/40"
                                                     onClick={() => setPendingDeleteId(ban.id)}
                                                 >
                                                     <Trash2 className="mr-1 h-3.5 w-3.5" />
@@ -339,8 +327,8 @@ const AdminBannedIpsInner = () => {
                                 </div>
                             </>
                         )}
-                    </CardContent>
-                </Card>
+                    </PanelBody>
+                </Panel>
             </div>
 
             <AlertDialog
@@ -369,14 +357,8 @@ const AdminBannedIpsInner = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </>
     );
 };
-
-const AdminBannedIpsPage = () => (
-    <AdminGuard>
-        <AdminBannedIpsInner />
-    </AdminGuard>
-);
 
 export default AdminBannedIpsPage;

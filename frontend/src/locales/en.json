@@ -599,6 +599,10 @@
   "admin": {
     "title": "Admin panel",
     "subtitle": "Platform overview for the last {days} days",
+    "shell": {
+      "brand": "Admin",
+      "backToApp": "Back to app"
+    },
     "toast": {
       "loading": "Loading statistics...",
       "loadError": "Could not load admin data."
