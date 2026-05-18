@@ -1,4 +1,8 @@
-"use client"
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
 import {
     Card,
     CardContent,
@@ -13,6 +17,7 @@ import {
     Calendar,
     Sparkles,
     ArrowRight,
+    Loader2,
 } from "lucide-react";
 import {
     LineChart,
@@ -25,68 +30,179 @@ import {
     Tooltip,
     ResponsiveContainer,
 } from "recharts";
-import Link from "next/link";
+import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useI18n";
+import { API_URL, Urls } from "@/utils/Api";
+
+const STATUS_COLOR = {
+    published: "text-emerald-600 dark:text-emerald-400",
+    draft: "text-slate-500 dark:text-slate-400",
+    review: "text-amber-600 dark:text-amber-400",
+    archived: "text-slate-400 dark:text-slate-500",
+};
+
+const shortDate = (iso, locale) => {
+    if (!iso) return "—";
+    try {
+        return new Date(iso).toLocaleDateString(locale === "en" ? "en-US" : "fr-FR", {
+            month: "short",
+            day: "numeric",
+        });
+    } catch {
+        return iso;
+    }
+};
+
+const longDate = (iso, locale) => {
+    if (!iso) return "—";
+    try {
+        return new Date(iso).toLocaleDateString(locale === "en" ? "en-US" : "fr-FR", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        });
+    } catch {
+        return iso;
+    }
+};
+
+const formatCompactNumber = (value, locale) => {
+    if (value === null || value === undefined) return "—";
+    try {
+        return new Intl.NumberFormat(locale === "en" ? "en-US" : "fr-FR", {
+            notation: "compact",
+            maximumFractionDigits: 1,
+        }).format(value);
+    } catch {
+        return String(value);
+    }
+};
 
 const Dashboard = () => {
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
+    const { data: session, status: sessionStatus } = useSession();
+    const [stats, setStats] = useState(null);
+    const [loadState, setLoadState] = useState("loading");
 
-    const stats = [
-        { titleKey: "dashboard.stats.articles", value: "24", change: "+12%", trend: "up", icon: FileText },
-        { titleKey: "dashboard.stats.words", value: "45.2K", change: "+23%", trend: "up", icon: Sparkles },
-        { titleKey: "dashboard.stats.seoScore", value: "87%", change: "+5%", trend: "up", icon: TrendingUp },
-        { titleKey: "dashboard.stats.lastSync", value: t("dashboard.stats.lastSyncValue"), change: "", trend: "up", icon: Calendar },
+    const tRef = useRef(t);
+    tRef.current = t;
+    const token = session?.backendToken;
+
+    useEffect(() => {
+        if (sessionStatus !== "authenticated" || !token) return;
+        let cancelled = false;
+        setLoadState("loading");
+        fetch(`${API_URL}${Urls.user.stats}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(async (res) => {
+                if (cancelled) return;
+                if (!res.ok) {
+                    toast.error(tRef.current("dashboard.loadError"));
+                    setLoadState("error");
+                    return;
+                }
+                const data = await res.json();
+                setStats(data);
+                setLoadState("ready");
+            })
+            .catch(() => {
+                if (cancelled) return;
+                toast.error(tRef.current("dashboard.loadError"));
+                setLoadState("error");
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [sessionStatus, token]);
+
+    if (loadState === "loading") {
+        return (
+            <div className="flex flex-1 items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                {t("dashboard.loading")}
+            </div>
+        );
+    }
+
+    if (loadState === "error" || !stats) {
+        return (
+            <div className="flex flex-1 items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
+                {t("dashboard.loadError")}
+            </div>
+        );
+    }
+
+    const totals = stats.totals || {};
+    const series = (stats.series || []).map((b) => ({
+        ...b,
+        label: shortDate(b.date, locale),
+    }));
+    const recentArticles = stats.recentArticles || [];
+
+    const kpis = [
+        {
+            key: "articles",
+            icon: FileText,
+            iconBg: "bg-emerald-100 dark:bg-emerald-950/40",
+            iconColor: "text-emerald-600 dark:text-emerald-400",
+            value: totals.articles ?? 0,
+        },
+        {
+            key: "words",
+            icon: Sparkles,
+            iconBg: "bg-blue-100 dark:bg-blue-950/40",
+            iconColor: "text-blue-600 dark:text-blue-400",
+            value: formatCompactNumber(totals.wordsTotal ?? 0, locale),
+        },
+        {
+            key: "seoScore",
+            icon: TrendingUp,
+            iconBg: "bg-amber-100 dark:bg-amber-950/40",
+            iconColor: "text-amber-600 dark:text-amber-400",
+            value: totals.seoAverage === null || totals.seoAverage === undefined
+                ? t("dashboard.stats.noSeo")
+                : `${totals.seoAverage}%`,
+        },
+        {
+            key: "lastActivity",
+            icon: Calendar,
+            iconBg: "bg-slate-100 dark:bg-slate-800",
+            iconColor: "text-slate-600 dark:text-slate-300",
+            value: totals.lastActivity
+                ? longDate(totals.lastActivity, locale)
+                : t("dashboard.stats.noActivity"),
+        },
     ];
-
-    const activityData = [
-        { name: t("dashboard.weekdays.mon"), articles: 2, mots: 1200 },
-        { name: t("dashboard.weekdays.tue"), articles: 3, mots: 2100 },
-        { name: t("dashboard.weekdays.wed"), articles: 1, mots: 800 },
-        { name: t("dashboard.weekdays.thu"), articles: 4, mots: 3200 },
-        { name: t("dashboard.weekdays.fri"), articles: 2, mots: 1600 },
-        { name: t("dashboard.weekdays.sat"), articles: 1, mots: 500 },
-        { name: t("dashboard.weekdays.sun"), articles: 0, mots: 0 },
-    ];
-
-    const recentArticles = [
-        { titleKey: "dashboard.articles.seoTechnical", statusKey: "dashboard.articles.published", date: "2026-03-05", score: 92 },
-        { titleKey: "dashboard.articles.tenStrategies", statusKey: "dashboard.articles.draft", date: "2026-03-04", score: 85 },
-        { titleKey: "dashboard.articles.aiInContent", statusKey: "dashboard.articles.review", date: "2026-03-03", score: 88 },
-    ];
-
-    const statusColor = (key) =>
-        key === "dashboard.articles.published"
-            ? "text-emerald-600 dark:text-emerald-400"
-            : key === "dashboard.articles.draft"
-                ? "text-slate-500 dark:text-slate-400"
-                : "text-amber-600 dark:text-amber-400";
 
     return (
-        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-8">
-            <div className="mx-auto max-w-7xl space-y-8">
+        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
+            <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
                 <div>
-                    <h1 className="text-3xl">{t("dashboard.title")}</h1>
+                    <h1 className="text-2xl md:text-3xl">{t("dashboard.title")}</h1>
                     <p className="text-slate-600 dark:text-slate-400">{t("dashboard.subtitle")}</p>
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                    {stats.map((stat) => {
-                        const Icon = stat.icon;
+                <div className="grid gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
+                    {kpis.map((kpi) => {
+                        const Icon = kpi.icon;
                         return (
-                            <Card key={stat.titleKey}>
-                                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                    <CardTitle className="text-sm">{t(stat.titleKey)}</CardTitle>
-                                    <Icon className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl">{stat.value}</div>
-                                    {stat.change && (
-                                        <p className="text-xs text-emerald-600">
-                                            {t("dashboard.stats.changeNote", { change: stat.change })}
-                                        </p>
-                                    )}
-                                </CardContent>
-                            </Card>
+                            <div
+                                key={kpi.key}
+                                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                        {t(`dashboard.stats.${kpi.key}`)}
+                                    </span>
+                                    <span className={`grid h-9 w-9 place-items-center rounded-xl ${kpi.iconBg}`}>
+                                        <Icon className={`h-4 w-4 ${kpi.iconColor}`} />
+                                    </span>
+                                </div>
+                                <p className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+                                    {kpi.value}
+                                </p>
+                            </div>
                         );
                     })}
                 </div>
@@ -95,21 +211,30 @@ const Dashboard = () => {
                     <Card>
                         <CardHeader>
                             <CardTitle>{t("dashboard.weekActivity.title")}</CardTitle>
-                            <CardDescription>{t("dashboard.weekActivity.description")}</CardDescription>
+                            <CardDescription>
+                                {t("dashboard.weekActivity.description", { days: stats.windowDays })}
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <AreaChart data={activityData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" />
-                                    <YAxis />
-                                    <Tooltip />
+                            <ResponsiveContainer width="100%" height={280}>
+                                <AreaChart data={series} margin={{ left: -20, right: 8, top: 8, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="dashboardArticlesGrad" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#10b981" stopOpacity={0.35} />
+                                            <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-800" />
+                                    <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                                    <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                                    <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid #e2e8f0" }} />
                                     <Area
                                         type="monotone"
                                         dataKey="articles"
                                         stroke="#10b981"
-                                        fill="#10b981"
-                                        fillOpacity={0.2}
+                                        strokeWidth={2.5}
+                                        fill="url(#dashboardArticlesGrad)"
+                                        name={t("dashboard.weekActivity.legend")}
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
@@ -119,20 +244,24 @@ const Dashboard = () => {
                     <Card>
                         <CardHeader>
                             <CardTitle>{t("dashboard.wordsChart.title")}</CardTitle>
-                            <CardDescription>{t("dashboard.wordsChart.description")}</CardDescription>
+                            <CardDescription>
+                                {t("dashboard.wordsChart.description", { days: stats.windowDays })}
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <LineChart data={activityData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" />
-                                    <YAxis />
-                                    <Tooltip />
+                            <ResponsiveContainer width="100%" height={280}>
+                                <LineChart data={series} margin={{ left: -20, right: 8, top: 8, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-800" />
+                                    <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                                    <YAxis allowDecimals={false} stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                                    <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid #e2e8f0" }} />
                                     <Line
                                         type="monotone"
-                                        dataKey="mots"
+                                        dataKey="words"
                                         stroke="#3b82f6"
-                                        strokeWidth={2}
+                                        strokeWidth={2.5}
+                                        dot={false}
+                                        name={t("dashboard.wordsChart.legend")}
                                     />
                                 </LineChart>
                             </ResponsiveContainer>
@@ -147,34 +276,44 @@ const Dashboard = () => {
                             <CardDescription>{t("dashboard.recent.description")}</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4">
-                                {recentArticles.map((article, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center justify-between rounded-lg border dark:border-slate-800 p-4"
-                                    >
-                                        <div className="space-y-1">
-                                            <p className="font-medium">{t(article.titleKey)}</p>
-                                            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                                                <span>{article.date}</span>
-                                                <span>•</span>
-                                                <span className={statusColor(article.statusKey)}>
-                                                    {t(article.statusKey)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <div className="text-right">
-                                                <p className="text-sm text-slate-500 dark:text-slate-400">{t("dashboard.recent.seoScoreLabel")}</p>
-                                                <p className="text-lg text-emerald-600">{article.score}%</p>
-                                            </div>
-                                            <Button variant="ghost" size="icon">
-                                                <ArrowRight className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                            {recentArticles.length === 0 ? (
+                                <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-700 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+                                    {t("dashboard.recent.empty")}
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {recentArticles.map((article) => {
+                                        const statusLabel = t(`dashboard.recent.status.${article.status}`);
+                                        return (
+                                            <Link
+                                                key={article.id}
+                                                href={`/editor/${article.id}`}
+                                                className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-slate-300 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700"
+                                            >
+                                                <div className="min-w-0 space-y-1">
+                                                    <p className="truncate font-medium text-slate-900 dark:text-slate-100">{article.title}</p>
+                                                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                                                        <span>{longDate(article.updatedAt, locale)}</span>
+                                                        <span aria-hidden>•</span>
+                                                        <span className={STATUS_COLOR[article.status] || "text-slate-500 dark:text-slate-400"}>{statusLabel}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex shrink-0 items-center gap-3">
+                                                    <div className="text-right">
+                                                        <p className="text-[10px] uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                                            {t("dashboard.recent.seoScoreLabel")}
+                                                        </p>
+                                                        <p className="text-base font-semibold text-emerald-600 dark:text-emerald-400">
+                                                            {article.seoScore === null || article.seoScore === undefined ? "—" : `${article.seoScore}%`}
+                                                        </p>
+                                                    </div>
+                                                    <ArrowRight className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                                                </div>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
@@ -184,24 +323,24 @@ const Dashboard = () => {
                             <CardDescription>{t("dashboard.quickActions.description")}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            <Link href="/ideas">
-                                <Button className="w-full justify-start" variant="outline">
+                            <Button asChild className="w-full justify-start" variant="outline">
+                                <Link href="/ideas">
                                     <Sparkles className="mr-2 h-4 w-4" />
                                     {t("dashboard.quickActions.ideas")}
-                                </Button>
-                            </Link>
-                            <Link href="/editor">
-                                <Button className="w-full justify-start">
+                                </Link>
+                            </Button>
+                            <Button asChild className="w-full justify-start">
+                                <Link href="/editor">
                                     <FileText className="mr-2 h-4 w-4" />
                                     {t("dashboard.quickActions.newArticle")}
-                                </Button>
-                            </Link>
-                            <Link href="/history">
-                                <Button className="w-full justify-start" variant="outline">
+                                </Link>
+                            </Button>
+                            <Button asChild className="w-full justify-start" variant="outline">
+                                <Link href="/history">
                                     <Calendar className="mr-2 h-4 w-4" />
                                     {t("dashboard.quickActions.history")}
-                                </Button>
-                            </Link>
+                                </Link>
+                            </Button>
                         </CardContent>
                     </Card>
                 </div>

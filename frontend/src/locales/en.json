@@ -259,26 +259,37 @@
   "dashboard": {
     "title": "Welcome to SEO Content AI",
     "subtitle": "Here's an overview of your activity",
+    "loading": "Loading your dashboard...",
+    "loadError": "Could not load your dashboard.",
     "stats": {
-      "articles": "Articles generated",
-      "words": "Words generated",
+      "articles": "Articles created",
+      "words": "Words written",
       "seoScore": "Average SEO score",
-      "lastSync": "Last sync",
-      "lastSyncValue": "2d",
-      "changeNote": "{change} this month"
+      "lastActivity": "Last activity",
+      "noSeo": "—",
+      "noActivity": "No activity"
     },
     "weekActivity": {
       "title": "Weekly activity",
-      "description": "Number of articles created"
+      "description": "Articles created over the last {days} days",
+      "legend": "Articles"
     },
     "wordsChart": {
-      "title": "Words generated",
-      "description": "Content volume per day"
+      "title": "Words written",
+      "description": "Content volume over the last {days} days",
+      "legend": "Words"
     },
     "recent": {
       "title": "Recent articles",
-      "description": "Your latest created content",
-      "seoScoreLabel": "SEO score"
+      "description": "Your latest updated content",
+      "seoScoreLabel": "SEO score",
+      "empty": "No articles yet. Start by generating an idea or writing in the editor.",
+      "status": {
+        "published": "Published",
+        "draft": "Draft",
+        "review": "Under review",
+        "archived": "Archived"
+      }
     },
     "quickActions": {
       "title": "Quick actions",
@@ -286,23 +297,6 @@
       "ideas": "Generate ideas",
       "newArticle": "New article",
       "history": "View history"
-    },
-    "weekdays": {
-      "mon": "Mon",
-      "tue": "Tue",
-      "wed": "Wed",
-      "thu": "Thu",
-      "fri": "Fri",
-      "sat": "Sat",
-      "sun": "Sun"
-    },
-    "articles": {
-      "seoTechnical": "The complete guide to technical SEO in 2026",
-      "tenStrategies": "10 content marketing strategies",
-      "aiInContent": "AI in content creation",
-      "published": "Published",
-      "draft": "Draft",
-      "review": "Under review"
     }
   },
   "history": {
