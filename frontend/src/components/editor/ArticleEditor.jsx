@@ -525,7 +525,7 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
     const statusVariantKey = status === "published" ? "published" : status === "review" ? "review" : status === "archived" ? "archived" : "draft";
 
     return (
-        <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
+        <div className="flex h-full overflow-hidden bg-slate-50 dark:bg-slate-950">
             <div className="flex flex-1 flex-col overflow-hidden">
                 <div className="border-b border-slate-200 bg-white/90 backdrop-blur-sm px-4 py-3 md:px-6 md:py-4 dark:border-slate-800 dark:bg-slate-900/90">
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

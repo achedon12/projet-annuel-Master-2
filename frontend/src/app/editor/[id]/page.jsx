@@ -63,7 +63,7 @@ const EditorEditPage = ({ params }) => {
 
     if (loadState === "loading") {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
+            <div className="flex h-full items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 {t("editor.toast.loading")}
             </div>
@@ -72,7 +72,7 @@ const EditorEditPage = ({ params }) => {
 
     if (loadState === "notfound") {
         return (
-            <div className="flex h-screen flex-col items-center justify-center gap-3 bg-slate-50 dark:bg-slate-950 px-6 text-center">
+            <div className="flex h-full flex-col items-center justify-center gap-3 bg-slate-50 dark:bg-slate-950 px-6 text-center">
                 <p className="text-lg text-slate-700 dark:text-slate-200">{t("editor.toast.notFound")}</p>
                 <button
                     type="button"
@@ -87,7 +87,7 @@ const EditorEditPage = ({ params }) => {
 
     if (loadState === "error" || !article) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
+            <div className="flex h-full items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
                 {t("editor.toast.loadError")}
             </div>
         );
