@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select";
 import { Badge } from "@/components/Badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar";
-import { Bell, Check, Link as LinkIcon, Loader2, Mail, Palette, Shield, Sparkles, User, X } from "lucide-react";
+import { Bell, Check, Link as LinkIcon, Loader2, Palette, Shield, Sparkles, User, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { useTranslation } from "@/hooks/useI18n";
