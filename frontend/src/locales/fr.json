@@ -259,26 +259,37 @@
   "dashboard": {
     "title": "Bienvenue sur SEO Content AI",
     "subtitle": "Voici un aperçu de votre activité",
+    "loading": "Chargement de votre tableau de bord...",
+    "loadError": "Impossible de charger votre tableau de bord.",
     "stats": {
-      "articles": "Articles générés",
-      "words": "Mots générés",
+      "articles": "Articles créés",
+      "words": "Mots rédigés",
       "seoScore": "Score SEO moyen",
-      "lastSync": "Dernière synchronisation",
-      "lastSyncValue": "2j",
-      "changeNote": "{change} ce mois"
+      "lastActivity": "Dernière activité",
+      "noSeo": "—",
+      "noActivity": "Aucune activité"
     },
     "weekActivity": {
       "title": "Activité de la semaine",
-      "description": "Nombre d'articles créés"
+      "description": "Articles créés sur les {days} derniers jours",
+      "legend": "Articles"
     },
     "wordsChart": {
-      "title": "Mots générés",
-      "description": "Volume de contenu par jour"
+      "title": "Mots rédigés",
+      "description": "Volume de contenu sur les {days} derniers jours",
+      "legend": "Mots"
     },
     "recent": {
       "title": "Articles récents",
-      "description": "Vos derniers contenus créés",
-      "seoScoreLabel": "Score SEO"
+      "description": "Vos derniers contenus mis à jour",
+      "seoScoreLabel": "Score SEO",
+      "empty": "Aucun article pour le moment. Commencez par générer une idée ou écrire dans l'éditeur.",
+      "status": {
+        "published": "Publié",
+        "draft": "Brouillon",
+        "review": "En révision",
+        "archived": "Archivé"
+      }
     },
     "quickActions": {
       "title": "Actions rapides",
@@ -286,23 +297,6 @@
       "ideas": "Générer des idées",
       "newArticle": "Nouvel article",
       "history": "Voir l'historique"
-    },
-    "weekdays": {
-      "mon": "Lun",
-      "tue": "Mar",
-      "wed": "Mer",
-      "thu": "Jeu",
-      "fri": "Ven",
-      "sat": "Sam",
-      "sun": "Dim"
-    },
-    "articles": {
-      "seoTechnical": "Guide complet du SEO technique en 2026",
-      "tenStrategies": "10 stratégies de content marketing",
-      "aiInContent": "L'IA dans la création de contenu",
-      "published": "Publié",
-      "draft": "Brouillon",
-      "review": "En révision"
     }
   },
   "history": {

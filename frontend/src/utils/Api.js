@@ -8,6 +8,7 @@ export const Urls = {
   },
   user: {
       ips: '/user/ips',
+      stats: '/user/stats',
   },
   ideas: {
       generate: '/ideas/generate',
