@@ -65,6 +65,8 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
     const [suggestions, setSuggestions] = useState([]);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const [isExportingPdf, setIsExportingPdf] = useState(false);
+    const [isExportingNotion, setIsExportingNotion] = useState(false);
+    const [notionPageId, setNotionPageId] = useState(initialArticle?.notionPageId ?? null);
 
     const token = session?.backendToken;
 
@@ -336,8 +338,38 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
         }
     };
 
-    const handleExportNotion = () => {
-        toast.info(t("editor.toast.notionSoon"));
+    const handleExportNotion = async () => {
+        if (!token) return;
+        if (!articleId) {
+            toast.info(t("editor.toast.notionSaveFirst"));
+            return;
+        }
+        if (!content.trim() && !title.trim()) {
+            toast.error(t("editor.toast.exportEmpty"));
+            return;
+        }
+        setIsExportingNotion(true);
+        try {
+            const res = await fetch(`${API_URL}${Urls.articles.exportNotion(articleId)}`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) {
+                const message = await extractError(res, t("editor.toast.notionError"));
+                toast.error(message);
+                return;
+            }
+            const data = await res.json();
+            if (typeof data?.notionPageId === "string") {
+                setNotionPageId(data.notionPageId);
+            }
+            toast.success(t(notionPageId ? "editor.toast.notionUpdated" : "editor.toast.notionCreated"));
+        } catch (err) {
+            console.error("article.export.notion", err);
+            toast.error(t("editor.toast.notionError"));
+        } finally {
+            setIsExportingNotion(false);
+        }
     };
 
     const handleRewrite = async () => {
@@ -744,9 +776,14 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                                             size="sm"
                                             className="w-full justify-start"
                                             onClick={handleExportNotion}
+                                            disabled={isExportingNotion}
                                         >
-                                            <Share2 className="mr-2 h-4 w-4" />
-                                            {t("editor.export.notion")}
+                                            {isExportingNotion ? (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Share2 className="mr-2 h-4 w-4" />
+                                            )}
+                                            {t(notionPageId ? "editor.export.notionUpdate" : "editor.export.notion")}
                                         </Button>
                                     </CardContent>
                                 </Card>
