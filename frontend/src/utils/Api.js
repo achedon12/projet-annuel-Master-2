@@ -5,6 +5,7 @@ export const Urls = {
       login: '/auth/login',
       signup: '/auth/signup',
       logout: '/auth/logout',
+      google: '/auth/google',
   },
   user: {
       ips: '/user/ips',
@@ -21,9 +22,13 @@ export const Urls = {
       rewrite: '/articles/rewrite',
       aiAction: '/articles/ai-action',
       exportNotion: (id) => `/articles/${id}/export/notion`,
+      schedule: (id) => `/articles/${id}/schedule`,
+      reminder: (id) => `/articles/${id}/reminder`,
   },
   integrations: {
       notion: '/integrations/notion',
+      google: '/integrations/google',
+      googleCalendarConnect: '/integrations/google/calendar/connect',
   },
   me: {
       get: '/me',

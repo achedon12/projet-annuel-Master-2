@@ -6,6 +6,7 @@ use App\Controller\ApiAbstractController;
 use App\Entity\User;
 use App\Event\UserRegisteredEvent;
 use App\Repository\UserRepository;
+use App\Service\GoogleAuthService;
 use App\Service\UserLoginIpRecorder;
 use Doctrine\ORM\EntityManagerInterface;
 use Firebase\JWT\JWT;
@@ -29,6 +30,7 @@ class AuthController extends ApiAbstractController
         private ParameterBagInterface $params,
         private EventDispatcherInterface $eventDispatcher,
         private UserLoginIpRecorder $loginIpRecorder,
+        private GoogleAuthService $googleAuth,
     ) {}
 
     #[Route('/signup', name: 'api_auth_signup', methods: ['POST'])]
@@ -139,6 +141,71 @@ class AuthController extends ApiAbstractController
     {
         return $this->json([
             'message' => 'Déconnexion réussie.',
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * Sign-In / Sign-Up Google. Reçoit un id_token Google, le vérifie via JWKS,
+     * crée le user s'il n'existe pas (avec un mot de passe aléatoire, jamais
+     * communiqué), et retourne le même shape { token, user } que /login.
+     */
+    #[Route('/google', name: 'api_auth_google', methods: ['POST'])]
+    public function google(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        if (!is_array($data) || !isset($data['idToken']) || !is_string($data['idToken']) || trim($data['idToken']) === '') {
+            return $this->json(['error' => 'idToken manquant.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $payload = $this->googleAuth->verifyIdToken(trim($data['idToken']));
+        } catch (\RuntimeException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $email = mb_strtolower(trim((string) $payload['email']));
+        $name = isset($payload['name']) && is_string($payload['name']) && trim($payload['name']) !== ''
+            ? trim($payload['name'])
+            : $email;
+        $avatar = isset($payload['picture']) && is_string($payload['picture']) ? $payload['picture'] : null;
+
+        $user = $this->userRepository->findOneBy(['email' => $email]);
+        if (!$user) {
+            $user = new User();
+            $user->setEmail($email);
+            $user->setName(mb_substr($name, 0, 100));
+            // Mot de passe aléatoire jamais communiqué : empêche le login local
+            // tant que le user n'a pas explicitement défini un mot de passe.
+            $user->setPassword(password_hash(bin2hex(random_bytes(32)), PASSWORD_BCRYPT));
+            if ($avatar !== null && mb_strlen($avatar) <= 1000) {
+                $user->setAvatar($avatar);
+            }
+
+            $errors = $this->validator->validate($user);
+            if (count($errors) > 0) {
+                $msg = [];
+                foreach ($errors as $err) {
+                    $msg[$err->getPropertyPath()] = $err->getMessage();
+                }
+                return $this->json(['errors' => $msg], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            $this->em->persist($user);
+            $this->em->flush();
+
+            $this->eventDispatcher->dispatch(new UserRegisteredEvent($user), UserRegisteredEvent::NAME);
+            $this->loginIpRecorder->record($user, $request, 'signup');
+        } else {
+            $this->loginIpRecorder->record($user, $request, 'login');
+        }
+
+        $user->setLastLogin(new \DateTime());
+        $this->em->flush();
+
+        return $this->json([
+            'message' => 'Connexion Google réussie.',
+            'token' => $this->generateJWT($user),
+            'user' => $this->serializeUser($user),
         ], Response::HTTP_OK);
     }
 

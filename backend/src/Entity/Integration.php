@@ -33,6 +33,15 @@ class Integration
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $lastSync = null;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $refreshToken = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $tokenExpiresAt = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $scopes = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -104,6 +113,39 @@ class Integration
     public function setLastSync(?\DateTimeInterface $lastSync): static
     {
         $this->lastSync = $lastSync;
+        return $this;
+    }
+
+    public function getRefreshToken(): ?string
+    {
+        return $this->refreshToken;
+    }
+
+    public function setRefreshToken(?string $refreshToken): static
+    {
+        $this->refreshToken = $refreshToken;
+        return $this;
+    }
+
+    public function getTokenExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->tokenExpiresAt;
+    }
+
+    public function setTokenExpiresAt(?\DateTimeInterface $tokenExpiresAt): static
+    {
+        $this->tokenExpiresAt = $tokenExpiresAt;
+        return $this;
+    }
+
+    public function getScopes(): ?string
+    {
+        return $this->scopes;
+    }
+
+    public function setScopes(?string $scopes): static
+    {
+        $this->scopes = $scopes;
         return $this;
     }
 }
