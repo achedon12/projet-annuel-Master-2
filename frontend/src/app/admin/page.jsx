@@ -26,6 +26,7 @@ import { Users, FileText, Lightbulb, Mail, Ban, Loader2, ShieldCheck } from "luc
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useI18n";
 import { AdminGuard } from "@/components/admin/AdminGuard";
+import { AdminNav } from "@/components/admin/AdminNav";
 import { API_URL, Urls } from "@/utils/Api";
 
 const STATUS_COLOR = {
@@ -149,16 +150,18 @@ const AdminDashboardInner = () => {
     ];
 
     return (
-        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-8">
-            <div className="mx-auto max-w-7xl space-y-8">
+        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
+            <div className="mx-auto max-w-7xl space-y-6 md:space-y-8">
                 <div>
-                    <h1 className="text-3xl">{t("admin.title")}</h1>
+                    <h1 className="text-2xl md:text-3xl">{t("admin.title")}</h1>
                     <p className="text-slate-600 dark:text-slate-400">
                         {t("admin.subtitle", { days: stats.windowDays })}
                     </p>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+                <AdminNav />
+
+                <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
                     {kpis.map((kpi) => {
                         const Icon = kpi.icon;
                         return (

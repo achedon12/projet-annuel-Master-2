@@ -702,6 +702,130 @@
         "ipRequired": "L'adresse IP est requise.",
         "untilRequired": "Une date de fin est requise pour un ban temporaire."
       }
+    },
+    "nav": {
+      "dashboard": "Tableau de bord",
+      "users": "Utilisateurs",
+      "articles": "Articles",
+      "ideas": "Idées",
+      "mails": "Mails",
+      "loginIps": "Connexions",
+      "bans": "Bannissements IP"
+    },
+    "userDetail": {
+      "title": "Détail utilisateur",
+      "subtitle": "Voir et modifier ce compte",
+      "back": "Retour à la liste",
+      "notFound": "Utilisateur introuvable.",
+      "infoTitle": "Informations",
+      "infoHint": "Modifiez le nom, l'email ou le rôle. Le mot de passe ne peut pas être réinitialisé ici.",
+      "nameLabel": "Nom",
+      "emailLabel": "Email",
+      "roleLabel": "Rôle",
+      "roleUser": "Utilisateur",
+      "roleAdmin": "Administrateur",
+      "save": "Enregistrer",
+      "saving": "Enregistrement...",
+      "saveSuccess": "Utilisateur mis à jour.",
+      "saveError": "La mise à jour a échoué.",
+      "statsTitle": "Activité",
+      "articlesCount": "Articles",
+      "ideasCount": "Idées",
+      "loginIpsCount": "Connexions",
+      "createdAt": "Inscrit le",
+      "lastLogin": "Dernière connexion",
+      "selfRoleHint": "Vous ne pouvez pas vous retirer le rôle administrateur."
+    },
+    "articles": {
+      "title": "Articles",
+      "subtitle": "Tous les articles, tous comptes confondus",
+      "listTitle": "Tous les articles",
+      "searchPlaceholder": "Titre ou email auteur...",
+      "statusAll": "Tous les statuts",
+      "empty": "Aucun article ne correspond.",
+      "deleteTitle": "Supprimer cet article ?",
+      "deleteConfirm": "Cette action est définitive. L'article sera retiré de la base.",
+      "deleteCancel": "Annuler",
+      "deleteOk": "Supprimer",
+      "deleting": "Suppression...",
+      "deleteSuccess": "Article supprimé.",
+      "deleteError": "La suppression a échoué.",
+      "view": "Voir",
+      "table": {
+        "title": "Titre",
+        "author": "Auteur",
+        "status": "Statut",
+        "words": "Mots",
+        "seo": "SEO",
+        "createdAt": "Créé le",
+        "actions": "Actions"
+      },
+      "detail": {
+        "title": "Article",
+        "back": "Retour à la liste",
+        "notFound": "Article introuvable.",
+        "metaTitle": "Métadonnées",
+        "contentTitle": "Contenu",
+        "noContent": "Cet article n'a pas encore de contenu.",
+        "delete": "Supprimer",
+        "tone": "Ton",
+        "audience": "Audience",
+        "type": "Type",
+        "wordCount": "Nombre de mots",
+        "seoScore": "Score SEO",
+        "publishedAt": "Publié le",
+        "updatedAt": "Modifié le"
+      }
+    },
+    "ideas": {
+      "title": "Idées générées",
+      "subtitle": "Toutes les idées de contenu créées par les utilisateurs",
+      "listTitle": "Toutes les idées",
+      "searchPlaceholder": "Mot-clé ou email auteur...",
+      "empty": "Aucune idée trouvée.",
+      "table": {
+        "keyword": "Mot-clé",
+        "audience": "Audience",
+        "type": "Type",
+        "author": "Auteur",
+        "createdAt": "Généré le"
+      }
+    },
+    "mails": {
+      "title": "File des mails",
+      "subtitle": "Mails transactionnels (welcome, alertes IP, etc.)",
+      "listTitle": "Mails",
+      "searchPlaceholder": "Destinataire ou sujet...",
+      "statusAll": "Tous les statuts",
+      "statusPending": "En attente",
+      "statusProcessing": "En cours",
+      "statusSent": "Envoyé",
+      "statusFailed": "Échec",
+      "empty": "Aucun mail ne correspond.",
+      "table": {
+        "to": "Destinataire",
+        "subject": "Sujet",
+        "status": "Statut",
+        "attempts": "Essais",
+        "createdAt": "Créé le",
+        "sentAt": "Envoyé le",
+        "error": "Erreur"
+      }
+    },
+    "loginIps": {
+      "title": "Historique des connexions",
+      "subtitle": "Toutes les adresses IP ayant initié une session",
+      "listTitle": "Connexions enregistrées",
+      "searchPlaceholder": "IP ou email...",
+      "empty": "Aucune connexion enregistrée.",
+      "table": {
+        "ip": "Adresse IP",
+        "user": "Utilisateur",
+        "event": "Type",
+        "createdAt": "Première vue",
+        "lastSeenAt": "Dernière vue",
+        "userAgent": "User-Agent"
+      }
     }
   }
 }

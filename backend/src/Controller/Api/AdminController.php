@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin')]
 class AdminController extends ApiAbstractController
@@ -43,6 +44,7 @@ class AdminController extends ApiAbstractController
         private readonly BannedIpRepository $bannedIpRepository,
         private readonly EntityManagerInterface $em,
         private readonly LoggerInterface $logger,
+        private readonly ValidatorInterface $validator,
     ) {}
 
     #[Route('/stats', name: 'api_admin_stats', methods: ['GET'])]
@@ -189,6 +191,70 @@ class AdminController extends ApiAbstractController
         return $this->json($this->serializeUserDetail($user));
     }
 
+    #[Route('/users/{id}', name: 'api_admin_users_update', methods: ['PUT'], requirements: ['id' => '\d+'])]
+    public function updateUser(int $id, Request $request): JsonResponse
+    {
+        $admin = $this->resolveAdmin($request);
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        $user = $this->userRepository->find($id);
+        if (!$user) {
+            return $this->json(['error' => 'Utilisateur introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $data = $this->decodeBody($request);
+        if ($data === null) {
+            return $this->json(['error' => 'Corps de requête JSON invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (array_key_exists('name', $data)) {
+            if (!is_string($data['name']) || trim($data['name']) === '') {
+                return $this->json(['error' => 'Le nom est obligatoire.'], Response::HTTP_BAD_REQUEST);
+            }
+            $user->setName(trim($data['name']));
+        }
+
+        if (array_key_exists('email', $data)) {
+            if (!is_string($data['email']) || trim($data['email']) === '') {
+                return $this->json(['error' => "L'email est obligatoire."], Response::HTTP_BAD_REQUEST);
+            }
+            $newEmail = mb_strtolower(trim($data['email']));
+            if ($newEmail !== $user->getEmail()) {
+                $existing = $this->userRepository->findOneBy(['email' => $newEmail]);
+                if ($existing && $existing->getId() !== $user->getId()) {
+                    return $this->json(['error' => 'Cet email est déjà utilisé.'], Response::HTTP_CONFLICT);
+                }
+                $user->setEmail($newEmail);
+            }
+        }
+
+        if (array_key_exists('role', $data)) {
+            if (!is_string($data['role']) || !in_array($data['role'], User::ROLES, true)) {
+                return $this->json(['error' => 'Rôle invalide.'], Response::HTTP_BAD_REQUEST);
+            }
+            if ($id === $admin->getId() && $data['role'] !== User::ROLE_ADMIN) {
+                return $this->json(['error' => 'Vous ne pouvez pas retirer votre propre rôle administrateur.'], Response::HTTP_BAD_REQUEST);
+            }
+            $user->setRole($data['role']);
+        }
+
+        $errors = $this->validator->validate($user);
+        if (count($errors) > 0) {
+            $messages = [];
+            foreach ($errors as $err) {
+                $messages[] = $err->getMessage();
+            }
+            return $this->json(['error' => implode(' ', $messages)], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $user->setUpdatedAt(new \DateTime());
+        $this->em->flush();
+
+        return $this->json($this->serializeUserDetail($user));
+    }
+
     #[Route('/users/{id}', name: 'api_admin_users_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     public function deleteUser(int $id, Request $request): JsonResponse
     {
@@ -210,6 +276,208 @@ class AdminController extends ApiAbstractController
         $this->em->flush();
 
         return $this->json(null, Response::HTTP_NO_CONTENT);
+    }
+
+    #[Route('/articles', name: 'api_admin_articles_list', methods: ['GET'])]
+    public function listArticles(Request $request): JsonResponse
+    {
+        $admin = $this->resolveAdmin($request);
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        $page = max(1, (int) $request->query->get('page', 1));
+        $perPage = max(1, min(self::USERS_MAX_PER_PAGE, (int) $request->query->get('perPage', self::USERS_DEFAULT_PER_PAGE)));
+        $search = mb_substr(trim((string) $request->query->get('search', '')), 0, self::SEARCH_MAX);
+        $status = (string) $request->query->get('status', '');
+        $userId = (int) $request->query->get('userId', 0);
+
+        $qb = $this->articleRepository->createQueryBuilder('a')
+            ->leftJoin('a.user', 'u')->addSelect('u')
+            ->orderBy('a.createdAt', 'DESC');
+
+        if ($search !== '') {
+            $qb->andWhere('a.title LIKE :search OR u.email LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+        if ($status !== '') {
+            $qb->andWhere('a.status = :status')->setParameter('status', $status);
+        }
+        if ($userId > 0) {
+            $qb->andWhere('u.id = :uid')->setParameter('uid', $userId);
+        }
+
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(a.id)')->resetDQLPart('orderBy')->getQuery()->getSingleScalarResult();
+
+        $items = $qb->setFirstResult(($page - 1) * $perPage)
+            ->setMaxResults($perPage)
+            ->getQuery()
+            ->getResult();
+
+        return $this->json([
+            'items' => array_map(fn(Article $a) => $this->serializeArticleListItem($a), $items),
+            'total' => $total,
+            'page' => $page,
+            'perPage' => $perPage,
+        ]);
+    }
+
+    #[Route('/articles/{id}', name: 'api_admin_articles_read', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function readArticle(int $id, Request $request): JsonResponse
+    {
+        $admin = $this->resolveAdmin($request);
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        $article = $this->articleRepository->find($id);
+        if (!$article) {
+            return $this->json(['error' => 'Article introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json($this->serializeArticleDetail($article));
+    }
+
+    #[Route('/articles/{id}', name: 'api_admin_articles_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
+    public function deleteArticle(int $id, Request $request): JsonResponse
+    {
+        $admin = $this->resolveAdmin($request);
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        $article = $this->articleRepository->find($id);
+        if (!$article) {
+            return $this->json(['error' => 'Article introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $this->em->remove($article);
+        $this->em->flush();
+
+        return $this->json(null, Response::HTTP_NO_CONTENT);
+    }
+
+    #[Route('/ideas', name: 'api_admin_ideas_list', methods: ['GET'])]
+    public function listIdeas(Request $request): JsonResponse
+    {
+        $admin = $this->resolveAdmin($request);
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        $page = max(1, (int) $request->query->get('page', 1));
+        $perPage = max(1, min(self::USERS_MAX_PER_PAGE, (int) $request->query->get('perPage', self::USERS_DEFAULT_PER_PAGE)));
+        $search = mb_substr(trim((string) $request->query->get('search', '')), 0, self::SEARCH_MAX);
+        $userId = (int) $request->query->get('userId', 0);
+
+        $qb = $this->ideaRepository->createQueryBuilder('i')
+            ->leftJoin('i.user', 'u')->addSelect('u')
+            ->orderBy('i.date', 'DESC');
+
+        if ($search !== '') {
+            $qb->andWhere('i.keyword LIKE :search OR u.email LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+        if ($userId > 0) {
+            $qb->andWhere('u.id = :uid')->setParameter('uid', $userId);
+        }
+
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(i.id)')->resetDQLPart('orderBy')->getQuery()->getSingleScalarResult();
+
+        $items = $qb->setFirstResult(($page - 1) * $perPage)
+            ->setMaxResults($perPage)
+            ->getQuery()
+            ->getResult();
+
+        return $this->json([
+            'items' => array_map(fn(Idea $i) => $this->serializeIdeaListItem($i), $items),
+            'total' => $total,
+            'page' => $page,
+            'perPage' => $perPage,
+        ]);
+    }
+
+    #[Route('/mails', name: 'api_admin_mails_list', methods: ['GET'])]
+    public function listMails(Request $request): JsonResponse
+    {
+        $admin = $this->resolveAdmin($request);
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        $page = max(1, (int) $request->query->get('page', 1));
+        $perPage = max(1, min(self::USERS_MAX_PER_PAGE, (int) $request->query->get('perPage', self::USERS_DEFAULT_PER_PAGE)));
+        $status = (string) $request->query->get('status', '');
+        $search = mb_substr(trim((string) $request->query->get('search', '')), 0, self::SEARCH_MAX);
+
+        $qb = $this->pendingMailRepository->createQueryBuilder('m')
+            ->orderBy('m.createdAt', 'DESC');
+
+        if ($status !== '') {
+            $qb->andWhere('m.status = :status')->setParameter('status', $status);
+        }
+        if ($search !== '') {
+            $qb->andWhere('m.toEmail LIKE :search OR m.subject LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(m.id)')->resetDQLPart('orderBy')->getQuery()->getSingleScalarResult();
+
+        $items = $qb->setFirstResult(($page - 1) * $perPage)
+            ->setMaxResults($perPage)
+            ->getQuery()
+            ->getResult();
+
+        return $this->json([
+            'items' => array_map(fn(PendingMail $m) => $this->serializeMailListItem($m), $items),
+            'total' => $total,
+            'page' => $page,
+            'perPage' => $perPage,
+        ]);
+    }
+
+    #[Route('/login-ips', name: 'api_admin_login_ips_list', methods: ['GET'])]
+    public function listLoginIps(Request $request): JsonResponse
+    {
+        $admin = $this->resolveAdmin($request);
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        $page = max(1, (int) $request->query->get('page', 1));
+        $perPage = max(1, min(self::USERS_MAX_PER_PAGE, (int) $request->query->get('perPage', self::USERS_DEFAULT_PER_PAGE)));
+        $userId = (int) $request->query->get('userId', 0);
+        $search = mb_substr(trim((string) $request->query->get('search', '')), 0, self::SEARCH_MAX);
+
+        $qb = $this->userLoginIpRepository->createQueryBuilder('l')
+            ->leftJoin('l.user', 'u')->addSelect('u')
+            ->orderBy('l.lastSeenAt', 'DESC');
+
+        if ($userId > 0) {
+            $qb->andWhere('u.id = :uid')->setParameter('uid', $userId);
+        }
+        if ($search !== '') {
+            $qb->andWhere('l.ipAddress LIKE :search OR u.email LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(l.id)')->resetDQLPart('orderBy')->getQuery()->getSingleScalarResult();
+
+        $items = $qb->setFirstResult(($page - 1) * $perPage)
+            ->setMaxResults($perPage)
+            ->getQuery()
+            ->getResult();
+
+        return $this->json([
+            'items' => array_map(fn(UserLoginIp $l) => $this->serializeLoginIp($l), $items),
+            'total' => $total,
+            'page' => $page,
+            'perPage' => $perPage,
+        ]);
     }
 
     #[Route('/banned-ips', name: 'api_admin_banned_ips_list', methods: ['GET'])]
@@ -440,6 +708,107 @@ class AdminController extends ApiAbstractController
             'bannedUntil' => $ban->getBannedUntil()?->format('c'),
             'createdAt' => $ban->getCreatedAt()?->format('c'),
             'active' => $ban->isActive(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeArticleListItem(Article $article): array
+    {
+        $user = $article->getUser();
+        return [
+            'id' => $article->getId(),
+            'title' => $article->getTitle(),
+            'status' => $article->getStatus(),
+            'wordCount' => $article->getWordCount(),
+            'seoScore' => $article->getSeoScore(),
+            'createdAt' => $article->getCreatedAt()?->format('c'),
+            'updatedAt' => $article->getUpdatedAt()?->format('c'),
+            'author' => $user ? [
+                'id' => $user->getId(),
+                'name' => $user->getName(),
+                'email' => $user->getEmail(),
+            ] : null,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeArticleDetail(Article $article): array
+    {
+        return array_merge(
+            $this->serializeArticleListItem($article),
+            [
+                'content' => $article->getContent(),
+                'meta' => $article->getMeta(),
+                'tone' => $article->getTone(),
+                'audience' => $article->getAudience(),
+                'type' => $article->getType(),
+                'publishedAt' => $article->getPublishedAt()?->format('c'),
+            ],
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeIdeaListItem(Idea $idea): array
+    {
+        $user = $idea->getUser();
+        return [
+            'id' => $idea->getId(),
+            'keyword' => $idea->getKeyword(),
+            'audience' => $idea->getAudience(),
+            'type' => $idea->getType(),
+            'createdAt' => $idea->getDate()?->format('c'),
+            'author' => $user ? [
+                'id' => $user->getId(),
+                'name' => $user->getName(),
+                'email' => $user->getEmail(),
+            ] : null,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeMailListItem(PendingMail $mail): array
+    {
+        return [
+            'id' => $mail->getId(),
+            'toEmail' => $mail->getToEmail(),
+            'toName' => $mail->getToName(),
+            'subject' => $mail->getSubject(),
+            'status' => $mail->getStatus(),
+            'attempts' => $mail->getAttempts(),
+            'maxAttempts' => $mail->getMaxAttempts(),
+            'lastError' => $mail->getLastError(),
+            'createdAt' => $mail->getCreatedAt()?->format('c'),
+            'lastAttemptAt' => $mail->getLastAttemptAt()?->format('c'),
+            'sentAt' => $mail->getSentAt()?->format('c'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeLoginIp(UserLoginIp $login): array
+    {
+        $user = $login->getUser();
+        return [
+            'id' => $login->getId(),
+            'ipAddress' => $login->getIpAddress(),
+            'userAgent' => $login->getUserAgent(),
+            'event' => $login->getEvent(),
+            'createdAt' => $login->getCreatedAt()?->format('c'),
+            'lastSeenAt' => $login->getLastSeenAt()?->format('c'),
+            'user' => $user ? [
+                'id' => $user->getId(),
+                'name' => $user->getName(),
+                'email' => $user->getEmail(),
+            ] : null,
         ];
     }
 }

@@ -22,6 +22,7 @@ import { Ban, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useI18n";
 import { AdminGuard } from "@/components/admin/AdminGuard";
+import { AdminNav } from "@/components/admin/AdminNav";
 import { API_URL, Urls } from "@/utils/Api";
 
 const formatDateTime = (iso, locale) => {
@@ -158,12 +159,14 @@ const AdminBannedIpsInner = () => {
     };
 
     return (
-        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-8">
+        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
             <div className="mx-auto max-w-5xl space-y-6">
                 <div>
-                    <h1 className="text-3xl">{t("admin.bans.title")}</h1>
+                    <h1 className="text-2xl md:text-3xl">{t("admin.bans.title")}</h1>
                     <p className="text-slate-600 dark:text-slate-400">{t("admin.bans.subtitle")}</p>
                 </div>
+
+                <AdminNav />
 
                 <Card>
                     <CardHeader>
@@ -249,55 +252,92 @@ const AdminBannedIpsInner = () => {
                                 {t("admin.bans.list.empty")}
                             </div>
                         ) : (
-                            <div className="overflow-x-auto rounded-md border dark:border-slate-800">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-slate-50 dark:bg-slate-800/40 text-left text-xs uppercase text-slate-500 dark:text-slate-400">
-                                        <tr>
-                                            <th className="px-4 py-2">{t("admin.bans.list.ip")}</th>
-                                            <th className="px-4 py-2">{t("admin.bans.list.reason")}</th>
-                                            <th className="px-4 py-2">{t("admin.bans.list.scope")}</th>
-                                            <th className="px-4 py-2">{t("admin.bans.list.status")}</th>
-                                            <th className="px-4 py-2">{t("admin.bans.list.createdAt")}</th>
-                                            <th className="px-4 py-2 text-right">{t("admin.bans.list.actions")}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y dark:divide-slate-800">
-                                        {items.map((ban) => (
-                                            <tr key={ban.id}>
-                                                <td className="px-4 py-3 font-mono">{ban.ipAddress}</td>
-                                                <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{ban.reason || "—"}</td>
-                                                <td className="px-4 py-3">
-                                                    {ban.isPermanent ? (
-                                                        <Badge variant="destructive">{t("admin.bans.list.permanent")}</Badge>
-                                                    ) : (
-                                                        <span className="text-slate-600 dark:text-slate-400">
-                                                            {t("admin.bans.list.until")} {formatDateTime(ban.bannedUntil, locale)}
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <Badge variant={ban.active ? "default" : "secondary"}>
-                                                        {ban.active ? t("admin.bans.list.active") : t("admin.bans.list.expired")}
-                                                    </Badge>
-                                                </td>
-                                                <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                                                    {formatDateTime(ban.createdAt, locale)}
-                                                </td>
-                                                <td className="px-4 py-3 text-right">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="text-red-600"
-                                                        onClick={() => setPendingDeleteId(ban.id)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </td>
+                            <>
+                                <div className="hidden md:block overflow-x-auto rounded-md border dark:border-slate-800">
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-slate-50 dark:bg-slate-800/40 text-left text-xs uppercase text-slate-500 dark:text-slate-400">
+                                            <tr>
+                                                <th className="px-4 py-2">{t("admin.bans.list.ip")}</th>
+                                                <th className="px-4 py-2">{t("admin.bans.list.reason")}</th>
+                                                <th className="px-4 py-2">{t("admin.bans.list.scope")}</th>
+                                                <th className="px-4 py-2">{t("admin.bans.list.status")}</th>
+                                                <th className="px-4 py-2">{t("admin.bans.list.createdAt")}</th>
+                                                <th className="px-4 py-2 text-right">{t("admin.bans.list.actions")}</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody className="divide-y dark:divide-slate-800">
+                                            {items.map((ban) => (
+                                                <tr key={ban.id}>
+                                                    <td className="px-4 py-3 font-mono">{ban.ipAddress}</td>
+                                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{ban.reason || "—"}</td>
+                                                    <td className="px-4 py-3">
+                                                        {ban.isPermanent ? (
+                                                            <Badge variant="destructive">{t("admin.bans.list.permanent")}</Badge>
+                                                        ) : (
+                                                            <span className="text-slate-600 dark:text-slate-400">
+                                                                {t("admin.bans.list.until")} {formatDateTime(ban.bannedUntil, locale)}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <Badge variant={ban.active ? "default" : "secondary"}>
+                                                            {ban.active ? t("admin.bans.list.active") : t("admin.bans.list.expired")}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                                                        {formatDateTime(ban.createdAt, locale)}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="text-red-600"
+                                                            onClick={() => setPendingDeleteId(ban.id)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div className="md:hidden space-y-3">
+                                    {items.map((ban) => (
+                                        <div key={ban.id} className="rounded-md border dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <p className="font-mono text-sm">{ban.ipAddress}</p>
+                                                <Badge variant={ban.active ? "default" : "secondary"}>
+                                                    {ban.active ? t("admin.bans.list.active") : t("admin.bans.list.expired")}
+                                                </Badge>
+                                            </div>
+                                            {ban.reason && (
+                                                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{ban.reason}</p>
+                                            )}
+                                            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                                {ban.isPermanent
+                                                    ? t("admin.bans.list.permanent")
+                                                    : `${t("admin.bans.list.until")} ${formatDateTime(ban.bannedUntil, locale)}`}
+                                            </p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                {t("admin.bans.list.createdAt")} : {formatDateTime(ban.createdAt, locale)}
+                                            </p>
+                                            <div className="mt-3 flex justify-end">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="text-red-600"
+                                                    onClick={() => setPendingDeleteId(ban.id)}
+                                                >
+                                                    <Trash2 className="mr-1 h-3.5 w-3.5" />
+                                                    {t("admin.bans.deleteOk")}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
                         )}
                     </CardContent>
                 </Card>
