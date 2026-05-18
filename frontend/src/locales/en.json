@@ -6,6 +6,7 @@
     "ideas": "Ideas",
     "editor": "Editor",
     "settings": "Settings",
+    "admin": "Admin",
     "logout": "Logout",
     "features": "Features",
     "pricing": "Pricing",
@@ -593,6 +594,242 @@
         "signup": "Sign up"
       },
       "refresh": "Refresh"
+    }
+  },
+  "admin": {
+    "title": "Admin panel",
+    "subtitle": "Platform overview for the last {days} days",
+    "shell": {
+      "brand": "Admin",
+      "backToApp": "Back to app"
+    },
+    "toast": {
+      "loading": "Loading statistics...",
+      "loadError": "Could not load admin data."
+    },
+    "guard": {
+      "loading": "Checking access...",
+      "title": "Access denied",
+      "description": "This section is restricted to administrators. Contact an admin if you think this is a mistake."
+    },
+    "kpi": {
+      "users": "Users",
+      "articles": "Articles",
+      "ideas": "Generated ideas",
+      "mails": "Mails in queue",
+      "bannedIps": "Banned IPs",
+      "loginEvents": "Logins"
+    },
+    "charts": {
+      "signups": "Signups per day",
+      "signupsHint": "New accounts created in the last {days} days",
+      "articlesPerDay": "Articles created per day",
+      "articlesHint": "Articles saved in the last {days} days",
+      "articlesByStatus": "Articles breakdown",
+      "articlesByStatusHint": "Articles by status (draft/review/published/archived)",
+      "mailsByStatus": "Mails breakdown",
+      "mailsByStatusHint": "Mails by status in the sending queue",
+      "empty": "No data to display for this period."
+    },
+    "topAuthors": {
+      "title": "Top authors",
+      "description": "Most prolific users by article count",
+      "empty": "No authors yet.",
+      "articles": "{count} article(s)"
+    },
+    "users": {
+      "title": "Users",
+      "subtitle": "{count} total account(s)",
+      "listTitle": "All users",
+      "listHint": "Search by name or email, hard delete with cascade",
+      "searchPlaceholder": "Search by name or email...",
+      "empty": "No user matches your search.",
+      "pagination": "Page {page} of {totalPages}",
+      "prev": "Previous",
+      "next": "Next",
+      "selfDeleteHint": "You cannot delete yourself.",
+      "deleteTitle": "Delete this user?",
+      "deleteConfirm": "This action is permanent. The user and all related data (articles, ideas, IPs) will be cascaded.",
+      "deleteCancel": "Cancel",
+      "deleteOk": "Delete",
+      "deleting": "Deleting...",
+      "deleteSuccess": "User deleted.",
+      "deleteError": "Deletion failed.",
+      "table": {
+        "user": "User",
+        "role": "Role",
+        "articles": "Articles",
+        "createdAt": "Joined",
+        "lastLogin": "Last login",
+        "actions": "Actions"
+      }
+    },
+    "bans": {
+      "title": "IP bans",
+      "subtitle": "Manage IP addresses blocked from the public API.",
+      "create": {
+        "title": "Add a ban",
+        "description": "The banned IP will be blocked on every /api/* via IpBanCheckListener.",
+        "ipLabel": "IP address",
+        "reasonLabel": "Reason (optional)",
+        "reasonPlaceholder": "e.g. login bruteforce attempts",
+        "permanent": "Permanent ban",
+        "permanentHint": "If enabled, the ban never expires.",
+        "untilLabel": "Banned until",
+        "submit": "Ban this IP"
+      },
+      "list": {
+        "title": "Active bans",
+        "count": "{count} ban(s)",
+        "empty": "No IP is currently banned.",
+        "ip": "IP address",
+        "reason": "Reason",
+        "scope": "Scope",
+        "status": "Status",
+        "createdAt": "Created at",
+        "actions": "Actions",
+        "permanent": "Permanent",
+        "until": "Until",
+        "active": "Active",
+        "expired": "Expired"
+      },
+      "deleteTitle": "Lift this ban?",
+      "deleteConfirm": "The IP will be able to access the API again immediately.",
+      "deleteCancel": "Cancel",
+      "deleteOk": "Lift ban",
+      "deleting": "Removing...",
+      "toast": {
+        "createSuccess": "IP banned successfully.",
+        "createError": "Could not ban this IP.",
+        "deleteSuccess": "Ban lifted.",
+        "deleteError": "Failed to lift the ban.",
+        "ipRequired": "IP address is required.",
+        "untilRequired": "An end date is required for a temporary ban."
+      }
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "articles": "Articles",
+      "ideas": "Ideas",
+      "mails": "Mails",
+      "loginIps": "Login IPs",
+      "bans": "IP bans"
+    },
+    "userDetail": {
+      "title": "User detail",
+      "subtitle": "View and edit this account",
+      "back": "Back to list",
+      "notFound": "User not found.",
+      "infoTitle": "Information",
+      "infoHint": "Update name, email or role. Password cannot be reset here.",
+      "nameLabel": "Name",
+      "emailLabel": "Email",
+      "roleLabel": "Role",
+      "roleUser": "User",
+      "roleAdmin": "Administrator",
+      "save": "Save",
+      "saving": "Saving...",
+      "saveSuccess": "User updated.",
+      "saveError": "Update failed.",
+      "statsTitle": "Activity",
+      "articlesCount": "Articles",
+      "ideasCount": "Ideas",
+      "loginIpsCount": "Logins",
+      "createdAt": "Signed up",
+      "lastLogin": "Last login",
+      "selfRoleHint": "You cannot remove your own admin role."
+    },
+    "articles": {
+      "title": "Articles",
+      "subtitle": "All articles across all users",
+      "listTitle": "All articles",
+      "searchPlaceholder": "Title or author email...",
+      "statusAll": "All statuses",
+      "empty": "No article matches.",
+      "deleteTitle": "Delete this article?",
+      "deleteConfirm": "This action is permanent. The article will be removed from the database.",
+      "deleteCancel": "Cancel",
+      "deleteOk": "Delete",
+      "deleting": "Deleting...",
+      "deleteSuccess": "Article deleted.",
+      "deleteError": "Deletion failed.",
+      "view": "View",
+      "table": {
+        "title": "Title",
+        "author": "Author",
+        "status": "Status",
+        "words": "Words",
+        "seo": "SEO",
+        "createdAt": "Created",
+        "actions": "Actions"
+      },
+      "detail": {
+        "title": "Article",
+        "back": "Back to list",
+        "notFound": "Article not found.",
+        "metaTitle": "Metadata",
+        "contentTitle": "Content",
+        "noContent": "This article has no content yet.",
+        "delete": "Delete",
+        "tone": "Tone",
+        "audience": "Audience",
+        "type": "Type",
+        "wordCount": "Word count",
+        "seoScore": "SEO score",
+        "publishedAt": "Published",
+        "updatedAt": "Updated"
+      }
+    },
+    "ideas": {
+      "title": "Generated ideas",
+      "subtitle": "All content ideas created by users",
+      "listTitle": "All ideas",
+      "searchPlaceholder": "Keyword or author email...",
+      "empty": "No ideas found.",
+      "table": {
+        "keyword": "Keyword",
+        "audience": "Audience",
+        "type": "Type",
+        "author": "Author",
+        "createdAt": "Generated"
+      }
+    },
+    "mails": {
+      "title": "Mail queue",
+      "subtitle": "Transactional emails (welcome, IP alerts, etc.)",
+      "listTitle": "Mails",
+      "searchPlaceholder": "Recipient or subject...",
+      "statusAll": "All statuses",
+      "statusPending": "Pending",
+      "statusProcessing": "Processing",
+      "statusSent": "Sent",
+      "statusFailed": "Failed",
+      "empty": "No mail matches.",
+      "table": {
+        "to": "Recipient",
+        "subject": "Subject",
+        "status": "Status",
+        "attempts": "Attempts",
+        "createdAt": "Created",
+        "sentAt": "Sent",
+        "error": "Error"
+      }
+    },
+    "loginIps": {
+      "title": "Login history",
+      "subtitle": "All IP addresses that opened a session",
+      "listTitle": "Recorded logins",
+      "searchPlaceholder": "IP or email...",
+      "empty": "No login recorded.",
+      "table": {
+        "ip": "IP address",
+        "user": "User",
+        "event": "Event",
+        "createdAt": "First seen",
+        "lastSeenAt": "Last seen",
+        "userAgent": "User agent"
+      }
     }
   }
 }

@@ -259,6 +259,7 @@ class MeController extends ApiAbstractController
             'bio' => $user->getBio(),
             'language' => $user->getLanguage(),
             'theme' => $user->getTheme(),
+            'role' => $user->getRole(),
             'defaultTone' => $user->getDefaultTone(),
             'defaultWords' => $user->getDefaultWords(),
             'notifications' => [
