@@ -26,4 +26,16 @@ export const Urls = {
       password: '/me/password',
       notifications: '/me/notifications',
   },
+  admin: {
+      stats: '/admin/stats',
+      users: '/admin/users',
+      user: (id) => `/admin/users/${id}`,
+      articles: '/admin/articles',
+      article: (id) => `/admin/articles/${id}`,
+      ideas: '/admin/ideas',
+      mails: '/admin/mails',
+      loginIps: '/admin/login-ips',
+      bannedIps: '/admin/banned-ips',
+      bannedIp: (id) => `/admin/banned-ips/${id}`,
+  },
 };

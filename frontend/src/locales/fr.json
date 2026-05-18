@@ -6,6 +6,7 @@
     "ideas": "Idées",
     "editor": "Éditeur",
     "settings": "Paramètres",
+    "admin": "Admin",
     "logout": "Déconnexion",
     "features": "Fonctionnalités",
     "pricing": "Tarifs",
@@ -593,6 +594,242 @@
         "signup": "Inscription"
       },
       "refresh": "Actualiser"
+    }
+  },
+  "admin": {
+    "title": "Panneau d'administration",
+    "subtitle": "Vue d'ensemble de la plateforme sur les {days} derniers jours",
+    "shell": {
+      "brand": "Admin",
+      "backToApp": "Retour à l'app"
+    },
+    "toast": {
+      "loading": "Chargement des statistiques...",
+      "loadError": "Impossible de charger les données admin."
+    },
+    "guard": {
+      "loading": "Vérification de l'accès...",
+      "title": "Accès refusé",
+      "description": "Cette section est réservée aux administrateurs. Contactez un admin si vous pensez qu'il s'agit d'une erreur."
+    },
+    "kpi": {
+      "users": "Utilisateurs",
+      "articles": "Articles",
+      "ideas": "Idées générées",
+      "mails": "Mails en file",
+      "bannedIps": "IPs bannies",
+      "loginEvents": "Connexions"
+    },
+    "charts": {
+      "signups": "Inscriptions par jour",
+      "signupsHint": "Nouveaux comptes créés sur les {days} derniers jours",
+      "articlesPerDay": "Articles créés par jour",
+      "articlesHint": "Articles enregistrés sur les {days} derniers jours",
+      "articlesByStatus": "Répartition des articles",
+      "articlesByStatusHint": "Articles par statut (draft/review/published/archived)",
+      "mailsByStatus": "Répartition des mails",
+      "mailsByStatusHint": "Mails par statut dans la file d'envoi",
+      "empty": "Aucune donnée à afficher pour cette période."
+    },
+    "topAuthors": {
+      "title": "Top auteurs",
+      "description": "Les utilisateurs les plus prolifiques en nombre d'articles",
+      "empty": "Aucun auteur pour le moment.",
+      "articles": "{count} article(s)"
+    },
+    "users": {
+      "title": "Utilisateurs",
+      "subtitle": "{count} compte(s) au total",
+      "listTitle": "Tous les utilisateurs",
+      "listHint": "Recherche par nom ou email, suppression définitive avec cascade",
+      "searchPlaceholder": "Rechercher par nom ou email...",
+      "empty": "Aucun utilisateur ne correspond à votre recherche.",
+      "pagination": "Page {page} sur {totalPages}",
+      "prev": "Précédent",
+      "next": "Suivant",
+      "selfDeleteHint": "Vous ne pouvez pas vous supprimer vous-même.",
+      "deleteTitle": "Supprimer cet utilisateur ?",
+      "deleteConfirm": "Cette action est définitive. L'utilisateur et toutes ses données (articles, idées, IPs) seront supprimés en cascade.",
+      "deleteCancel": "Annuler",
+      "deleteOk": "Supprimer",
+      "deleting": "Suppression...",
+      "deleteSuccess": "Utilisateur supprimé.",
+      "deleteError": "La suppression a échoué.",
+      "table": {
+        "user": "Utilisateur",
+        "role": "Rôle",
+        "articles": "Articles",
+        "createdAt": "Inscrit le",
+        "lastLogin": "Dernière connexion",
+        "actions": "Actions"
+      }
+    },
+    "bans": {
+      "title": "Bannissements IP",
+      "subtitle": "Gérez les adresses IP bloquées sur l'API publique.",
+      "create": {
+        "title": "Ajouter un bannissement",
+        "description": "L'IP bannie sera bloquée sur tout /api/* via IpBanCheckListener.",
+        "ipLabel": "Adresse IP",
+        "reasonLabel": "Raison (optionnelle)",
+        "reasonPlaceholder": "Ex : spam de tentatives de connexion",
+        "permanent": "Bannissement permanent",
+        "permanentHint": "Si activé, le ban n'expire jamais.",
+        "untilLabel": "Banni jusqu'au",
+        "submit": "Bannir l'IP"
+      },
+      "list": {
+        "title": "Bannissements en cours",
+        "count": "{count} bannissement(s)",
+        "empty": "Aucune IP n'est bannie pour le moment.",
+        "ip": "Adresse IP",
+        "reason": "Raison",
+        "scope": "Portée",
+        "status": "Statut",
+        "createdAt": "Créé le",
+        "actions": "Actions",
+        "permanent": "Permanent",
+        "until": "Jusqu'au",
+        "active": "Actif",
+        "expired": "Expiré"
+      },
+      "deleteTitle": "Lever ce bannissement ?",
+      "deleteConfirm": "L'IP pourra à nouveau accéder à l'API immédiatement.",
+      "deleteCancel": "Annuler",
+      "deleteOk": "Lever le ban",
+      "deleting": "Suppression...",
+      "toast": {
+        "createSuccess": "IP bannie avec succès.",
+        "createError": "Impossible de bannir cette IP.",
+        "deleteSuccess": "Bannissement levé.",
+        "deleteError": "La levée du ban a échoué.",
+        "ipRequired": "L'adresse IP est requise.",
+        "untilRequired": "Une date de fin est requise pour un ban temporaire."
+      }
+    },
+    "nav": {
+      "dashboard": "Tableau de bord",
+      "users": "Utilisateurs",
+      "articles": "Articles",
+      "ideas": "Idées",
+      "mails": "Mails",
+      "loginIps": "Connexions",
+      "bans": "Bannissements IP"
+    },
+    "userDetail": {
+      "title": "Détail utilisateur",
+      "subtitle": "Voir et modifier ce compte",
+      "back": "Retour à la liste",
+      "notFound": "Utilisateur introuvable.",
+      "infoTitle": "Informations",
+      "infoHint": "Modifiez le nom, l'email ou le rôle. Le mot de passe ne peut pas être réinitialisé ici.",
+      "nameLabel": "Nom",
+      "emailLabel": "Email",
+      "roleLabel": "Rôle",
+      "roleUser": "Utilisateur",
+      "roleAdmin": "Administrateur",
+      "save": "Enregistrer",
+      "saving": "Enregistrement...",
+      "saveSuccess": "Utilisateur mis à jour.",
+      "saveError": "La mise à jour a échoué.",
+      "statsTitle": "Activité",
+      "articlesCount": "Articles",
+      "ideasCount": "Idées",
+      "loginIpsCount": "Connexions",
+      "createdAt": "Inscrit le",
+      "lastLogin": "Dernière connexion",
+      "selfRoleHint": "Vous ne pouvez pas vous retirer le rôle administrateur."
+    },
+    "articles": {
+      "title": "Articles",
+      "subtitle": "Tous les articles, tous comptes confondus",
+      "listTitle": "Tous les articles",
+      "searchPlaceholder": "Titre ou email auteur...",
+      "statusAll": "Tous les statuts",
+      "empty": "Aucun article ne correspond.",
+      "deleteTitle": "Supprimer cet article ?",
+      "deleteConfirm": "Cette action est définitive. L'article sera retiré de la base.",
+      "deleteCancel": "Annuler",
+      "deleteOk": "Supprimer",
+      "deleting": "Suppression...",
+      "deleteSuccess": "Article supprimé.",
+      "deleteError": "La suppression a échoué.",
+      "view": "Voir",
+      "table": {
+        "title": "Titre",
+        "author": "Auteur",
+        "status": "Statut",
+        "words": "Mots",
+        "seo": "SEO",
+        "createdAt": "Créé le",
+        "actions": "Actions"
+      },
+      "detail": {
+        "title": "Article",
+        "back": "Retour à la liste",
+        "notFound": "Article introuvable.",
+        "metaTitle": "Métadonnées",
+        "contentTitle": "Contenu",
+        "noContent": "Cet article n'a pas encore de contenu.",
+        "delete": "Supprimer",
+        "tone": "Ton",
+        "audience": "Audience",
+        "type": "Type",
+        "wordCount": "Nombre de mots",
+        "seoScore": "Score SEO",
+        "publishedAt": "Publié le",
+        "updatedAt": "Modifié le"
+      }
+    },
+    "ideas": {
+      "title": "Idées générées",
+      "subtitle": "Toutes les idées de contenu créées par les utilisateurs",
+      "listTitle": "Toutes les idées",
+      "searchPlaceholder": "Mot-clé ou email auteur...",
+      "empty": "Aucune idée trouvée.",
+      "table": {
+        "keyword": "Mot-clé",
+        "audience": "Audience",
+        "type": "Type",
+        "author": "Auteur",
+        "createdAt": "Généré le"
+      }
+    },
+    "mails": {
+      "title": "File des mails",
+      "subtitle": "Mails transactionnels (welcome, alertes IP, etc.)",
+      "listTitle": "Mails",
+      "searchPlaceholder": "Destinataire ou sujet...",
+      "statusAll": "Tous les statuts",
+      "statusPending": "En attente",
+      "statusProcessing": "En cours",
+      "statusSent": "Envoyé",
+      "statusFailed": "Échec",
+      "empty": "Aucun mail ne correspond.",
+      "table": {
+        "to": "Destinataire",
+        "subject": "Sujet",
+        "status": "Statut",
+        "attempts": "Essais",
+        "createdAt": "Créé le",
+        "sentAt": "Envoyé le",
+        "error": "Erreur"
+      }
+    },
+    "loginIps": {
+      "title": "Historique des connexions",
+      "subtitle": "Toutes les adresses IP ayant initié une session",
+      "listTitle": "Connexions enregistrées",
+      "searchPlaceholder": "IP ou email...",
+      "empty": "Aucune connexion enregistrée.",
+      "table": {
+        "ip": "Adresse IP",
+        "user": "Utilisateur",
+        "event": "Type",
+        "createdAt": "Première vue",
+        "lastSeenAt": "Dernière vue",
+        "userAgent": "User-Agent"
+      }
     }
   }
 }

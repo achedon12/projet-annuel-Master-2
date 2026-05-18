@@ -177,6 +177,7 @@ class AuthController extends ApiAbstractController
             'bio' => $user->getBio(),
             'language' => $user->getLanguage(),
             'theme' => $user->getTheme(),
+            'role' => $user->getRole(),
             'createdAt' => $user->getCreatedAt()?->format('c'),
             'updatedAt' => $user->getUpdatedAt()?->format('c'),
             'lastLogin' => $user->getLastLogin()?->format('c'),
