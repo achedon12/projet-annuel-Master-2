@@ -7,6 +7,7 @@ use App\Entity\Article;
 use App\Entity\User;
 use App\Repository\ArticleRepository;
 use App\Repository\IntegrationRepository;
+use App\Service\GoogleCalendarService;
 use App\Service\JwtAuthService;
 use App\Service\MistralArticleService;
 use App\Service\MistralGenerationException;
@@ -40,6 +41,7 @@ class ArticleController extends ApiAbstractController
         private readonly LoggerInterface $logger,
         private readonly IntegrationRepository $integrationRepository,
         private readonly NotionService $notion,
+        private readonly GoogleCalendarService $calendar,
     ) {}
 
     #[Route('', name: 'api_articles_list', methods: ['GET'])]
@@ -390,6 +392,158 @@ class ArticleController extends ApiAbstractController
         ]);
     }
 
+    /**
+     * Planifie la publication d'un article : crée (ou met à jour) un event
+     * Google Calendar et persiste scheduledAt + googleEventId.
+     */
+    #[Route('/{id}/schedule', name: 'api_articles_schedule', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function schedule(int $id, Request $request): JsonResponse
+    {
+        $user = $this->jwtAuth->authenticate($request);
+        if (!$user) {
+            return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $article = $this->findOwned($id, $user);
+        if (!$article) {
+            return $this->json(['error' => 'Article introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $integration = $this->integrationRepository->findOneByUserAndType($user, 'google');
+        if ($integration === null || !$integration->isActive()) {
+            return $this->json(['error' => 'Connectez d\'abord Google Calendar dans les paramètres.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $data = $this->decodeBody($request);
+        if ($data === null) {
+            return $this->json(['error' => 'Corps de requête JSON invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $scheduledAt = $this->parseFutureDateTime($data['scheduledAt'] ?? null);
+        if ($scheduledAt === null) {
+            return $this->json(['error' => 'Date de publication invalide ou dans le passé.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $title = (string) ($article->getTitle() ?? '');
+        if (trim($title) === '') {
+            return $this->json(['error' => 'Donnez un titre à l\'article avant de planifier sa publication.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $summary = 'Publication : ' . $title;
+        $description = "Publication planifiée pour l'article #" . $article->getId();
+        $end = (clone $scheduledAt)->modify('+30 minutes');
+
+        try {
+            $existing = $article->getGoogleEventId();
+            if ($existing === null || $existing === '') {
+                $eventId = $this->calendar->createEvent($integration, $summary, $description, $scheduledAt, $end);
+                $article->setGoogleEventId($eventId);
+            } else {
+                try {
+                    $this->calendar->updateEvent($integration, $existing, $summary, $description, $scheduledAt, $end);
+                } catch (\RuntimeException $updateErr) {
+                    $this->logger->info('Update Calendar en échec, fallback création.', [
+                        'articleId' => $id,
+                        'eventId' => $existing,
+                        'message' => $updateErr->getMessage(),
+                    ]);
+                    $eventId = $this->calendar->createEvent($integration, $summary, $description, $scheduledAt, $end);
+                    $article->setGoogleEventId($eventId);
+                }
+            }
+            $article->setScheduledAt($scheduledAt);
+            $article->setUpdatedAt(new \DateTime());
+            $integration->setLastSync(new \DateTime());
+            $this->em->flush();
+        } catch (\RuntimeException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_GATEWAY);
+        } catch (\Throwable $e) {
+            $this->logger->error('Erreur inattendue lors du schedule Google.', [
+                'articleId' => $id,
+                'exception' => $e->getMessage(),
+            ]);
+            return $this->json(['error' => 'Impossible de planifier la publication.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return $this->json([
+            'scheduledAt' => $article->getScheduledAt()?->format('c'),
+            'googleEventId' => $article->getGoogleEventId(),
+        ]);
+    }
+
+    /**
+     * Crée un event Calendar one-shot "Rappel : <titre>" pour la relecture.
+     * Pas de tracking sur l'article (l'event vit dans le calendrier de l'user).
+     */
+    #[Route('/{id}/reminder', name: 'api_articles_reminder', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function reminder(int $id, Request $request): JsonResponse
+    {
+        $user = $this->jwtAuth->authenticate($request);
+        if (!$user) {
+            return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $article = $this->findOwned($id, $user);
+        if (!$article) {
+            return $this->json(['error' => 'Article introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $integration = $this->integrationRepository->findOneByUserAndType($user, 'google');
+        if ($integration === null || !$integration->isActive()) {
+            return $this->json(['error' => 'Connectez d\'abord Google Calendar dans les paramètres.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $data = $this->decodeBody($request);
+        if ($data === null) {
+            return $this->json(['error' => 'Corps de requête JSON invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $remindAt = $this->parseFutureDateTime($data['remindAt'] ?? null);
+        if ($remindAt === null) {
+            return $this->json(['error' => 'Date de rappel invalide ou dans le passé.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $title = (string) ($article->getTitle() ?? 'sans titre');
+        $summary = 'Rappel : relire « ' . $title . ' »';
+        $description = 'Rappel de relecture pour l\'article #' . $article->getId();
+        $end = (clone $remindAt)->modify('+15 minutes');
+
+        try {
+            $eventId = $this->calendar->createEvent($integration, $summary, $description, $remindAt, $end);
+            $integration->setLastSync(new \DateTime());
+            $this->em->flush();
+        } catch (\RuntimeException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_GATEWAY);
+        } catch (\Throwable $e) {
+            $this->logger->error('Erreur inattendue lors du reminder Google.', [
+                'articleId' => $id,
+                'exception' => $e->getMessage(),
+            ]);
+            return $this->json(['error' => 'Impossible de programmer le rappel.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return $this->json([
+            'eventId' => $eventId,
+            'remindAt' => $remindAt->format('c'),
+        ]);
+    }
+
+    private function parseFutureDateTime(mixed $raw): ?\DateTime
+    {
+        if (!is_string($raw) || trim($raw) === '') {
+            return null;
+        }
+        try {
+            $dt = new \DateTime($raw);
+        } catch (\Throwable) {
+            return null;
+        }
+        if ($dt <= new \DateTime()) {
+            return null;
+        }
+        return $dt;
+    }
+
     private function findOwned(int $id, User $user): ?Article
     {
         return $this->repository->findOneBy(['id' => $id, 'user' => $user]);
@@ -532,6 +686,8 @@ class ArticleController extends ApiAbstractController
             'updatedAt' => $article->getUpdatedAt()?->format('c'),
             'publishedAt' => $article->getPublishedAt()?->format('c'),
             'notionPageId' => $article->getNotionPageId(),
+            'scheduledAt' => $article->getScheduledAt()?->format('c'),
+            'googleEventId' => $article->getGoogleEventId(),
         ];
     }
 }

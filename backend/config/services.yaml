@@ -32,3 +32,12 @@ services:
         arguments:
             $apiKey: '%env(MISTRAL_API_KEY)%'
             $model: '%env(MISTRAL_MODEL)%'
+
+    App\Service\GoogleAuthService:
+        arguments:
+            $googleClientId: '%env(default::GOOGLE_CLIENT_ID)%'
+
+    App\Service\GoogleCalendarService:
+        arguments:
+            $googleClientId: '%env(default::GOOGLE_CLIENT_ID)%'
+            $googleClientSecret: '%env(default::GOOGLE_CLIENT_SECRET)%'

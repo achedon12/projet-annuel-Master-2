@@ -10,6 +10,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'idx_article_user', columns: ['user_id'])]
 #[ORM\Index(name: 'idx_article_user_status', columns: ['user_id', 'status'])]
 #[ORM\Index(name: 'idx_article_notion_page', columns: ['notion_page_id'])]
+#[ORM\Index(name: 'idx_article_scheduled_at', columns: ['scheduled_at'])]
+#[ORM\Index(name: 'idx_article_google_event', columns: ['google_event_id'])]
 class Article
 {
     public const STATUS_DRAFT = 'draft';
@@ -81,6 +83,12 @@ class Article
 
     #[ORM\Column(length: 36, nullable: true)]
     private ?string $notionPageId = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $scheduledAt = null;
+
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $googleEventId = null;
 
     public function __construct()
     {
@@ -272,6 +280,28 @@ class Article
     public function setNotionPageId(?string $notionPageId): static
     {
         $this->notionPageId = $notionPageId;
+        return $this;
+    }
+
+    public function getScheduledAt(): ?\DateTimeInterface
+    {
+        return $this->scheduledAt;
+    }
+
+    public function setScheduledAt(?\DateTimeInterface $scheduledAt): static
+    {
+        $this->scheduledAt = $scheduledAt;
+        return $this;
+    }
+
+    public function getGoogleEventId(): ?string
+    {
+        return $this->googleEventId;
+    }
+
+    public function setGoogleEventId(?string $googleEventId): static
+    {
+        $this->googleEventId = $googleEventId;
         return $this;
     }
 }

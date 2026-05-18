@@ -76,6 +76,8 @@
       "fullNamePlaceholder": "John Doe",
       "submit": "Create account"
     },
+    "providerSeparator": "Or continue with",
+    "googleButton": "Continue with Google",
     "toast": {
       "loginSuccess": "Logged in. Welcome!",
       "loginInvalid": "Incorrect email or password.",
@@ -85,7 +87,9 @@
       "signupWelcome": "Welcome!",
       "signupCreatedButLoginFailed": "Account created, but automatic login failed. Please log in.",
       "signupError": "Sign-up error",
-      "logoutSuccess": "Logged out."
+      "logoutSuccess": "Logged out.",
+      "googleRejected": "Google sign-in rejected by the server.",
+      "googleError": "Google sign-in error."
     }
   },
   "home": {
@@ -455,7 +459,24 @@
       "pdf": "Export as PDF",
       "markdown": "Export as Markdown",
       "notion": "Send to Notion",
-      "notionUpdate": "Update on Notion"
+      "notionUpdate": "Update on Notion",
+      "schedule": "Schedule publication",
+      "scheduleUpdate": "Reschedule publication",
+      "reminder": "Set a reminder"
+    },
+    "scheduleDialog": {
+      "title": "Schedule publication",
+      "description": "Creates a Google Calendar event for this article. Reopening this dialog updates the event instead of duplicating it.",
+      "label": "Publication date and time",
+      "hint": "Event lasts 30 minutes by default. Calendar: primary.",
+      "submit": "Schedule"
+    },
+    "reminderDialog": {
+      "title": "Set a reminder",
+      "description": "Creates a Google Calendar event \"Reminder: review <title>\" at the chosen date.",
+      "label": "Reminder date and time",
+      "hint": "Event lasts 15 minutes by default. Calendar: primary.",
+      "submit": "Add reminder"
     },
     "toast": {
       "generated": "Content generated successfully!",
@@ -486,7 +507,13 @@
       "notionSaveFirst": "Save the article before sending it to Notion.",
       "notionCreated": "Article sent to Notion.",
       "notionUpdated": "Notion page updated.",
-      "notionError": "Sending to Notion failed."
+      "notionError": "Sending to Notion failed.",
+      "scheduleDateRequired": "Pick a publication date.",
+      "scheduleSuccess": "Publication scheduled in Google Calendar.",
+      "scheduleError": "Could not schedule publication.",
+      "reminderDateRequired": "Pick a date for the reminder.",
+      "reminderSuccess": "Reminder added to Google Calendar.",
+      "reminderError": "Could not add the reminder."
     }
   },
   "settings": {
@@ -531,11 +558,21 @@
         }
       },
       "google": {
-        "description": "Quick sign-in and access to Google services"
-      },
-      "googleSoonHint": "Google integration will be wired in a future release.",
-      "toast": {
-        "googleSoon": "Google integration is coming soon."
+        "description": "Connect Google Calendar to schedule publications and set reminders.",
+        "disconnect": "Disconnect",
+        "scopesLabel": "Granted permissions",
+        "lastSyncLabel": "Last synchronization",
+        "neverSynced": "Never synchronized",
+        "callbackProcessing": "Connecting to Google Calendar...",
+        "toast": {
+          "consentDenied": "You denied access to Google Calendar.",
+          "noCode": "Missing Google authorization code.",
+          "connectSuccess": "Google Calendar connected successfully.",
+          "connectError": "Could not connect to Google Calendar.",
+          "disconnectSuccess": "Google Calendar disconnected.",
+          "disconnectError": "Disconnect failed.",
+          "clientIdMissing": "NEXT_PUBLIC_GOOGLE_CLIENT_ID is not configured on the frontend."
+        }
       }
     },
     "notifications": {

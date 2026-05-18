@@ -15,11 +15,14 @@ import {
     Share2,
     Loader2,
     RefreshCw,
+    CalendarClock,
+    BellRing,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/Dialog";
 import { Input } from "@/components/Input";
 import { Label } from "@/components/Label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select";
@@ -67,6 +70,13 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
     const [isExportingPdf, setIsExportingPdf] = useState(false);
     const [isExportingNotion, setIsExportingNotion] = useState(false);
     const [notionPageId, setNotionPageId] = useState(initialArticle?.notionPageId ?? null);
+    const [scheduledAt, setScheduledAt] = useState(initialArticle?.scheduledAt ?? null);
+    const [scheduleInput, setScheduleInput] = useState("");
+    const [reminderInput, setReminderInput] = useState("");
+    const [isScheduling, setIsScheduling] = useState(false);
+    const [isReminding, setIsReminding] = useState(false);
+    const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+    const [reminderDialogOpen, setReminderDialogOpen] = useState(false);
 
     const token = session?.backendToken;
 
@@ -369,6 +379,94 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
             toast.error(t("editor.toast.notionError"));
         } finally {
             setIsExportingNotion(false);
+        }
+    };
+
+    const openScheduleDialog = () => {
+        if (!articleId) {
+            toast.info(t("editor.toast.notionSaveFirst"));
+            return;
+        }
+        // Pré-rempli avec la valeur courante, ou demain à 10h par défaut.
+        const defaultDate = scheduledAt
+            ? new Date(scheduledAt).toISOString().slice(0, 16)
+            : (() => {
+                const d = new Date();
+                d.setDate(d.getDate() + 1);
+                d.setHours(10, 0, 0, 0);
+                return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            })();
+        setScheduleInput(defaultDate);
+        setScheduleDialogOpen(true);
+    };
+
+    const openReminderDialog = () => {
+        if (!articleId) {
+            toast.info(t("editor.toast.notionSaveFirst"));
+            return;
+        }
+        const d = new Date();
+        d.setDate(d.getDate() + 3);
+        d.setHours(9, 0, 0, 0);
+        setReminderInput(new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16));
+        setReminderDialogOpen(true);
+    };
+
+    const handleSchedule = async () => {
+        if (!token || !articleId) return;
+        if (!scheduleInput) {
+            toast.error(t("editor.toast.scheduleDateRequired"));
+            return;
+        }
+        setIsScheduling(true);
+        try {
+            const res = await fetch(`${API_URL}${Urls.articles.schedule(articleId)}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ scheduledAt: new Date(scheduleInput).toISOString() }),
+            });
+            if (!res.ok) {
+                const message = await extractError(res, t("editor.toast.scheduleError"));
+                toast.error(message);
+                return;
+            }
+            const data = await res.json();
+            if (typeof data?.scheduledAt === "string") setScheduledAt(data.scheduledAt);
+            toast.success(t("editor.toast.scheduleSuccess"));
+            setScheduleDialogOpen(false);
+        } catch (err) {
+            console.error("article.schedule", err);
+            toast.error(t("editor.toast.scheduleError"));
+        } finally {
+            setIsScheduling(false);
+        }
+    };
+
+    const handleReminder = async () => {
+        if (!token || !articleId) return;
+        if (!reminderInput) {
+            toast.error(t("editor.toast.reminderDateRequired"));
+            return;
+        }
+        setIsReminding(true);
+        try {
+            const res = await fetch(`${API_URL}${Urls.articles.reminder(articleId)}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ remindAt: new Date(reminderInput).toISOString() }),
+            });
+            if (!res.ok) {
+                const message = await extractError(res, t("editor.toast.reminderError"));
+                toast.error(message);
+                return;
+            }
+            toast.success(t("editor.toast.reminderSuccess"));
+            setReminderDialogOpen(false);
+        } catch (err) {
+            console.error("article.reminder", err);
+            toast.error(t("editor.toast.reminderError"));
+        } finally {
+            setIsReminding(false);
         }
     };
 
@@ -785,6 +883,24 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                                             )}
                                             {t(notionPageId ? "editor.export.notionUpdate" : "editor.export.notion")}
                                         </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full justify-start"
+                                            onClick={openScheduleDialog}
+                                        >
+                                            <CalendarClock className="mr-2 h-4 w-4" />
+                                            {t(scheduledAt ? "editor.export.scheduleUpdate" : "editor.export.schedule")}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full justify-start"
+                                            onClick={openReminderDialog}
+                                        >
+                                            <BellRing className="mr-2 h-4 w-4" />
+                                            {t("editor.export.reminder")}
+                                        </Button>
                                     </CardContent>
                                 </Card>
                             </TabsContent>
@@ -792,6 +908,76 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                     </div>
                 </div>
             </div>
+
+            <Dialog
+                open={scheduleDialogOpen}
+                onOpenChange={(open) => {
+                    if (!open && !isScheduling) setScheduleDialogOpen(false);
+                }}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{t("editor.scheduleDialog.title")}</DialogTitle>
+                        <DialogDescription>{t("editor.scheduleDialog.description")}</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2 py-2">
+                        <Label htmlFor="schedule-input">{t("editor.scheduleDialog.label")}</Label>
+                        <Input
+                            id="schedule-input"
+                            type="datetime-local"
+                            value={scheduleInput}
+                            onChange={(e) => setScheduleInput(e.target.value)}
+                        />
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {t("editor.scheduleDialog.hint")}
+                        </p>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setScheduleDialogOpen(false)} disabled={isScheduling}>
+                            {t("common.cancel")}
+                        </Button>
+                        <Button onClick={handleSchedule} disabled={isScheduling}>
+                            {isScheduling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {t("editor.scheduleDialog.submit")}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={reminderDialogOpen}
+                onOpenChange={(open) => {
+                    if (!open && !isReminding) setReminderDialogOpen(false);
+                }}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{t("editor.reminderDialog.title")}</DialogTitle>
+                        <DialogDescription>{t("editor.reminderDialog.description")}</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2 py-2">
+                        <Label htmlFor="reminder-input">{t("editor.reminderDialog.label")}</Label>
+                        <Input
+                            id="reminder-input"
+                            type="datetime-local"
+                            value={reminderInput}
+                            onChange={(e) => setReminderInput(e.target.value)}
+                        />
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {t("editor.reminderDialog.hint")}
+                        </p>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setReminderDialogOpen(false)} disabled={isReminding}>
+                            {t("common.cancel")}
+                        </Button>
+                        <Button onClick={handleReminder} disabled={isReminding}>
+                            {isReminding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {t("editor.reminderDialog.submit")}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
