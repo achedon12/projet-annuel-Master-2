@@ -157,8 +157,15 @@ class AuthController extends ApiAbstractController
             return $this->json(['error' => 'idToken manquant.'], Response::HTTP_BAD_REQUEST);
         }
 
+        $idToken = trim($data['idToken']);
+        // Les id_tokens Google légitimes font ~1-2 KB ; au-delà, c'est forcément
+        // invalide. Fail-fast avant l'appel JWKS qui ferait du réseau pour rien.
+        if (mb_strlen($idToken) > 4000) {
+            return $this->json(['error' => 'idToken Google trop long.'], Response::HTTP_BAD_REQUEST);
+        }
+
         try {
-            $payload = $this->googleAuth->verifyIdToken(trim($data['idToken']));
+            $payload = $this->googleAuth->verifyIdToken($idToken);
         } catch (\RuntimeException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
         }

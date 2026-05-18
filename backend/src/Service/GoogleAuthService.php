@@ -62,7 +62,10 @@ class GoogleAuthService
         if (!isset($payload['email']) || !is_string($payload['email']) || trim($payload['email']) === '') {
             throw new \RuntimeException('Email absent de l\'id_token Google.');
         }
-        if (isset($payload['email_verified']) && $payload['email_verified'] === false) {
+        // Fail-closed : un id_token sans `email_verified === true` est rejeté.
+        // Défense en profondeur contre un futur payload Google qui ometterait
+        // le claim ou un IDP malveillant qui le mettrait à false.
+        if (!isset($payload['email_verified']) || $payload['email_verified'] !== true) {
             throw new \RuntimeException('Email Google non vérifié.');
         }
 

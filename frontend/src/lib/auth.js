@@ -83,21 +83,17 @@ export const authOptions = {
         async signIn({ account, profile }) {
             // Pour Google : on échange l'id_token contre un JWT backend avant
             // de laisser NextAuth ouvrir la session. Si l'échange plante, on
-            // refuse l'auth (NextAuth redirige vers /auth?error=...).
+            // throw : NextAuth propage la cause vers `res.error` côté client.
             if (account?.provider === "google") {
                 const idToken = account.id_token;
                 if (!idToken) {
                     throw new Error(LOGIN_GOOGLE_REJECTED);
                 }
-                try {
-                    const data = await exchangeGoogleIdToken(idToken);
-                    // On stocke temporairement le backend payload sur le profile
-                    // pour que le callback jwt puisse le récupérer.
-                    profile._backend = data;
-                    return true;
-                } catch (err) {
-                    return false;
-                }
+                const data = await exchangeGoogleIdToken(idToken);
+                // On stocke temporairement le backend payload sur le profile
+                // pour que le callback jwt puisse le récupérer.
+                profile._backend = data;
+                return true;
             }
             return true;
         },
