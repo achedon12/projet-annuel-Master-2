@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
+import { StatusBadge } from "@/components/ui-kit";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/Dialog";
 import { Input } from "@/components/Input";
 import { Label } from "@/components/Label";
@@ -521,18 +522,31 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
     const isAnyAiActionRunning =
         activeAction !== null || isGenerating || isRewriting || isLoadingSuggestions;
 
+    const statusVariantKey = status === "published" ? "published" : status === "review" ? "review" : status === "archived" ? "archived" : "draft";
+
     return (
         <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
             <div className="flex flex-1 flex-col overflow-hidden">
-                <div className="border-b dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <h1 className="text-2xl">{t("editor.title")}</h1>
-                            <Badge variant="secondary">{t("editor.wordCount", { count: wordCount })}</Badge>
-                            <Badge variant="outline">{statusLabel}</Badge>
+                <div className="border-b border-slate-200 bg-white/90 backdrop-blur-sm px-4 py-3 md:px-6 md:py-4 dark:border-slate-800 dark:bg-slate-900/90">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div className="flex flex-wrap items-center gap-3">
+                            <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+                                {t("editor.title")}
+                            </h1>
+                            <div className="flex items-center gap-2">
+                                <StatusBadge variant={statusVariantKey}>{statusLabel}</StatusBadge>
+                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                                    {t("editor.wordCount", { count: wordCount })}
+                                </span>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Button variant="outline" onClick={handleSave} disabled={isSaving || isPublishing}>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={handleSave}
+                                disabled={isSaving || isPublishing}
+                                className="rounded-lg"
+                            >
                                 {isSaving ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 ) : (
@@ -540,11 +554,15 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                                 )}
                                 {t("editor.save")}
                             </Button>
-                            <Button variant="outline" disabled>
+                            <Button variant="outline" disabled className="rounded-lg">
                                 <Eye className="mr-2 h-4 w-4" />
                                 {t("editor.preview")}
                             </Button>
-                            <Button onClick={handlePublish} disabled={isSaving || isPublishing}>
+                            <Button
+                                onClick={handlePublish}
+                                disabled={isSaving || isPublishing}
+                                className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                            >
                                 {isPublishing ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 ) : (
