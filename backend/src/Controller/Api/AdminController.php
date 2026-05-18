@@ -28,8 +28,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class AdminController extends ApiAbstractController
 {
     private const STATS_WINDOW_DAYS = 30;
-    private const USERS_DEFAULT_PER_PAGE = 20;
-    private const USERS_MAX_PER_PAGE = 100;
+    private const DEFAULT_PER_PAGE = 20;
+    private const MAX_PER_PAGE = 100;
     private const SEARCH_MAX = 100;
     private const IP_ADDRESS_MAX = 45;
     private const REASON_MAX = 500;
@@ -148,8 +148,8 @@ class AdminController extends ApiAbstractController
         }
 
         $page = max(1, (int) $request->query->get('page', 1));
-        $perPage = (int) $request->query->get('perPage', self::USERS_DEFAULT_PER_PAGE);
-        $perPage = max(1, min(self::USERS_MAX_PER_PAGE, $perPage));
+        $perPage = (int) $request->query->get('perPage', self::DEFAULT_PER_PAGE);
+        $perPage = max(1, min(self::MAX_PER_PAGE, $perPage));
         $search = (string) $request->query->get('search', '');
         $search = mb_substr(trim($search), 0, self::SEARCH_MAX);
 
@@ -287,7 +287,7 @@ class AdminController extends ApiAbstractController
         }
 
         $page = max(1, (int) $request->query->get('page', 1));
-        $perPage = max(1, min(self::USERS_MAX_PER_PAGE, (int) $request->query->get('perPage', self::USERS_DEFAULT_PER_PAGE)));
+        $perPage = max(1, min(self::MAX_PER_PAGE, (int) $request->query->get('perPage', self::DEFAULT_PER_PAGE)));
         $search = mb_substr(trim((string) $request->query->get('search', '')), 0, self::SEARCH_MAX);
         $status = (string) $request->query->get('status', '');
         $userId = (int) $request->query->get('userId', 0);
@@ -367,7 +367,7 @@ class AdminController extends ApiAbstractController
         }
 
         $page = max(1, (int) $request->query->get('page', 1));
-        $perPage = max(1, min(self::USERS_MAX_PER_PAGE, (int) $request->query->get('perPage', self::USERS_DEFAULT_PER_PAGE)));
+        $perPage = max(1, min(self::MAX_PER_PAGE, (int) $request->query->get('perPage', self::DEFAULT_PER_PAGE)));
         $search = mb_substr(trim((string) $request->query->get('search', '')), 0, self::SEARCH_MAX);
         $userId = (int) $request->query->get('userId', 0);
 
@@ -408,7 +408,7 @@ class AdminController extends ApiAbstractController
         }
 
         $page = max(1, (int) $request->query->get('page', 1));
-        $perPage = max(1, min(self::USERS_MAX_PER_PAGE, (int) $request->query->get('perPage', self::USERS_DEFAULT_PER_PAGE)));
+        $perPage = max(1, min(self::MAX_PER_PAGE, (int) $request->query->get('perPage', self::DEFAULT_PER_PAGE)));
         $status = (string) $request->query->get('status', '');
         $search = mb_substr(trim((string) $request->query->get('search', '')), 0, self::SEARCH_MAX);
 
@@ -448,7 +448,7 @@ class AdminController extends ApiAbstractController
         }
 
         $page = max(1, (int) $request->query->get('page', 1));
-        $perPage = max(1, min(self::USERS_MAX_PER_PAGE, (int) $request->query->get('perPage', self::USERS_DEFAULT_PER_PAGE)));
+        $perPage = max(1, min(self::MAX_PER_PAGE, (int) $request->query->get('perPage', self::DEFAULT_PER_PAGE)));
         $userId = (int) $request->query->get('userId', 0);
         $search = mb_substr(trim((string) $request->query->get('search', '')), 0, self::SEARCH_MAX);
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { use, useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card";
@@ -38,7 +37,6 @@ const formatDate = (iso, locale) => {
 
 const AdminUserDetailInner = ({ userId }) => {
     const { t, locale } = useTranslation();
-    const router = useRouter();
     const { data: session, status: sessionStatus } = useSession();
     const [user, setUser] = useState(null);
     const [loadState, setLoadState] = useState("loading");
