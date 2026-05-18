@@ -76,6 +76,8 @@
       "fullNamePlaceholder": "Jean Dupont",
       "submit": "Créer un compte"
     },
+    "providerSeparator": "Ou continuer avec",
+    "googleButton": "Continuer avec Google",
     "toast": {
       "loginSuccess": "Connexion réussie. Bienvenue !",
       "loginInvalid": "Email ou mot de passe incorrect.",
@@ -85,7 +87,9 @@
       "signupWelcome": "Bienvenue !",
       "signupCreatedButLoginFailed": "Compte créé, mais connexion automatique impossible. Connectez-vous.",
       "signupError": "Erreur d'inscription",
-      "logoutSuccess": "Déconnexion réussie."
+      "logoutSuccess": "Déconnexion réussie.",
+      "googleRejected": "Connexion Google refusée par le serveur.",
+      "googleError": "Erreur lors de la connexion Google."
     }
   },
   "home": {
@@ -455,7 +459,24 @@
       "pdf": "Exporter en PDF",
       "markdown": "Exporter en Markdown",
       "notion": "Envoyer à Notion",
-      "notionUpdate": "Mettre à jour sur Notion"
+      "notionUpdate": "Mettre à jour sur Notion",
+      "schedule": "Planifier la publication",
+      "scheduleUpdate": "Modifier la date prévue",
+      "reminder": "Programmer un rappel"
+    },
+    "scheduleDialog": {
+      "title": "Planifier la publication",
+      "description": "Crée un event Google Calendar lié à cet article. Si tu reviens, la date sera modifiée au lieu de dupliquer.",
+      "label": "Date et heure de publication",
+      "hint": "L'event durera 30 minutes par défaut. Calendrier : principal.",
+      "submit": "Planifier"
+    },
+    "reminderDialog": {
+      "title": "Programmer un rappel",
+      "description": "Crée un event Google Calendar « Rappel : relire <titre> » à la date choisie.",
+      "label": "Date et heure du rappel",
+      "hint": "L'event durera 15 minutes par défaut. Calendrier : principal.",
+      "submit": "Programmer"
     },
     "toast": {
       "generated": "Contenu généré avec succès !",
@@ -486,7 +507,13 @@
       "notionSaveFirst": "Enregistrez d'abord l'article avant de l'envoyer à Notion.",
       "notionCreated": "Article envoyé vers Notion.",
       "notionUpdated": "Page Notion mise à jour.",
-      "notionError": "L'envoi vers Notion a échoué."
+      "notionError": "L'envoi vers Notion a échoué.",
+      "scheduleDateRequired": "Choisis une date de publication.",
+      "scheduleSuccess": "Publication planifiée dans Google Calendar.",
+      "scheduleError": "Impossible de planifier la publication.",
+      "reminderDateRequired": "Choisis une date pour le rappel.",
+      "reminderSuccess": "Rappel ajouté à Google Calendar.",
+      "reminderError": "Impossible de programmer le rappel."
     }
   },
   "settings": {
@@ -531,11 +558,21 @@
         }
       },
       "google": {
-        "description": "Connexion rapide et accès aux services Google"
-      },
-      "googleSoonHint": "L'intégration Google sera branchée dans une prochaine mise à jour.",
-      "toast": {
-        "googleSoon": "L'intégration Google arrive bientôt."
+        "description": "Connectez Google Calendar pour planifier vos publications et programmer des rappels.",
+        "disconnect": "Déconnecter",
+        "scopesLabel": "Permissions accordées",
+        "lastSyncLabel": "Dernière synchronisation",
+        "neverSynced": "Jamais synchronisé",
+        "callbackProcessing": "Connexion à Google Calendar en cours...",
+        "toast": {
+          "consentDenied": "Vous avez refusé l'accès à Google Calendar.",
+          "noCode": "Code d'autorisation Google manquant.",
+          "connectSuccess": "Google Calendar connecté avec succès.",
+          "connectError": "Impossible de connecter Google Calendar.",
+          "disconnectSuccess": "Google Calendar déconnecté.",
+          "disconnectError": "La déconnexion a échoué.",
+          "clientIdMissing": "NEXT_PUBLIC_GOOGLE_CLIENT_ID non configuré côté frontend."
+        }
       }
     },
     "notifications": {
