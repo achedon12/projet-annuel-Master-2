@@ -138,26 +138,50 @@ const AuthPage = () => {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-4">
-            <Card className="w-full max-w-md">
-                <CardHeader className="space-y-1 text-center">
-                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500">
-                        <PenTool className="h-6 w-6 text-white" />
+        <div className="relative flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 overflow-hidden">
+            {/* Décor : halos doux pour habiller le fond sans gradients criards */}
+            <div
+                aria-hidden
+                className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-emerald-200/40 blur-3xl dark:bg-emerald-900/20"
+            />
+            <div
+                aria-hidden
+                className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-emerald-100/60 blur-3xl dark:bg-emerald-950/30"
+            />
+
+            <Card className="relative w-full max-w-md rounded-2xl border-slate-200 bg-white/95 shadow-xl backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/95">
+                <CardHeader className="space-y-2 text-center">
+                    <div className="mx-auto mb-2 grid h-12 w-12 place-items-center rounded-2xl bg-emerald-500/15 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+                        <PenTool className="h-5 w-5" />
                     </div>
-                    <CardTitle className="text-2xl">{t("brand")}</CardTitle>
-                    <CardDescription>{t("auth.tagline")}</CardDescription>
+                    <CardTitle className="text-2xl font-semibold tracking-tight">{t("brand")}</CardTitle>
+                    <CardDescription className="text-slate-600 dark:text-slate-400">{t("auth.tagline")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Tabs defaultValue="login" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="login">{t("auth.tabs.login")}</TabsTrigger>
-                            <TabsTrigger value="signup">{t("auth.tabs.signup")}</TabsTrigger>
+                        <TabsList className="grid w-full grid-cols-2 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 h-auto">
+                            <TabsTrigger
+                                value="login"
+                                className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-slate-900 dark:data-[state=active]:text-slate-100"
+                            >
+                                {t("auth.tabs.login")}
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="signup"
+                                className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-slate-900 dark:data-[state=active]:text-slate-100"
+                            >
+                                {t("auth.tabs.signup")}
+                            </TabsTrigger>
                         </TabsList>
 
-                        <TabsContent value="login" className="space-y-4">
-                            {error && <div className="rounded-md bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-600 dark:text-red-400">{error}</div>}
+                        <TabsContent value="login" className="space-y-4 mt-5">
+                            {error && (
+                                <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
+                                    {error}
+                                </div>
+                            )}
                             <form onSubmit={handleLogin} className="space-y-4">
-                                <div className="space-y-2">
+                                <div className="space-y-1.5">
                                     <Label htmlFor="email">{t("form.email")}</Label>
                                     <Input
                                         id="email"
@@ -169,7 +193,7 @@ const AuthPage = () => {
                                         disabled={loading}
                                     />
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-1.5">
                                     <Label htmlFor="password">{t("form.password")}</Label>
                                     <Input
                                         id="password"
@@ -181,17 +205,25 @@ const AuthPage = () => {
                                         disabled={loading}
                                     />
                                 </div>
-                                <Button type="submit" className="w-full" disabled={loading}>
-                                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : ""}
+                                <Button
+                                    type="submit"
+                                    className="w-full rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                                    disabled={loading}
+                                >
+                                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     {t("auth.login.submit")}
                                 </Button>
                             </form>
                         </TabsContent>
 
-                        <TabsContent value="signup" className="space-y-4">
-                            {error && <div className="rounded-md bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-600 dark:text-red-400">{error}</div>}
+                        <TabsContent value="signup" className="space-y-4 mt-5">
+                            {error && (
+                                <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
+                                    {error}
+                                </div>
+                            )}
                             <form onSubmit={handleSignup} className="space-y-4">
-                                <div className="space-y-2">
+                                <div className="space-y-1.5">
                                     <Label htmlFor="signup-name">{t("auth.signup.fullName")}</Label>
                                     <Input
                                         id="signup-name"
@@ -203,7 +235,7 @@ const AuthPage = () => {
                                         disabled={loading}
                                     />
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-1.5">
                                     <Label htmlFor="signup-email">{t("form.email")}</Label>
                                     <Input
                                         id="signup-email"
@@ -215,7 +247,7 @@ const AuthPage = () => {
                                         disabled={loading}
                                     />
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-1.5">
                                     <Label htmlFor="signup-password">{t("form.password")}</Label>
                                     <Input
                                         id="signup-password"
@@ -227,8 +259,12 @@ const AuthPage = () => {
                                         disabled={loading}
                                     />
                                 </div>
-                                <Button type="submit" className="w-full" disabled={loading}>
-                                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : ""}
+                                <Button
+                                    type="submit"
+                                    className="w-full rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                                    disabled={loading}
+                                >
+                                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     {t("auth.signup.submit")}
                                 </Button>
                             </form>
@@ -238,10 +274,10 @@ const AuthPage = () => {
                     <div className="mt-6">
                         <div className="relative">
                             <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t border-slate-200 dark:border-slate-700" />
+                                <span className="w-full border-t border-slate-200 dark:border-slate-800" />
                             </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-card px-2 text-slate-500 dark:text-slate-400">
+                            <div className="relative flex justify-center text-xs">
+                                <span className="bg-white px-3 text-slate-500 dark:bg-slate-900 dark:text-slate-400">
                                     {t("auth.providerSeparator")}
                                 </span>
                             </div>
@@ -249,7 +285,7 @@ const AuthPage = () => {
                         <Button
                             type="button"
                             variant="outline"
-                            className="mt-4 w-full"
+                            className="mt-4 w-full rounded-lg border-slate-200 dark:border-slate-800"
                             onClick={handleGoogleSignIn}
                             disabled={loading}
                         >

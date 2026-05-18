@@ -2,10 +2,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
-import { Badge } from "@/components/Badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
 import {
     Select,
@@ -42,10 +40,16 @@ import {
     Calendar,
     Loader2,
     Plus,
+    FileText,
+    CheckCircle2,
+    PencilLine,
+    Archive,
+    FileSearch,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr as dateFr, enUS as dateEn } from "date-fns/locale";
 import { toast } from "sonner";
+import { PageShell, PageHeader, StatCard, SectionCard, EmptyState, StatusBadge } from "@/components/ui-kit";
 import { useTranslation } from "@/hooks/useI18n";
 import { API_URL, Urls } from "@/utils/Api";
 
@@ -62,11 +66,11 @@ const TYPE_KEYS = {
     TUTORIAL: "tutorial",
 };
 
-const statusBadgeVariant = {
-    [STATUS_KEYS.PUBLISHED]: "default",
-    [STATUS_KEYS.DRAFT]: "secondary",
-    [STATUS_KEYS.REVIEW]: "outline",
-    [STATUS_KEYS.ARCHIVED]: "secondary",
+const STATUS_BADGE_VARIANT = {
+    [STATUS_KEYS.PUBLISHED]: "published",
+    [STATUS_KEYS.DRAFT]: "draft",
+    [STATUS_KEYS.REVIEW]: "review",
+    [STATUS_KEYS.ARCHIVED]: "archived",
 };
 
 const PublicationsHistory = () => {
@@ -183,205 +187,201 @@ const PublicationsHistory = () => {
     };
 
     return (
-        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950 p-8">
-            <div className="mx-auto max-w-7xl space-y-8">
-                <div className="flex items-start justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl">{t("history.title")}</h1>
-                        <p className="text-slate-600 dark:text-slate-400">{t("history.subtitle")}</p>
-                    </div>
-                    <Button onClick={() => router.push("/editor")}>
+        <PageShell>
+            <PageHeader
+                eyebrow={t("history.eyebrow")}
+                title={t("history.title")}
+                description={t("history.subtitle")}
+                actions={
+                    <Button
+                        onClick={() => router.push("/editor")}
+                        className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                    >
                         <Plus className="mr-2 h-4 w-4" />
                         {t("history.newArticle")}
                     </Button>
-                </div>
+                }
+            />
 
-                <div className="grid gap-6 md:grid-cols-4">
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardDescription>{t("history.stats.total")}</CardDescription>
-                            <CardTitle className="text-3xl">{stats.total}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardDescription>{t("history.stats.published")}</CardDescription>
-                            <CardTitle className="text-3xl text-emerald-600">{stats.published}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardDescription>{t("history.stats.drafts")}</CardDescription>
-                            <CardTitle className="text-3xl text-amber-600">{stats.draft}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardDescription>{t("history.stats.archived")}</CardDescription>
-                            <CardTitle className="text-3xl text-slate-600 dark:text-slate-300">{stats.archived}</CardTitle>
-                        </CardHeader>
-                    </Card>
-                </div>
-
-                <Card>
-                    <CardHeader>
-                        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                            <div>
-                                <CardTitle>{t("history.all")}</CardTitle>
-                                <CardDescription>
-                                    {t("history.resultsCount", { count: filteredArticles.length })}
-                                </CardDescription>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                <div className="relative flex-1 md:w-64 md:flex-none">
-                                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-                                    <Input
-                                        placeholder={t("history.searchPlaceholder")}
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="pl-9"
-                                    />
-                                </div>
-                                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                                    <SelectTrigger className="w-[140px]">
-                                        <Filter className="mr-2 h-4 w-4" />
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">{t("history.filters.allStatus")}</SelectItem>
-                                        <SelectItem value={STATUS_KEYS.PUBLISHED}>{t("history.status.published")}</SelectItem>
-                                        <SelectItem value={STATUS_KEYS.DRAFT}>{t("history.status.draft")}</SelectItem>
-                                        <SelectItem value={STATUS_KEYS.REVIEW}>{t("history.status.review")}</SelectItem>
-                                        <SelectItem value={STATUS_KEYS.ARCHIVED}>{t("history.status.archived")}</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <Select value={filterType} onValueChange={setFilterType}>
-                                    <SelectTrigger className="w-[140px]">
-                                        <Filter className="mr-2 h-4 w-4" />
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">{t("history.filters.allTypes")}</SelectItem>
-                                        <SelectItem value={TYPE_KEYS.BLOG}>{t("history.type.blog")}</SelectItem>
-                                        <SelectItem value={TYPE_KEYS.GUIDE}>{t("history.type.guide")}</SelectItem>
-                                        <SelectItem value={TYPE_KEYS.TUTORIAL}>{t("history.type.tutorial")}</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <Tabs defaultValue="list" className="w-full">
-                            <TabsList>
-                                <TabsTrigger value="list">{t("history.tabs.list")}</TabsTrigger>
-                                <TabsTrigger value="calendar">{t("history.tabs.calendar")}</TabsTrigger>
-                            </TabsList>
-
-                            <TabsContent value="list" className="space-y-4">
-                                {loadState === "loading" ? (
-                                    <div className="flex items-center justify-center py-10 text-slate-500 dark:text-slate-400">
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        {t("history.loading")}
-                                    </div>
-                                ) : loadState === "error" ? (
-                                    <div className="rounded-md bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-600 dark:text-red-400">
-                                        {t("history.loadError")}
-                                    </div>
-                                ) : articles.length === 0 ? (
-                                    <div className="rounded-md border border-dashed dark:border-slate-700 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
-                                        {t("history.empty")}
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {filteredArticles.map((article) => (
-                                            <div
-                                                key={article.id}
-                                                className="flex items-center justify-between rounded-lg border dark:border-slate-800 bg-white dark:bg-slate-900 p-4 transition-shadow hover:shadow-md"
-                                            >
-                                                <div className="flex-1 space-y-2">
-                                                    <div className="flex items-center gap-3">
-                                                        <h3 className="font-medium">{article.title}</h3>
-                                                        <Badge variant={statusBadgeVariant[article.status] || "secondary"}>
-                                                            {statusLabel(article.status)}
-                                                        </Badge>
-                                                    </div>
-                                                    <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
-                                                        {article.type && (
-                                                            <>
-                                                                <span>{typeLabel(article.type)}</span>
-                                                                <span>•</span>
-                                                            </>
-                                                        )}
-                                                        <span>
-                                                            {formatDate(article.publishedAt || article.updatedAt)}
-                                                        </span>
-                                                        <span>•</span>
-                                                        <span>{t("history.wordsCount", { count: article.wordCount || 0 })}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-4">
-                                                    {typeof article.seoScore === "number" && (
-                                                        <div className="text-right">
-                                                            <p className="text-xs text-slate-500 dark:text-slate-400">{t("history.seoScoreLabel")}</p>
-                                                            <p className="text-lg text-emerald-600">{article.seoScore}%</p>
-                                                        </div>
-                                                    )}
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" size="icon">
-                                                                <MoreVertical className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onClick={() => router.push(`/editor/${article.id}`)}>
-                                                                <Eye className="mr-2 h-4 w-4" />
-                                                                {t("history.actions.view")}
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem onClick={() => router.push(`/editor/${article.id}`)}>
-                                                                <Edit className="mr-2 h-4 w-4" />
-                                                                {t("history.actions.edit")}
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem disabled>
-                                                                <Download className="mr-2 h-4 w-4" />
-                                                                {t("history.actions.export")}
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem disabled>
-                                                                <Share2 className="mr-2 h-4 w-4" />
-                                                                {t("history.actions.share")}
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                                className="text-red-600"
-                                                                onClick={() => setPendingDeleteId(article.id)}
-                                                            >
-                                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                                {t("history.actions.delete")}
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {filteredArticles.length === 0 && (
-                                            <div className="rounded-md border border-dashed dark:border-slate-700 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
-                                                {t("history.noMatch")}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </TabsContent>
-
-                            <TabsContent value="calendar">
-                                <div className="rounded-lg border dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center">
-                                    <Calendar className="mx-auto mb-4 h-12 w-12 text-slate-400 dark:text-slate-500" />
-                                    <h3 className="mb-2 text-lg">{t("history.calendar.title")}</h3>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400">{t("history.calendar.description")}</p>
-                                    <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">{t("history.calendar.soon")}</p>
-                                </div>
-                            </TabsContent>
-                        </Tabs>
-                    </CardContent>
-                </Card>
+            <div className="grid gap-4 md:gap-6 grid-cols-2 md:grid-cols-4">
+                <StatCard label={t("history.stats.total")} value={stats.total} icon={FileText} tone="slate" />
+                <StatCard label={t("history.stats.published")} value={stats.published} icon={CheckCircle2} tone="emerald" />
+                <StatCard label={t("history.stats.drafts")} value={stats.draft} icon={PencilLine} tone="amber" />
+                <StatCard label={t("history.stats.archived")} value={stats.archived} icon={Archive} tone="slate" />
             </div>
+
+            <SectionCard
+                title={t("history.all")}
+                description={t("history.resultsCount", { count: filteredArticles.length })}
+                actions={
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="relative w-full sm:w-64">
+                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                            <Input
+                                placeholder={t("history.searchPlaceholder")}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9"
+                            />
+                        </div>
+                        <Select value={filterStatus} onValueChange={setFilterStatus}>
+                            <SelectTrigger className="w-[150px]">
+                                <Filter className="mr-2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">{t("history.filters.allStatus")}</SelectItem>
+                                <SelectItem value={STATUS_KEYS.PUBLISHED}>{t("history.status.published")}</SelectItem>
+                                <SelectItem value={STATUS_KEYS.DRAFT}>{t("history.status.draft")}</SelectItem>
+                                <SelectItem value={STATUS_KEYS.REVIEW}>{t("history.status.review")}</SelectItem>
+                                <SelectItem value={STATUS_KEYS.ARCHIVED}>{t("history.status.archived")}</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Select value={filterType} onValueChange={setFilterType}>
+                            <SelectTrigger className="w-[150px]">
+                                <Filter className="mr-2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">{t("history.filters.allTypes")}</SelectItem>
+                                <SelectItem value={TYPE_KEYS.BLOG}>{t("history.type.blog")}</SelectItem>
+                                <SelectItem value={TYPE_KEYS.GUIDE}>{t("history.type.guide")}</SelectItem>
+                                <SelectItem value={TYPE_KEYS.TUTORIAL}>{t("history.type.tutorial")}</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                }
+                padding="md"
+            >
+                <Tabs defaultValue="list" className="w-full">
+                    <TabsList>
+                        <TabsTrigger value="list">{t("history.tabs.list")}</TabsTrigger>
+                        <TabsTrigger value="calendar">{t("history.tabs.calendar")}</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="list" className="mt-4">
+                        {loadState === "loading" ? (
+                            <div className="flex items-center justify-center py-12 text-sm text-slate-500 dark:text-slate-400">
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                {t("history.loading")}
+                            </div>
+                        ) : loadState === "error" ? (
+                            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
+                                {t("history.loadError")}
+                            </div>
+                        ) : articles.length === 0 ? (
+                            <EmptyState
+                                icon={FileText}
+                                title={t("history.emptyTitle")}
+                                description={t("history.empty")}
+                                action={
+                                    <Button
+                                        onClick={() => router.push("/editor")}
+                                        className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                                    >
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        {t("history.newArticle")}
+                                    </Button>
+                                }
+                            />
+                        ) : filteredArticles.length === 0 ? (
+                            <EmptyState
+                                icon={FileSearch}
+                                title={t("history.noMatchTitle")}
+                                description={t("history.noMatch")}
+                            />
+                        ) : (
+                            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                                {filteredArticles.map((article) => (
+                                    <li
+                                        key={article.id}
+                                        className="flex items-start justify-between gap-4 py-4 first:pt-0 last:pb-0"
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => router.push(`/editor/${article.id}`)}
+                                            className="group min-w-0 flex-1 text-left"
+                                        >
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <h3 className="text-sm font-semibold text-slate-900 transition group-hover:text-emerald-600 dark:text-slate-100 dark:group-hover:text-emerald-400">
+                                                    {article.title}
+                                                </h3>
+                                                <StatusBadge variant={STATUS_BADGE_VARIANT[article.status] || "draft"}>
+                                                    {statusLabel(article.status)}
+                                                </StatusBadge>
+                                            </div>
+                                            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                                                {article.type && (
+                                                    <>
+                                                        <span>{typeLabel(article.type)}</span>
+                                                        <span aria-hidden>•</span>
+                                                    </>
+                                                )}
+                                                <span>{formatDate(article.publishedAt || article.updatedAt)}</span>
+                                                <span aria-hidden>•</span>
+                                                <span>{t("history.wordsCount", { count: article.wordCount || 0 })}</span>
+                                            </div>
+                                        </button>
+                                        <div className="flex shrink-0 items-center gap-4">
+                                            {typeof article.seoScore === "number" && (
+                                                <div className="hidden text-right sm:block">
+                                                    <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                                        {t("history.seoScoreLabel")}
+                                                    </p>
+                                                    <p className="text-base font-semibold text-emerald-600 dark:text-emerald-400">
+                                                        {article.seoScore}%
+                                                    </p>
+                                                </div>
+                                            )}
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="rounded-lg">
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => router.push(`/editor/${article.id}`)}>
+                                                        <Eye className="mr-2 h-4 w-4" />
+                                                        {t("history.actions.view")}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => router.push(`/editor/${article.id}`)}>
+                                                        <Edit className="mr-2 h-4 w-4" />
+                                                        {t("history.actions.edit")}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem disabled>
+                                                        <Download className="mr-2 h-4 w-4" />
+                                                        {t("history.actions.export")}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem disabled>
+                                                        <Share2 className="mr-2 h-4 w-4" />
+                                                        {t("history.actions.share")}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        className="text-red-600 dark:text-red-400"
+                                                        onClick={() => setPendingDeleteId(article.id)}
+                                                    >
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        {t("history.actions.delete")}
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="calendar" className="mt-4">
+                        <EmptyState
+                            icon={Calendar}
+                            title={t("history.calendar.title")}
+                            description={t("history.calendar.description")}
+                            footer={t("history.calendar.soon")}
+                        />
+                    </TabsContent>
+                </Tabs>
+            </SectionCard>
 
             <AlertDialog
                 open={pendingDeleteId !== null}
@@ -398,7 +398,11 @@ const PublicationsHistory = () => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isDeleting}>{t("history.deleteCancel")}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className="bg-red-600 text-white hover:bg-red-700"
+                        >
                             {isDeleting ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -411,7 +415,7 @@ const PublicationsHistory = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </PageShell>
     );
 };
 

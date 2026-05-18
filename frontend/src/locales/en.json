@@ -262,7 +262,10 @@
   },
   "dashboard": {
     "title": "Welcome to SEO Content AI",
-    "subtitle": "Here's an overview of your activity",
+    "eyebrow": "Dashboard",
+    "greeting": "Hello, {name}",
+    "greetingGeneric": "Hello",
+    "subtitle": "Here's an overview of your content creation activity.",
     "loading": "Loading your dashboard...",
     "loadError": "Could not load your dashboard.",
     "stats": {
@@ -287,7 +290,8 @@
       "title": "Recent articles",
       "description": "Your latest updated content",
       "seoScoreLabel": "SEO score",
-      "empty": "No articles yet. Start by generating an idea or writing in the editor.",
+      "emptyTitle": "No articles yet",
+      "empty": "Start by generating an idea or writing your first article in the editor.",
       "status": {
         "published": "Published",
         "draft": "Draft",
@@ -305,7 +309,10 @@
   },
   "history": {
     "title": "Publication history",
-    "subtitle": "Manage and track all your content",
+    "eyebrow": "Library",
+    "subtitle": "Manage and track all your content.",
+    "emptyTitle": "No articles yet",
+    "noMatchTitle": "No results",
     "stats": {
       "total": "Total",
       "published": "Published",
@@ -363,7 +370,14 @@
   },
   "ideas": {
     "title": "Idea generator",
-    "subtitle": "Let AI suggest relevant topics for you",
+    "eyebrow": "Ideas",
+    "subtitle": "Let AI suggest relevant topics for your content.",
+    "emptyTitle": "No ideas yet",
+    "actions": {
+      "copy": "Copy title",
+      "like": "Interesting idea",
+      "dislike": "Not relevant"
+    },
     "configTitle": "Generation settings",
     "configDescription": "Set your parameters to get tailored suggestions",
     "mainKeyword": "Main keyword",
@@ -518,7 +532,9 @@
   },
   "settings": {
     "title": "Settings",
-    "subTitle": "Manage your account and preferences",
+    "eyebrow": "Account",
+    "subTitle": "Manage your account and preferences.",
+    "passwordDescription": "Update your password regularly to keep your account secure.",
     "tabs": {
       "profile": "Profile",
       "preferences": "Preferences",
@@ -592,10 +608,11 @@
     },
     "preferences": {
       "title": "App preferences",
-      "description": "Customize your experience",
+      "description": "Customize your experience.",
       "language": "Interface language",
       "timezone": "Timezone",
       "aiSettings": "Default AI settings",
+      "aiDescription": "Defaults used when generating new content.",
       "defaultTone": "Default tone of voice",
       "defaultWords": "Default word count",
       "darkMode": "Dark mode",
