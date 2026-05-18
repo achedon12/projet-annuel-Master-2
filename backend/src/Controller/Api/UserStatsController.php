@@ -80,7 +80,11 @@ class UserStatsController extends ApiAbstractController
         } elseif (is_string($lastActivityRaw) && $lastActivityRaw !== '') {
             try {
                 $lastActivity = (new \DateTime($lastActivityRaw))->format('c');
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
+                $this->logger->warning('Parsing de lastActivity en échec.', [
+                    'raw' => $lastActivityRaw,
+                    'exception' => $e->getMessage(),
+                ]);
                 $lastActivity = null;
             }
         }

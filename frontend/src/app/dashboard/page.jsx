@@ -106,9 +106,8 @@ const Dashboard = () => {
                 setStats(data);
                 setLoadState("ready");
             })
-            .catch((err) => {
+            .catch(() => {
                 if (cancelled) return;
-                console.error("dashboard.stats", err);
                 toast.error(tRef.current("dashboard.loadError"));
                 setLoadState("error");
             });
@@ -284,10 +283,7 @@ const Dashboard = () => {
                             ) : (
                                 <div className="space-y-3">
                                     {recentArticles.map((article) => {
-                                        const statusLabelKey = `dashboard.recent.status.${article.status}`;
-                                        const statusFallback = `history.status.${article.status}`;
-                                        const labelTry = t(statusLabelKey);
-                                        const statusLabel = labelTry === statusLabelKey ? t(statusFallback) : labelTry;
+                                        const statusLabel = t(`dashboard.recent.status.${article.status}`);
                                         return (
                                             <Link
                                                 key={article.id}
@@ -299,7 +295,7 @@ const Dashboard = () => {
                                                     <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                                                         <span>{longDate(article.updatedAt, locale)}</span>
                                                         <span aria-hidden>•</span>
-                                                        <span className={STATUS_COLOR[article.status] || "text-slate-500"}>{statusLabel}</span>
+                                                        <span className={STATUS_COLOR[article.status] || "text-slate-500 dark:text-slate-400"}>{statusLabel}</span>
                                                     </div>
                                                 </div>
                                                 <div className="flex shrink-0 items-center gap-3">
