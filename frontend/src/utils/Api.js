@@ -20,6 +20,10 @@ export const Urls = {
       generateContent: '/articles/generate-content',
       rewrite: '/articles/rewrite',
       aiAction: '/articles/ai-action',
+      exportNotion: (id) => `/articles/${id}/export/notion`,
+  },
+  integrations: {
+      notion: '/integrations/notion',
   },
   me: {
       get: '/me',

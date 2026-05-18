@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/Select";
 import { Badge } from "@/components/Badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar";
-import { Bell, Check, Link as LinkIcon, Loader2, Mail, Palette, Shield, Sparkles, User, X } from "lucide-react";
+import { Bell, Check, Link as LinkIcon, Loader2, Palette, Shield, Sparkles, User, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { useTranslation } from "@/hooks/useI18n";
@@ -80,9 +80,17 @@ const Settings = () => {
     const [isSavingPrefs, setIsSavingPrefs] = useState(false);
     const [isSavingNotifs, setIsSavingNotifs] = useState(false);
 
-    // Intégrations restent locales (pas de back) — placeholders disabled.
+    // Intégration Notion : fetchée depuis /api/integrations/notion.
     const [notionConnected, setNotionConnected] = useState(false);
-    const [googleConnected, setGoogleConnected] = useState(false);
+    const [notionParentPageId, setNotionParentPageId] = useState("");
+    const [notionLastSync, setNotionLastSync] = useState(null);
+    const [notionTokenInput, setNotionTokenInput] = useState("");
+    const [notionPageInput, setNotionPageInput] = useState("");
+    const [isSavingNotion, setIsSavingNotion] = useState(false);
+    const [isDisconnectingNotion, setIsDisconnectingNotion] = useState(false);
+
+    // Google reste un placeholder désactivé (hors-scope MVP).
+    const [googleConnected] = useState(false);
 
     useEffect(() => {
         if (sessionStatus !== "authenticated" || !token) return;
@@ -120,6 +128,89 @@ const Settings = () => {
             cancelled = true;
         };
     }, [sessionStatus, token]);
+
+    // Fetch de l'état Notion (séparé du fetch /api/me pour pouvoir recharger après save/disconnect).
+    useEffect(() => {
+        if (sessionStatus !== "authenticated" || !token) return;
+        let cancelled = false;
+        fetch(`${API_URL}${Urls.integrations.notion}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(async (res) => {
+                if (cancelled || !res.ok) return;
+                const data = await res.json();
+                setNotionConnected(Boolean(data?.connected));
+                setNotionParentPageId(data?.parentPageId || "");
+                setNotionLastSync(data?.lastSync || null);
+            })
+            .catch(() => {
+                /* silencieux — fetchera à la prochaine ouverture du tab */
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [sessionStatus, token]);
+
+    const handleConnectNotion = async () => {
+        if (!token) return;
+        const trimmedToken = notionTokenInput.trim();
+        const trimmedPage = notionPageInput.trim();
+        if (trimmedToken === "") {
+            toast.error(t("settings.integrations.notion.toast.tokenRequired"));
+            return;
+        }
+        if (trimmedPage === "") {
+            toast.error(t("settings.integrations.notion.toast.pageRequired"));
+            return;
+        }
+        setIsSavingNotion(true);
+        try {
+            const res = await fetch(`${API_URL}${Urls.integrations.notion}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ apiKey: trimmedToken, parentPageId: trimmedPage }),
+            });
+            if (!res.ok) {
+                const msg = await extractError(res, t("settings.integrations.notion.toast.saveError"));
+                toast.error(msg);
+                return;
+            }
+            const data = await res.json();
+            setNotionConnected(Boolean(data?.connected));
+            setNotionParentPageId(data?.parentPageId || "");
+            setNotionLastSync(data?.lastSync || null);
+            setNotionTokenInput("");
+            setNotionPageInput("");
+            toast.success(t("settings.integrations.notion.toast.saveSuccess"));
+        } catch {
+            toast.error(t("settings.integrations.notion.toast.saveError"));
+        } finally {
+            setIsSavingNotion(false);
+        }
+    };
+
+    const handleDisconnectNotion = async () => {
+        if (!token) return;
+        setIsDisconnectingNotion(true);
+        try {
+            const res = await fetch(`${API_URL}${Urls.integrations.notion}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok && res.status !== 204) {
+                toast.error(t("settings.integrations.notion.toast.disconnectError"));
+                return;
+            }
+            setNotionConnected(false);
+            setNotionParentPageId("");
+            setNotionLastSync(null);
+            toast.success(t("settings.integrations.notion.toast.disconnectSuccess"));
+        } catch {
+            toast.error(t("settings.integrations.notion.toast.disconnectError"));
+        } finally {
+            setIsDisconnectingNotion(false);
+        }
+    };
 
     const handleSaveProfile = async () => {
         if (!token) return;
@@ -429,38 +520,110 @@ const Settings = () => {
                                 <CardDescription>{t("settings.integrations.description")}</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                <div className="flex items-center justify-between rounded-lg border dark:border-slate-800 p-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
-                                            <Mail className="h-6 w-6 text-slate-700 dark:text-slate-300" />
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <h3 className="font-medium">Notion</h3>
-                                                {notionConnected ? (
-                                                    <Badge variant="default" className="gap-1">
-                                                        <Check className="h-3 w-3" />
-                                                        {t("common.connected")}
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="secondary" className="gap-1">
-                                                        <X className="h-3 w-3" />
-                                                        {t("common.disconnected")}
-                                                    </Badge>
-                                                )}
+                                <div className="rounded-lg border dark:border-slate-800 p-4">
+                                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
+                                                <LinkIcon className="h-6 w-6 text-slate-700 dark:text-slate-300" />
                                             </div>
-                                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                                                {t("settings.integrations.notion.description")}
-                                            </p>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="font-medium">Notion</h3>
+                                                    {notionConnected ? (
+                                                        <Badge variant="default" className="gap-1">
+                                                            <Check className="h-3 w-3" />
+                                                            {t("common.connected")}
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="secondary" className="gap-1">
+                                                            <X className="h-3 w-3" />
+                                                            {t("common.disconnected")}
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                                    {t("settings.integrations.notion.description")}
+                                                </p>
+                                            </div>
                                         </div>
+                                        {notionConnected && (
+                                            <Button
+                                                variant="outline"
+                                                onClick={handleDisconnectNotion}
+                                                disabled={isDisconnectingNotion}
+                                            >
+                                                {isDisconnectingNotion && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                {t("settings.integrations.notion.disconnect")}
+                                            </Button>
+                                        )}
                                     </div>
-                                    <Button
-                                        variant="outline"
-                                        disabled
-                                        title={t("settings.integrations.toast.notionSoon")}
-                                    >
-                                        {t("common.connect")}
-                                    </Button>
+
+                                    {notionConnected ? (
+                                        <div className="mt-4 grid gap-2 text-sm text-slate-600 dark:text-slate-400 sm:grid-cols-2">
+                                            <div className="space-y-1">
+                                                <p className="text-xs uppercase tracking-wide opacity-70">
+                                                    {t("settings.integrations.notion.parentPageLabel")}
+                                                </p>
+                                                <p className="font-mono break-all text-slate-700 dark:text-slate-300">
+                                                    {notionParentPageId || "—"}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-xs uppercase tracking-wide opacity-70">
+                                                    {t("settings.integrations.notion.lastSyncLabel")}
+                                                </p>
+                                                <p className="text-slate-700 dark:text-slate-300">
+                                                    {notionLastSync
+                                                        ? new Date(notionLastSync).toLocaleString(locale === "en" ? "en-US" : "fr-FR", {
+                                                              dateStyle: "medium",
+                                                              timeStyle: "short",
+                                                          })
+                                                        : t("settings.integrations.notion.neverSynced")}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="mt-4 space-y-3">
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="notion-token">
+                                                    {t("settings.integrations.notion.tokenLabel")}
+                                                </Label>
+                                                <Input
+                                                    id="notion-token"
+                                                    type="password"
+                                                    autoComplete="off"
+                                                    value={notionTokenInput}
+                                                    onChange={(e) => setNotionTokenInput(e.target.value)}
+                                                    placeholder={t("settings.integrations.notion.tokenPlaceholder")}
+                                                    maxLength={500}
+                                                />
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                    {t("settings.integrations.notion.tokenHint")}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="notion-page">
+                                                    {t("settings.integrations.notion.pageLabel")}
+                                                </Label>
+                                                <Input
+                                                    id="notion-page"
+                                                    value={notionPageInput}
+                                                    onChange={(e) => setNotionPageInput(e.target.value)}
+                                                    placeholder={t("settings.integrations.notion.pagePlaceholder")}
+                                                    maxLength={500}
+                                                />
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                    {t("settings.integrations.notion.pageHint")}
+                                                </p>
+                                            </div>
+                                            <div className="flex justify-end">
+                                                <Button onClick={handleConnectNotion} disabled={isSavingNotion}>
+                                                    {isSavingNotion && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                    {t("common.connect")}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <Separator />
@@ -505,7 +668,7 @@ const Settings = () => {
                                 </div>
 
                                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                                    {t("settings.integrations.soonHint")}
+                                    {t("settings.integrations.googleSoonHint")}
                                 </p>
                             </CardContent>
                         </Card>

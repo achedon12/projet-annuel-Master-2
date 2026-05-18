@@ -454,7 +454,8 @@
       "title": "Export",
       "pdf": "Exporter en PDF",
       "markdown": "Exporter en Markdown",
-      "notion": "Envoyer à Notion"
+      "notion": "Envoyer à Notion",
+      "notionUpdate": "Mettre à jour sur Notion"
     },
     "toast": {
       "generated": "Contenu généré avec succès !",
@@ -482,7 +483,10 @@
       "exportPdf": "Article exporté en PDF.",
       "exportEmpty": "Ajoutez un titre ou du contenu avant d'exporter.",
       "exportError": "L'export a échoué. Réessayez.",
-      "notionSoon": "L'intégration Notion sera bientôt disponible."
+      "notionSaveFirst": "Enregistrez d'abord l'article avant de l'envoyer à Notion.",
+      "notionCreated": "Article envoyé vers Notion.",
+      "notionUpdated": "Page Notion mise à jour.",
+      "notionError": "L'envoi vers Notion a échoué."
     }
   },
   "settings": {
@@ -507,24 +511,30 @@
       "description": "Connectez vos outils et services préférés",
       "notion": {
         "description": "Synchronisez vos articles avec votre workspace Notion",
-        "config": "Configuration Notion",
-        "workspace": "Workspace",
-        "workspaceDefault": "Mon Workspace",
-        "database": "Base de données",
-        "databases": {
-          "articles": "Articles de blog",
-          "ideas": "Idées de contenu",
-          "calendar": "Calendrier éditorial"
-        },
-        "autoSync": "Synchronisation automatique",
-        "autoSyncHint": "Synchroniser automatiquement lors de la publication"
+        "tokenLabel": "Token d'intégration Notion",
+        "tokenPlaceholder": "secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "tokenHint": "Crée une intégration interne sur notion.so/my-integrations et copie le secret.",
+        "pageLabel": "Page parente",
+        "pagePlaceholder": "ID ou URL de la page Notion",
+        "pageHint": "Partage cette page avec ton intégration (menu \"Connections\" sur la page).",
+        "parentPageLabel": "Page parente",
+        "lastSyncLabel": "Dernière synchronisation",
+        "neverSynced": "Jamais synchronisé",
+        "disconnect": "Déconnecter",
+        "toast": {
+          "tokenRequired": "Le token d'intégration est requis.",
+          "pageRequired": "L'identifiant de page parente est requis.",
+          "saveSuccess": "Notion connecté avec succès.",
+          "saveError": "Impossible de connecter Notion.",
+          "disconnectSuccess": "Notion déconnecté.",
+          "disconnectError": "La déconnexion a échoué."
+        }
       },
       "google": {
         "description": "Connexion rapide et accès aux services Google"
       },
-      "soonHint": "Les intégrations Notion et Google seront branchées dans une prochaine mise à jour.",
+      "googleSoonHint": "L'intégration Google sera branchée dans une prochaine mise à jour.",
       "toast": {
-        "notionSoon": "L'intégration Notion arrive bientôt.",
         "googleSoon": "L'intégration Google arrive bientôt."
       }
     },
