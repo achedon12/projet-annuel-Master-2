@@ -6,9 +6,11 @@ use App\Controller\ApiAbstractController;
 use App\Entity\Article;
 use App\Entity\User;
 use App\Repository\ArticleRepository;
+use App\Repository\IntegrationRepository;
 use App\Service\JwtAuthService;
 use App\Service\MistralArticleService;
 use App\Service\MistralGenerationException;
+use App\Service\NotionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -36,6 +38,8 @@ class ArticleController extends ApiAbstractController
         private readonly EntityManagerInterface $em,
         private readonly MistralArticleService $generator,
         private readonly LoggerInterface $logger,
+        private readonly IntegrationRepository $integrationRepository,
+        private readonly NotionService $notion,
     ) {}
 
     #[Route('', name: 'api_articles_list', methods: ['GET'])]
@@ -317,6 +321,75 @@ class ArticleController extends ApiAbstractController
         return $this->json($this->serialize($article));
     }
 
+    /**
+     * Exporte l'article vers Notion. Crée la page au premier appel, l'update au suivant.
+     */
+    #[Route('/{id}/export/notion', name: 'api_articles_export_notion', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function exportToNotion(int $id, Request $request): JsonResponse
+    {
+        $user = $this->jwtAuth->authenticate($request);
+        if (!$user) {
+            return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $article = $this->findOwned($id, $user);
+        if (!$article) {
+            return $this->json(['error' => 'Article introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $integration = $this->integrationRepository->findOneByUserAndType($user, 'notion');
+        if ($integration === null || !$integration->isActive()) {
+            return $this->json(['error' => 'Aucune intégration Notion active. Connecte-toi dans les paramètres.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $title = $article->getTitle() ?? '';
+        $content = (string) ($article->getContent() ?? '');
+        if (trim($title) === '' && trim($content) === '') {
+            return $this->json(['error' => 'Impossible d\'exporter un article vide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $token = $integration->getApiKey() ?? '';
+        $parentPageId = $integration->getUrl() ?? '';
+
+        try {
+            $existingPageId = $article->getNotionPageId();
+            if ($existingPageId === null || $existingPageId === '') {
+                $createdPageId = $this->notion->createPage($token, $parentPageId, $title, $content);
+                $article->setNotionPageId($createdPageId);
+            } else {
+                try {
+                    $this->notion->updatePage($token, $existingPageId, $title, $content);
+                } catch (\RuntimeException $updateError) {
+                    // Page Notion supprimée côté Notion ou intégration changée : fallback création.
+                    $this->logger->info('Update Notion en échec, fallback création.', [
+                        'articleId' => $id,
+                        'pageId' => $existingPageId,
+                        'message' => $updateError->getMessage(),
+                    ]);
+                    $createdPageId = $this->notion->createPage($token, $parentPageId, $title, $content);
+                    $article->setNotionPageId($createdPageId);
+                }
+            }
+
+            $integration->setLastSync(new \DateTime());
+            $article->setUpdatedAt(new \DateTime());
+            $this->em->flush();
+        } catch (\RuntimeException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_GATEWAY);
+        } catch (\Throwable $e) {
+            $this->logger->error('Erreur inattendue lors de l\'export Notion.', [
+                'articleId' => $id,
+                'exception' => $e->getMessage(),
+            ]);
+            return $this->json(['error' => 'Export Notion impossible.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return $this->json([
+            'notionPageId' => $article->getNotionPageId(),
+            'lastSync' => $integration->getLastSync()?->format('c'),
+        ]);
+    }
+
     private function findOwned(int $id, User $user): ?Article
     {
         return $this->repository->findOneBy(['id' => $id, 'user' => $user]);
@@ -458,6 +531,7 @@ class ArticleController extends ApiAbstractController
             'createdAt' => $article->getCreatedAt()?->format('c'),
             'updatedAt' => $article->getUpdatedAt()?->format('c'),
             'publishedAt' => $article->getPublishedAt()?->format('c'),
+            'notionPageId' => $article->getNotionPageId(),
         ];
     }
 }

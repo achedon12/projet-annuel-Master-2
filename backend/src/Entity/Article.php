@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
 #[ORM\Index(name: 'idx_article_user', columns: ['user_id'])]
 #[ORM\Index(name: 'idx_article_user_status', columns: ['user_id', 'status'])]
+#[ORM\Index(name: 'idx_article_notion_page', columns: ['notion_page_id'])]
 class Article
 {
     public const STATUS_DRAFT = 'draft';
@@ -77,6 +78,9 @@ class Article
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $publishedAt = null;
+
+    #[ORM\Column(length: 36, nullable: true)]
+    private ?string $notionPageId = null;
 
     public function __construct()
     {
@@ -257,6 +261,17 @@ class Article
     public function setPublishedAt(?\DateTimeInterface $publishedAt): static
     {
         $this->publishedAt = $publishedAt;
+        return $this;
+    }
+
+    public function getNotionPageId(): ?string
+    {
+        return $this->notionPageId;
+    }
+
+    public function setNotionPageId(?string $notionPageId): static
+    {
+        $this->notionPageId = $notionPageId;
         return $this;
     }
 }
