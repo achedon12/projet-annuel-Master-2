@@ -112,6 +112,15 @@ class User
     #[ORM\JoinColumn(name: 'organization_id', nullable: true, onDelete: 'SET NULL')]
     private ?Organization $organization = null;
 
+    /**
+     * Permissions du compte en tant que sous-membre d'une entreprise. Null
+     * pour un owner ou un compte solo (droits complets, cf. OrganizationAccess).
+     *
+     * @var array<string, bool>|null
+     */
+    #[ORM\Column(name: 'org_permissions', type: Types::JSON, nullable: true)]
+    private ?array $orgPermissions = null;
+
     public function __construct()
     {
         $this->integrations = new ArrayCollection();
@@ -481,6 +490,19 @@ class User
     public function setOrganization(?Organization $organization): static
     {
         $this->organization = $organization;
+        return $this;
+    }
+
+    /** @return array<string, bool>|null */
+    public function getOrgPermissions(): ?array
+    {
+        return $this->orgPermissions;
+    }
+
+    /** @param array<string, bool>|null $orgPermissions */
+    public function setOrgPermissions(?array $orgPermissions): static
+    {
+        $this->orgPermissions = $orgPermissions;
         return $this;
     }
 }

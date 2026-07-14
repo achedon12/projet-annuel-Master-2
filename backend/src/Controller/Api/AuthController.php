@@ -6,9 +6,12 @@ use App\Controller\ApiAbstractController;
 use App\Entity\LoginToken;
 use App\Entity\User;
 use App\Event\UserRegisteredEvent;
+use App\Repository\InvitationRepository;
 use App\Repository\LoginTokenRepository;
 use App\Repository\UserRepository;
 use App\Service\GoogleAuthService;
+use App\Service\InvitationService;
+use App\Service\OrganizationPermissions;
 use App\Service\PendingMailQueue;
 use App\Service\UserLoginIpRecorder;
 use Doctrine\ORM\EntityManagerInterface;
@@ -36,7 +39,105 @@ class AuthController extends ApiAbstractController
         private GoogleAuthService $googleAuth,
         private LoginTokenRepository $loginTokenRepository,
         private PendingMailQueue $mailQueue,
+        private InvitationRepository $invitationRepository,
+        private InvitationService $invitations,
     ) {}
+
+    /**
+     * Consultation publique d'une invitation via son jeton : le front l'appelle
+     * sur /accept-invite pour afficher l'entreprise et l'email pré-rempli.
+     */
+    #[Route('/invitation', name: 'api_auth_invitation_lookup', methods: ['GET'])]
+    public function invitationLookup(Request $request): JsonResponse
+    {
+        $token = trim((string) $request->query->get('token', ''));
+        if ($token === '') {
+            return $this->json(['error' => 'Jeton manquant.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $invitation = $this->invitationRepository->findValidByTokenHash($this->invitations->hash($token));
+        if ($invitation === null) {
+            return $this->json(['error' => 'Invitation invalide ou expirée.'], Response::HTTP_GONE);
+        }
+
+        // Si un compte existe déjà pour cet email, l'inscription ne s'applique
+        // pas : on le signale pour que le front oriente vers la connexion.
+        $existing = $this->userRepository->findOneBy(['email' => $invitation->getEmail()]) !== null;
+
+        return $this->json([
+            'email' => $invitation->getEmail(),
+            'organizationName' => $invitation->getOrganization()?->getName(),
+            'userExists' => $existing,
+        ]);
+    }
+
+    /**
+     * Acceptation d'une invitation avec création du sous-compte : l'invité
+     * choisit son mot de passe, le User + son rattachement à l'entreprise
+     * (avec les permissions de l'invitation) sont créés en une transaction.
+     * Renvoie { token, user } pour connecter directement, comme /signup.
+     */
+    #[Route('/accept-invitation', name: 'api_auth_accept_invitation', methods: ['POST'])]
+    public function acceptInvitation(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $token = is_array($data) && isset($data['token']) && is_string($data['token']) ? trim($data['token']) : '';
+        $password = is_array($data) && isset($data['password']) && is_string($data['password']) ? $data['password'] : '';
+        $name = is_array($data) && isset($data['name']) && is_string($data['name']) ? trim($data['name']) : '';
+
+        if ($token === '') {
+            return $this->json(['error' => 'Jeton manquant.'], Response::HTTP_BAD_REQUEST);
+        }
+        if (mb_strlen($password) < 8) {
+            return $this->json(['error' => 'Le mot de passe doit contenir au moins 8 caractères.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $invitation = $this->invitationRepository->findValidByTokenHash($this->invitations->hash($token));
+        if ($invitation === null) {
+            return $this->json(['error' => 'Invitation invalide ou expirée.'], Response::HTTP_GONE);
+        }
+
+        $email = $invitation->getEmail();
+        if ($this->userRepository->findOneBy(['email' => $email]) !== null) {
+            return $this->json(
+                ['error' => 'Un compte existe déjà pour cet email. Connectez-vous plutôt.'],
+                Response::HTTP_CONFLICT,
+            );
+        }
+
+        $organization = $invitation->getOrganization();
+        if ($organization === null) {
+            return $this->json(['error' => 'Entreprise introuvable.'], Response::HTTP_GONE);
+        }
+
+        $user = new User();
+        $user->setEmail($email);
+        $user->setName($name !== '' ? mb_substr($name, 0, 100) : $email);
+        $user->setPassword(password_hash($password, PASSWORD_BCRYPT));
+        $organization->addMember($user);
+        $user->setOrgPermissions(OrganizationPermissions::normalize($invitation->getPermissions()));
+        $invitation->setAcceptedAt(new \DateTime());
+
+        $errors = $this->validator->validate($user);
+        if (count($errors) > 0) {
+            $msg = [];
+            foreach ($errors as $err) {
+                $msg[$err->getPropertyPath()] = $err->getMessage();
+            }
+            return $this->json(['errors' => $msg], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $this->em->persist($user);
+        $this->em->flush();
+
+        $this->loginIpRecorder->record($user, $request, 'signup');
+
+        return $this->json([
+            'message' => 'Compte créé.',
+            'token' => $this->generateJWT($user),
+            'user' => $this->serializeUser($user),
+        ], Response::HTTP_CREATED);
+    }
 
     #[Route('/magic-link', name: 'api_auth_magic_link', methods: ['POST'])]
     public function magicLink(Request $request): JsonResponse
