@@ -137,7 +137,7 @@ const OrganizationPage = () => {
                 eyebrow={t("organization.eyebrow")}
                 title={t("organization.title")}
                 description={t("organization.subtitle")}
-                icon={Building2}
+                icon={<Building2 className="h-5 w-5" />}
             />
 
             {loadState === "loading" ? (
