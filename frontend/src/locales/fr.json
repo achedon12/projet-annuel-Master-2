@@ -442,6 +442,7 @@
     },
     "content": "Contenu",
     "rewrite": "Reformuler",
+    "rewriteHint": "Sélectionnez un passage pour ne reformuler que celui-ci (sinon le paragraphe sous le curseur)",
     "generating": "Génération...",
     "generateAi": "Générer avec IA",
     "contentPlaceholder": "Commencez à écrire ou utilisez l'IA pour générer du contenu...",
@@ -496,6 +497,7 @@
     "toast": {
       "generated": "Contenu généré avec succès !",
       "rewritten": "Paragraphe reformulé avec succès !",
+      "rewrittenParagraph": "Passage reformulé.",
       "saved": "Article sauvegardé.",
       "published": "Article publié.",
       "saveError": "La sauvegarde a échoué. Réessayez.",

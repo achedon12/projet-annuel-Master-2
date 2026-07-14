@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
@@ -81,9 +81,38 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
 
     const token = session?.backendToken;
 
+    // Dernière sélection connue dans le textarea de contenu (pour repasser un
+    // paragraphe précis plutôt que tout l'article).
+    const selectionRef = useRef({ start: null, end: null, el: null });
+    const rememberSelection = (e) => {
+        selectionRef.current = {
+            start: e.target.selectionStart,
+            end: e.target.selectionEnd,
+            el: e.target,
+        };
+    };
+
     const handleContentChange = (value) => {
         setContent(value);
         setWordCount(countWords(value));
+    };
+
+    // Cible de la repasse IA : la sélection si elle existe, sinon le paragraphe
+    // (bloc séparé par des lignes vides) sous le curseur, sinon tout le contenu.
+    const getRewriteTarget = () => {
+        const { start, end } = selectionRef.current;
+        if (start != null && end != null && start !== end) {
+            return { start, end, scope: "selection" };
+        }
+        const caret = start != null ? start : content.length;
+        const before = content.lastIndexOf("\n\n", Math.max(0, caret - 1));
+        const pStart = before === -1 ? 0 : before + 2;
+        const afterIdx = content.indexOf("\n\n", caret);
+        const pEnd = afterIdx === -1 ? content.length : afterIdx;
+        if (content.slice(pStart, pEnd).trim() !== "") {
+            return { start: pStart, end: pEnd, scope: "paragraph" };
+        }
+        return { start: 0, end: content.length, scope: "all" };
     };
 
     const buildPayload = () => ({
@@ -476,6 +505,11 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
         if (!token || !content.trim()) {
             return;
         }
+        const target = getRewriteTarget();
+        const original = content.slice(target.start, target.end);
+        if (original.trim() === "") {
+            return;
+        }
         setIsRewriting(true);
         try {
             const res = await fetch(`${API_URL}${Urls.articles.rewrite}`, {
@@ -485,7 +519,7 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    paragraph: content,
+                    paragraph: original,
                     tone: tone || null,
                     locale,
                 }),
@@ -497,9 +531,23 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
             }
             const data = await res.json();
             if (typeof data?.paragraph === "string") {
-                setContent(data.paragraph);
-                setWordCount(countWords(data.paragraph));
-                toast.success(t("editor.toast.rewritten"));
+                const rewritten = data.paragraph;
+                const next = content.slice(0, target.start) + rewritten + content.slice(target.end);
+                setContent(next);
+                setWordCount(countWords(next));
+                // Re-sélectionne le passage reformulé pour enchaîner facilement.
+                const el = selectionRef.current.el;
+                if (el) {
+                    const newEnd = target.start + rewritten.length;
+                    selectionRef.current = { start: target.start, end: newEnd, el };
+                    setTimeout(() => {
+                        el.focus();
+                        el.setSelectionRange(target.start, newEnd);
+                    }, 0);
+                }
+                toast.success(
+                    t(target.scope === "all" ? "editor.toast.rewritten" : "editor.toast.rewrittenParagraph"),
+                );
             } else {
                 toast.error(t("editor.toast.rewriteError"));
             }
@@ -639,6 +687,7 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                                                 size="sm"
                                                 onClick={handleRewrite}
                                                 disabled={isAnyAiActionRunning || !content}
+                                                title={t("editor.rewriteHint")}
                                             >
                                                 {isRewriting ? (
                                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -672,6 +721,10 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                                         placeholder={t("editor.contentPlaceholder")}
                                         value={content}
                                         onChange={(e) => handleContentChange(e.target.value)}
+                                        onSelect={rememberSelection}
+                                        onKeyUp={rememberSelection}
+                                        onMouseUp={rememberSelection}
+                                        onFocus={rememberSelection}
                                         rows={20}
                                         className="font-mono text-sm"
                                     />

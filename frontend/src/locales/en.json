@@ -442,6 +442,7 @@
     },
     "content": "Content",
     "rewrite": "Rewrite",
+    "rewriteHint": "Select a passage to rewrite only that part (otherwise the paragraph under the cursor)",
     "generating": "Generating...",
     "generateAi": "Generate with AI",
     "contentPlaceholder": "Start writing or use AI to generate content...",
@@ -496,6 +497,7 @@
     "toast": {
       "generated": "Content generated successfully!",
       "rewritten": "Paragraph rewritten successfully!",
+      "rewrittenParagraph": "Passage rewritten.",
       "saved": "Article saved.",
       "published": "Article published.",
       "saveError": "Save failed. Please try again.",
