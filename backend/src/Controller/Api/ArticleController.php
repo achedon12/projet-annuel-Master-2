@@ -767,6 +767,7 @@ class ArticleController extends ApiAbstractController
             'notionPageId' => $article->getNotionPageId(),
             'scheduledAt' => $article->getScheduledAt()?->format('c'),
             'googleEventId' => $article->getGoogleEventId(),
+            'archivedAt' => $article->getArchivedAt()?->format('c'),
         ];
     }
 }

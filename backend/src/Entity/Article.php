@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'idx_article_notion_page', columns: ['notion_page_id'])]
 #[ORM\Index(name: 'idx_article_scheduled_at', columns: ['scheduled_at'])]
 #[ORM\Index(name: 'idx_article_google_event', columns: ['google_event_id'])]
+#[ORM\Index(name: 'idx_article_archived_at', columns: ['archived_at'])]
 class Article
 {
     public const STATUS_DRAFT = 'draft';
@@ -89,6 +90,13 @@ class Article
 
     #[ORM\Column(length: 64, nullable: true)]
     private ?string $googleEventId = null;
+
+    /**
+     * Date d'archivage léger : le corps du texte a été purgé, seuls la
+     * thématique (titre/type) et les liens sont conservés. Null = actif.
+     */
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $archivedAt = null;
 
     public function __construct()
     {
@@ -303,5 +311,21 @@ class Article
     {
         $this->googleEventId = $googleEventId;
         return $this;
+    }
+
+    public function getArchivedAt(): ?\DateTimeInterface
+    {
+        return $this->archivedAt;
+    }
+
+    public function setArchivedAt(?\DateTimeInterface $archivedAt): static
+    {
+        $this->archivedAt = $archivedAt;
+        return $this;
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archivedAt !== null;
     }
 }

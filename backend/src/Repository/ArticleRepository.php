@@ -38,4 +38,25 @@ class ArticleRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * Articles publiés, pas encore archivés, dont la publication est antérieure
+     * au seuil de rétention : candidats à l'archivage léger.
+     *
+     * @return array<int, Article>
+     */
+    public function findToArchive(\DateTimeInterface $before, int $limit = 200): array
+    {
+        return $this->createQueryBuilder('a')
+            ->andWhere('a.archivedAt IS NULL')
+            ->andWhere('a.status = :published')
+            ->andWhere('a.publishedAt IS NOT NULL')
+            ->andWhere('a.publishedAt < :before')
+            ->setParameter('published', Article::STATUS_PUBLISHED)
+            ->setParameter('before', $before)
+            ->orderBy('a.publishedAt', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }
