@@ -21,6 +21,7 @@ export const Urls = {
       generateContent: '/articles/generate-content',
       rewrite: '/articles/rewrite',
       aiAction: '/articles/ai-action',
+      seoAnalyze: '/articles/seo-analyze',
       exportNotion: (id) => `/articles/${id}/export/notion`,
       schedule: (id) => `/articles/${id}/schedule`,
       reminder: (id) => `/articles/${id}/reminder`,

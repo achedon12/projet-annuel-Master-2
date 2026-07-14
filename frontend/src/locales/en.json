@@ -468,7 +468,18 @@
       "structure": "Structure",
       "keywords": "Keywords",
       "detected": "Detected keywords",
-      "detectedEmpty": "No keywords detected yet."
+      "detectedEmpty": "No keywords detected yet.",
+      "analyzeAdvanced": "Advanced SEO analysis",
+      "serverHint": "Server-side analysis (7 weighted criteria).",
+      "criteria": {
+        "contentLength": "Content length",
+        "titleLength": "Title length",
+        "structure": "Heading structure",
+        "keywords": "Keyword density",
+        "readability": "Readability",
+        "links": "Links",
+        "intro": "Introduction"
+      }
     },
     "export": {
       "title": "Export",
@@ -498,6 +509,8 @@
       "generated": "Content generated successfully!",
       "rewritten": "Paragraph rewritten successfully!",
       "rewrittenParagraph": "Passage rewritten.",
+      "seoAnalyzed": "SEO analysis complete.",
+      "seoError": "SEO analysis failed.",
       "saved": "Article saved.",
       "published": "Article published.",
       "saveError": "Save failed. Please try again.",

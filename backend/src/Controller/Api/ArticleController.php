@@ -12,6 +12,7 @@ use App\Service\JwtAuthService;
 use App\Service\MistralArticleService;
 use App\Service\MistralGenerationException;
 use App\Service\NotionService;
+use App\Service\SeoAnalyzerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -42,6 +43,7 @@ class ArticleController extends ApiAbstractController
         private readonly IntegrationRepository $integrationRepository,
         private readonly NotionService $notion,
         private readonly GoogleCalendarService $calendar,
+        private readonly SeoAnalyzerService $seoAnalyzer,
     ) {}
 
     #[Route('', name: 'api_articles_list', methods: ['GET'])]
@@ -200,6 +202,32 @@ class ArticleController extends ApiAbstractController
             $this->logger->error('Erreur inattendue lors de l\'action IA.', ['action' => $action, 'exception' => $e->getMessage()]);
             return $this->json(['error' => 'Erreur interne lors de l\'action IA.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    #[Route('/seo-analyze', name: 'api_articles_seo_analyze', methods: ['POST'])]
+    public function seoAnalyze(Request $request): JsonResponse
+    {
+        $user = $this->jwtAuth->authenticate($request);
+        if (!$user) {
+            return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $data = $this->decodeBody($request);
+        if ($data === null) {
+            return $this->json(['error' => 'Corps de requête JSON invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $title = isset($data['title']) && is_string($data['title']) ? trim($data['title']) : '';
+        $content = isset($data['content']) && is_string($data['content']) ? $data['content'] : '';
+        if (mb_strlen($content) > self::CONTENT_MAX) {
+            return $this->json(
+                ['error' => 'Le contenu est trop long (max ' . self::CONTENT_MAX . ' caractères).'],
+                Response::HTTP_BAD_REQUEST,
+            );
+        }
+        $locale = $this->parseLocale($data['locale'] ?? null);
+
+        return $this->json($this->seoAnalyzer->analyze($title, $content, $locale));
     }
 
     #[Route('/rewrite', name: 'api_articles_rewrite', methods: ['POST'])]

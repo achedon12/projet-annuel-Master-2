@@ -68,6 +68,8 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
     const [activeAction, setActiveAction] = useState(null); // 'improve-style' | 'add-intro' | 'optimize-seo' | null
     const [suggestions, setSuggestions] = useState([]);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+    const [serverSeo, setServerSeo] = useState(null);
+    const [isAnalyzingSeo, setIsAnalyzingSeo] = useState(false);
     const [isExportingPdf, setIsExportingPdf] = useState(false);
     const [isExportingNotion, setIsExportingNotion] = useState(false);
     const [notionPageId, setNotionPageId] = useState(initialArticle?.notionPageId ?? null);
@@ -121,6 +123,8 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
         tone: tone || null,
         audience: audience || null,
         status,
+        // Persiste le score SEO : serveur (avancé) si disponible, sinon heuristique client.
+        seoScore: serverSeo?.score ?? seoAnalysis.score,
     });
 
     const persistArticle = async ({ publish = false } = {}) => {
@@ -559,6 +563,44 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
         }
     };
 
+    const handleAnalyzeSeo = async () => {
+        if (!token) {
+            toast.error(t("editor.toast.saveError"));
+            return;
+        }
+        if (!content.trim()) {
+            return;
+        }
+        setIsAnalyzingSeo(true);
+        try {
+            const res = await fetch(`${API_URL}${Urls.articles.seoAnalyze}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ title: title.trim(), content, locale }),
+            });
+            if (!res.ok) {
+                const message = await extractError(res, t("editor.toast.seoError"));
+                toast.error(message);
+                return;
+            }
+            const data = await res.json();
+            if (typeof data?.score === "number") {
+                setServerSeo(data);
+                toast.success(t("editor.toast.seoAnalyzed"));
+            } else {
+                toast.error(t("editor.toast.seoError"));
+            }
+        } catch (err) {
+            console.error("article.seo", err);
+            toast.error(t("editor.toast.seoError"));
+        } finally {
+            setIsAnalyzingSeo(false);
+        }
+    };
+
     const seoAnalysis = useMemo(
         () => analyzeSeo({ title, content, targetWords: Math.round((wordRange[0] + wordRange[1]) / 2) }),
         [title, content, wordRange],
@@ -859,10 +901,45 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm">{t("editor.seo.global")}</span>
-                                                <span className="text-2xl text-emerald-600">{seoAnalysis.score}%</span>
+                                                <span className="text-2xl text-emerald-600">{serverSeo?.score ?? seoAnalysis.score}%</span>
                                             </div>
-                                            <Progress value={seoAnalysis.score} className="h-2" />
+                                            <Progress value={serverSeo?.score ?? seoAnalysis.score} className="h-2" />
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full"
+                                                onClick={handleAnalyzeSeo}
+                                                disabled={isAnalyzingSeo || !content.trim()}
+                                            >
+                                                {isAnalyzingSeo ? (
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <Sparkles className="mr-2 h-4 w-4" />
+                                                )}
+                                                {t("editor.seo.analyzeAdvanced")}
+                                            </Button>
                                         </div>
+
+                                        {serverSeo && (
+                                            <>
+                                                <Separator />
+                                                <div className="space-y-3">
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                        {t("editor.seo.serverHint")}
+                                                    </p>
+                                                    {serverSeo.checks.map((c) => (
+                                                        <div key={c.key} className="flex items-center justify-between text-sm">
+                                                            <span className="text-slate-600 dark:text-slate-400">
+                                                                {t(`editor.seo.criteria.${c.key}`)}
+                                                            </span>
+                                                            <Badge variant={verdictBadgeVariant(c.verdict)}>
+                                                                {t(verdictLabelKey(c.verdict))}
+                                                            </Badge>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </>
+                                        )}
 
                                         <Separator />
 

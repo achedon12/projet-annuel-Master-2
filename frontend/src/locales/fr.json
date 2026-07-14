@@ -468,7 +468,18 @@
       "structure": "Structure",
       "keywords": "Mots-clés",
       "detected": "Mots-clés détectés",
-      "detectedEmpty": "Aucun mot-clé détecté pour le moment."
+      "detectedEmpty": "Aucun mot-clé détecté pour le moment.",
+      "analyzeAdvanced": "Analyse SEO avancée",
+      "serverHint": "Analyse serveur (7 critères pondérés).",
+      "criteria": {
+        "contentLength": "Longueur du contenu",
+        "titleLength": "Longueur du titre",
+        "structure": "Structure des titres",
+        "keywords": "Densité de mots-clés",
+        "readability": "Lisibilité",
+        "links": "Liens",
+        "intro": "Introduction"
+      }
     },
     "export": {
       "title": "Export",
@@ -498,6 +509,8 @@
       "generated": "Contenu généré avec succès !",
       "rewritten": "Paragraphe reformulé avec succès !",
       "rewrittenParagraph": "Passage reformulé.",
+      "seoAnalyzed": "Analyse SEO terminée.",
+      "seoError": "L'analyse SEO a échoué.",
       "saved": "Article sauvegardé.",
       "published": "Article publié.",
       "saveError": "La sauvegarde a échoué. Réessayez.",
