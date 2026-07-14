@@ -6,6 +6,8 @@ export const Urls = {
       signup: '/auth/signup',
       logout: '/auth/logout',
       google: '/auth/google',
+      magicLink: '/auth/magic-link',
+      magicLogin: '/auth/magic-login',
   },
   user: {
       ips: '/user/ips',

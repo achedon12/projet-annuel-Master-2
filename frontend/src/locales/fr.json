@@ -104,6 +104,16 @@
     },
     "providerSeparator": "Ou continuer avec",
     "googleButton": "Continuer avec Google",
+    "magic": {
+      "button": "Recevoir un lien de connexion",
+      "sent": "Si un compte existe, un lien de connexion vient d'être envoyé par email.",
+      "emailRequired": "Saisissez votre email pour recevoir un lien.",
+      "verifying": "Connexion en cours…",
+      "verifyingDescription": "Validation de votre lien de connexion.",
+      "errorTitle": "Lien invalide",
+      "errorDescription": "Ce lien de connexion est invalide ou a expiré. Demandez-en un nouveau.",
+      "backToLogin": "Retour à la connexion"
+    },
     "toast": {
       "loginSuccess": "Connexion réussie. Bienvenue !",
       "loginInvalid": "Email ou mot de passe incorrect.",

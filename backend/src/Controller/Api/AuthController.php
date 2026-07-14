@@ -3,10 +3,13 @@
 namespace App\Controller\Api;
 
 use App\Controller\ApiAbstractController;
+use App\Entity\LoginToken;
 use App\Entity\User;
 use App\Event\UserRegisteredEvent;
+use App\Repository\LoginTokenRepository;
 use App\Repository\UserRepository;
 use App\Service\GoogleAuthService;
+use App\Service\PendingMailQueue;
 use App\Service\UserLoginIpRecorder;
 use Doctrine\ORM\EntityManagerInterface;
 use Firebase\JWT\JWT;
@@ -31,7 +34,99 @@ class AuthController extends ApiAbstractController
         private EventDispatcherInterface $eventDispatcher,
         private UserLoginIpRecorder $loginIpRecorder,
         private GoogleAuthService $googleAuth,
+        private LoginTokenRepository $loginTokenRepository,
+        private PendingMailQueue $mailQueue,
     ) {}
+
+    #[Route('/magic-link', name: 'api_auth_magic_link', methods: ['POST'])]
+    public function magicLink(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $email = is_array($data) && isset($data['email']) && is_string($data['email']) ? trim(mb_strtolower($data['email'])) : '';
+
+        // Réponse générique quoi qu'il arrive : on ne révèle pas si l'email existe.
+        $genericResponse = $this->json(['message' => 'Si un compte existe, un lien de connexion a été envoyé.']);
+
+        if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            return $genericResponse;
+        }
+
+        $user = $this->userRepository->findOneBy(['email' => $email]);
+        if ($user === null) {
+            return $genericResponse;
+        }
+
+        $token = bin2hex(random_bytes(32));
+        $loginToken = new LoginToken();
+        $loginToken->setUser($user);
+        $loginToken->setToken($token);
+        $loginToken->setExpiresAt((new \DateTime())->modify('+15 minutes'));
+        $this->em->persist($loginToken);
+        $this->em->flush();
+
+        $base = $this->resolveFrontendBase($request);
+        $link = $base . '/auth/magic?token=' . $token;
+
+        $this->mailQueue->enqueue([
+            'toEmail' => $user->getEmail(),
+            'toName' => $user->getName(),
+            'subject' => 'Votre lien de connexion',
+            'bodyHtml' => sprintf(
+                '<p>Bonjour %s,</p><p>Cliquez sur le lien ci-dessous pour vous connecter sans mot de passe. '
+                . 'Ce lien expire dans 15 minutes et ne fonctionne qu\'une seule fois.</p>'
+                . '<p><a href="%s">Se connecter</a></p>'
+                . '<p>Si vous n\'êtes pas à l\'origine de cette demande, ignorez cet email.</p>',
+                htmlspecialchars((string) $user->getName(), ENT_QUOTES),
+                htmlspecialchars($link, ENT_QUOTES),
+            ),
+        ]);
+
+        return $genericResponse;
+    }
+
+    #[Route('/magic-login', name: 'api_auth_magic_login', methods: ['POST'])]
+    public function magicLogin(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $token = is_array($data) && isset($data['token']) && is_string($data['token']) ? trim($data['token']) : '';
+
+        if ($token === '') {
+            return $this->json(['error' => 'Jeton manquant.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $loginToken = $this->loginTokenRepository->findValid($token);
+        if ($loginToken === null) {
+            return $this->json(['error' => 'Lien de connexion invalide ou expiré.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $user = $loginToken->getUser();
+        $loginToken->setUsedAt(new \DateTime());
+        $user->setLastLogin(new \DateTime());
+        $this->em->flush();
+
+        $this->loginIpRecorder->record($user, $request, 'login');
+
+        return $this->json([
+            'message' => 'Connexion réussie.',
+            'token' => $this->generateJWT($user),
+            'user' => $this->serializeUser($user),
+        ]);
+    }
+
+    /**
+     * Détermine l'URL de base du frontend pour construire le lien magique :
+     * l'Origin de la requête si c'est une origine autorisée, sinon un défaut.
+     */
+    private function resolveFrontendBase(Request $request): string
+    {
+        $origin = $request->headers->get('Origin');
+        if (is_string($origin) && preg_match('#^https?://[^/]+$#', $origin) === 1) {
+            return rtrim($origin, '/');
+        }
+        $env = getenv('FRONTEND_URL');
+
+        return is_string($env) && $env !== '' ? rtrim($env, '/') : 'http://localhost:3000';
+    }
 
     #[Route('/signup', name: 'api_auth_signup', methods: ['POST'])]
     public function signup(Request $request): JsonResponse

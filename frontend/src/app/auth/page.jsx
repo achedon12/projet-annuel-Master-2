@@ -62,6 +62,32 @@ const AuthPage = () => {
         router.refresh();
     };
 
+    const handleMagicLink = async () => {
+        if (!email.trim()) {
+            const message = t("auth.magic.emailRequired");
+            setError(message);
+            toast.error(message);
+            return;
+        }
+        setError("");
+        setLoading(true);
+        try {
+            await fetch(`${API_URL}${Urls.auth.magicLink}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: email.trim() }),
+            });
+            // Réponse volontairement générique côté back (pas de fuite d'existence).
+            toast.success(t("auth.magic.sent"));
+        } catch (err) {
+            const message = t("auth.toast.loginNetwork");
+            setError(message);
+            toast.error(message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleGoogleSignIn = async () => {
         setError("");
         setLoading(true);
@@ -214,6 +240,15 @@ const AuthPage = () => {
                                     {t("auth.login.submit")}
                                 </Button>
                             </form>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                className="w-full rounded-lg text-slate-600 dark:text-slate-400"
+                                onClick={handleMagicLink}
+                                disabled={loading}
+                            >
+                                {t("auth.magic.button")}
+                            </Button>
                         </TabsContent>
 
                         <TabsContent value="signup" className="space-y-4 mt-5">

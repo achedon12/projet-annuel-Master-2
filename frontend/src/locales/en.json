@@ -104,6 +104,16 @@
     },
     "providerSeparator": "Or continue with",
     "googleButton": "Continue with Google",
+    "magic": {
+      "button": "Email me a login link",
+      "sent": "If an account exists, a login link has just been sent by email.",
+      "emailRequired": "Enter your email to receive a link.",
+      "verifying": "Signing you in…",
+      "verifyingDescription": "Validating your login link.",
+      "errorTitle": "Invalid link",
+      "errorDescription": "This login link is invalid or has expired. Please request a new one.",
+      "backToLogin": "Back to login"
+    },
     "toast": {
       "loginSuccess": "Logged in. Welcome!",
       "loginInvalid": "Incorrect email or password.",

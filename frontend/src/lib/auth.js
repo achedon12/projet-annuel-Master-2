@@ -35,8 +35,39 @@ export const authOptions = {
             credentials: {
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" },
+                magicToken: { label: "Magic token", type: "text" },
             },
             async authorize(credentials) {
+                // Connexion sans mot de passe : on échange le jeton magique
+                // contre un JWT backend via /api/auth/magic-login.
+                if (credentials?.magicToken) {
+                    let magicRes;
+                    try {
+                        magicRes = await fetch(`${API_URL}${Urls.auth.magicLogin}`, {
+                            method: "POST",
+                            headers: { "content-type": "application/json" },
+                            body: JSON.stringify({ token: credentials.magicToken }),
+                        });
+                    } catch (err) {
+                        throw new Error(LOGIN_NETWORK);
+                    }
+                    if (!magicRes.ok) {
+                        throw new Error(LOGIN_INVALID);
+                    }
+                    const magicData = await magicRes.json().catch(() => null);
+                    if (!magicData?.token || !magicData?.user) {
+                        throw new Error(LOGIN_INVALID);
+                    }
+                    return {
+                        id: String(magicData.user.id),
+                        email: magicData.user.email,
+                        name: magicData.user.name,
+                        image: magicData.user.avatar ?? null,
+                        backendToken: magicData.token,
+                        user: magicData.user,
+                    };
+                }
+
                 const email = credentials?.email?.trim();
                 const password = credentials?.password;
                 if (!email || !password) return null;
