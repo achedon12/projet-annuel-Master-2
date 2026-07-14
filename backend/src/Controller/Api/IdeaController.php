@@ -6,6 +6,8 @@ use App\Controller\ApiAbstractController;
 use App\Service\JwtAuthService;
 use App\Service\MistralGenerationException;
 use App\Service\MistralIdeaGeneratorService;
+use App\Service\OrganizationAccess;
+use App\Service\OrganizationPermissions;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,6 +27,7 @@ class IdeaController extends ApiAbstractController
         private readonly JwtAuthService $jwtAuth,
         private readonly MistralIdeaGeneratorService $generator,
         private readonly LoggerInterface $logger,
+        private readonly OrganizationAccess $access,
     ) {}
 
     #[Route('/generate', name: 'api_ideas_generate', methods: ['POST'])]
@@ -33,6 +36,12 @@ class IdeaController extends ApiAbstractController
         $user = $this->jwtAuth->authenticate($request);
         if (!$user) {
             return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
+        }
+        if (!$this->access->can($user, OrganizationPermissions::CAN_GENERATE_ARTICLES)) {
+            return $this->json(
+                ['error' => 'Votre rôle dans l\'entreprise ne permet pas cette action.'],
+                Response::HTTP_FORBIDDEN,
+            );
         }
 
         $raw = $request->getContent();

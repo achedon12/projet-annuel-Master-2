@@ -12,6 +12,8 @@ use App\Service\JwtAuthService;
 use App\Service\MistralArticleService;
 use App\Service\MistralGenerationException;
 use App\Service\NotionService;
+use App\Service\OrganizationAccess;
+use App\Service\OrganizationPermissions;
 use App\Service\SeoAnalyzerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -44,7 +46,25 @@ class ArticleController extends ApiAbstractController
         private readonly NotionService $notion,
         private readonly GoogleCalendarService $calendar,
         private readonly SeoAnalyzerService $seoAnalyzer,
+        private readonly OrganizationAccess $access,
     ) {}
+
+    /**
+     * Renvoie une 403 si l'utilisateur (sous-membre d'entreprise) n'a pas la
+     * permission demandée ; null s'il peut agir (owner et comptes solo passent
+     * toujours). À appeler juste après l'authentification.
+     */
+    private function denyUnlessCan(User $user, string $permission): ?JsonResponse
+    {
+        if ($this->access->can($user, $permission)) {
+            return null;
+        }
+
+        return $this->json(
+            ['error' => 'Votre rôle dans l\'entreprise ne permet pas cette action.'],
+            Response::HTTP_FORBIDDEN,
+        );
+    }
 
     #[Route('', name: 'api_articles_list', methods: ['GET'])]
     public function list(Request $request): JsonResponse
@@ -77,6 +97,9 @@ class ArticleController extends ApiAbstractController
         if (!$user) {
             return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
         }
+        if ($denied = $this->denyUnlessCan($user, OrganizationPermissions::CAN_GENERATE_ARTICLES)) {
+            return $denied;
+        }
 
         $data = $this->decodeBody($request);
         if ($data === null) {
@@ -103,6 +126,9 @@ class ArticleController extends ApiAbstractController
         $user = $this->jwtAuth->authenticate($request);
         if (!$user) {
             return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
+        }
+        if ($denied = $this->denyUnlessCan($user, OrganizationPermissions::CAN_GENERATE_ARTICLES)) {
+            return $denied;
         }
 
         $data = $this->decodeBody($request);
@@ -146,6 +172,9 @@ class ArticleController extends ApiAbstractController
         $user = $this->jwtAuth->authenticate($request);
         if (!$user) {
             return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
+        }
+        if ($denied = $this->denyUnlessCan($user, OrganizationPermissions::CAN_GENERATE_ARTICLES)) {
+            return $denied;
         }
 
         $data = $this->decodeBody($request);
@@ -237,6 +266,9 @@ class ArticleController extends ApiAbstractController
         if (!$user) {
             return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
         }
+        if ($denied = $this->denyUnlessCan($user, OrganizationPermissions::CAN_GENERATE_ARTICLES)) {
+            return $denied;
+        }
 
         $data = $this->decodeBody($request);
         if ($data === null) {
@@ -290,6 +322,9 @@ class ArticleController extends ApiAbstractController
         if (!$user) {
             return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
         }
+        if ($denied = $this->denyUnlessCan($user, OrganizationPermissions::CAN_EDIT_ARTICLES)) {
+            return $denied;
+        }
 
         $article = $this->findOwned($id, $user);
         if (!$article) {
@@ -319,6 +354,9 @@ class ArticleController extends ApiAbstractController
         if (!$user) {
             return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
         }
+        if ($denied = $this->denyUnlessCan($user, OrganizationPermissions::CAN_DELETE_ARTICLES)) {
+            return $denied;
+        }
 
         $article = $this->findOwned($id, $user);
         if (!$article) {
@@ -337,6 +375,9 @@ class ArticleController extends ApiAbstractController
         $user = $this->jwtAuth->authenticate($request);
         if (!$user) {
             return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
+        }
+        if ($denied = $this->denyUnlessCan($user, OrganizationPermissions::CAN_SCHEDULE)) {
+            return $denied;
         }
 
         $article = $this->findOwned($id, $user);
@@ -361,6 +402,9 @@ class ArticleController extends ApiAbstractController
         $user = $this->jwtAuth->authenticate($request);
         if (!$user) {
             return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
+        }
+        if ($denied = $this->denyUnlessCan($user, OrganizationPermissions::CAN_MANAGE_NOTION)) {
+            return $denied;
         }
 
         $article = $this->findOwned($id, $user);
@@ -432,6 +476,9 @@ class ArticleController extends ApiAbstractController
         $user = $this->jwtAuth->authenticate($request);
         if (!$user) {
             return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
+        }
+        if ($denied = $this->denyUnlessCan($user, OrganizationPermissions::CAN_SCHEDULE)) {
+            return $denied;
         }
 
         $article = $this->findOwned($id, $user);
