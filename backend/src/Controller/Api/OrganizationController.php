@@ -11,6 +11,7 @@ use App\Service\InvitationService;
 use App\Service\JwtAuthService;
 use App\Service\OrganizationAccess;
 use App\Service\OrganizationPermissions;
+use App\Service\PendingMailProcessor;
 use App\Service\PendingMailQueue;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -39,6 +40,7 @@ class OrganizationController extends ApiAbstractController
         private readonly InvitationService $invitations,
         private readonly OrganizationAccess $access,
         private readonly PendingMailQueue $mailQueue,
+        private readonly PendingMailProcessor $mailProcessor,
     ) {}
 
     #[Route('', name: 'api_organization_get', methods: ['GET'])]
@@ -257,6 +259,16 @@ class OrganizationController extends ApiAbstractController
                 htmlspecialchars($link, ENT_QUOTES),
             ),
         ]);
+
+        // Envoi immédiat : on ne laisse pas l'invitation attendre le worker
+        // planifié. Les mails étant désormais livrés en ligne (cf.
+        // messenger.yaml), ce process() les fait partir tout de suite.
+        try {
+            $this->mailProcessor->process();
+        } catch (\Throwable $e) {
+            // Un échec d'envoi ne doit pas casser la création de l'invitation :
+            // le mail reste en file et sera retenté par le worker planifié.
+        }
 
         return $this->json(['organization' => $this->serialize($org, $user)], Response::HTTP_CREATED);
     }

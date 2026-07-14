@@ -21,7 +21,11 @@ framework:
             messenger.bus.default: []
 
         routing:
-            Symfony\Component\Mailer\Messenger\SendEmailMessage: async
+            # Les emails sont livrés en ligne (synchrone) et non via le transport
+            # async : plus besoin de `messenger:consume async` pour que les mails
+            # partent. La logique de retry reste gérée par la file pending_mails
+            # (PendingMailProcessor). Décommenter pour repasser en asynchrone.
+            # Symfony\Component\Mailer\Messenger\SendEmailMessage: async
 
             # Route your messages to the transports
             # 'App\Message\YourMessage': async
