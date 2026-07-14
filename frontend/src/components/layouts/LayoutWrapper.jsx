@@ -6,7 +6,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { Menu, X } from "lucide-react";
 import { useTranslation } from "@/hooks/useI18n";
 
-const SIDEBAR_ROUTES = ["/dashboard", "/history", "/ideas", "/settings", "/editor"];
+const SIDEBAR_ROUTES = ["/dashboard", "/history", "/ideas", "/settings", "/editor", "/organization"];
 
 const matchesSidebarRoute = (pathname) =>
     SIDEBAR_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"));
@@ -56,7 +56,7 @@ export const LayoutWrapper = ({ children }) => {
                 </>
             )}
 
-            <main className="flex-1 overflow-y-auto h-[calc(100vh-64px)] md:max-h-screen">
+            <main className="flex flex-col flex-1 overflow-y-auto h-[calc(100vh-64px)] md:h-screen">
                 {children}
             </main>
         </div>
