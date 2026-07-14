@@ -670,8 +670,8 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                     </div>
                 </div>
 
-                <div className="flex flex-1 overflow-hidden">
-                    <div className="flex-1 overflow-auto p-6">
+                <div className="flex flex-col lg:flex-row flex-1 overflow-auto lg:overflow-hidden">
+                    <div className="w-full lg:flex-1 lg:overflow-auto p-4 md:p-6">
                         <div className="mx-auto max-w-4xl space-y-6">
                             <Card>
                                 <CardHeader>
@@ -780,7 +780,7 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                         </div>
                     </div>
 
-                    <div className="w-80 overflow-auto border-l dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
+                    <div className="w-full lg:w-80 shrink-0 lg:overflow-auto border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 md:p-6">
                         <Tabs defaultValue="ai" className="w-full">
                             <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="ai">{t("editor.tabs.ai")}</TabsTrigger>
