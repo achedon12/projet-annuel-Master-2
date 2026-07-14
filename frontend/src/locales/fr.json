@@ -23,7 +23,62 @@
     "removeError": "Impossible de retirer ce membre.",
     "emptyMembers": "Aucun membre pour le moment.",
     "roleOwner": "Propriétaire",
-    "roleMember": "Membre"
+    "roleMember": "Membre",
+    "addTitle": "Ajouter un membre",
+    "addSubtitle": "Invitez un collaborateur par email ou créez-lui directement un sous-compte.",
+    "modeInvite": "Inviter par email",
+    "modeCreate": "Créer un sous-compte",
+    "emailLabel": "Email",
+    "nameLabel": "Nom",
+    "namePlaceholderMember": "Nom du collaborateur",
+    "passwordLabel": "Mot de passe",
+    "passwordPlaceholder": "8 caractères minimum",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères.",
+    "inviteButton": "Envoyer l'invitation",
+    "invited": "Invitation envoyée.",
+    "inviteError": "L'invitation a échoué.",
+    "createSubButton": "Créer le sous-compte",
+    "editPerms": "Permissions",
+    "editPermsTitle": "Permissions du membre",
+    "savePerms": "Enregistrer",
+    "permsSaved": "Permissions mises à jour.",
+    "permsError": "Impossible d'enregistrer les permissions.",
+    "grantedCount": "{count}/{total} droits",
+    "pendingTitle": "Invitations en attente",
+    "pendingSubtitle": "Ces personnes n'ont pas encore créé leur compte.",
+    "revokeButton": "Révoquer",
+    "revoked": "Invitation révoquée.",
+    "revokeError": "Impossible de révoquer l'invitation.",
+    "permissions": {
+      "canGenerateArticles": {
+        "label": "Générer du contenu",
+        "hint": "Idées, rédaction et repasses IA."
+      },
+      "canEditArticles": {
+        "label": "Modifier les articles",
+        "hint": "Enregistrer et éditer ses articles."
+      },
+      "canDeleteArticles": {
+        "label": "Supprimer les articles",
+        "hint": "Supprimer définitivement un article."
+      },
+      "canExport": {
+        "label": "Exporter",
+        "hint": "Export PDF et Markdown."
+      },
+      "canManageNotion": {
+        "label": "Notion",
+        "hint": "Connecter et exporter vers Notion."
+      },
+      "canSchedule": {
+        "label": "Planifier / publier",
+        "hint": "Programmer et publier les articles."
+      },
+      "canInviteUsers": {
+        "label": "Inviter des membres",
+        "hint": "Gérer l'équipe et les invitations."
+      }
+    }
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -945,5 +1000,22 @@
         "userAgent": "User-Agent"
       }
     }
+  },
+  "acceptInvite": {
+    "title": "Rejoindre l'entreprise",
+    "subtitle": "Vous avez été invité à rejoindre {org}.",
+    "loading": "Vérification de l'invitation…",
+    "errorTitle": "Invitation invalide",
+    "errorDescription": "Ce lien est invalide, expiré, ou un compte existe déjà pour cet email.",
+    "emailLabel": "Email",
+    "nameLabel": "Nom",
+    "namePlaceholder": "Votre nom",
+    "passwordLabel": "Mot de passe",
+    "passwordPlaceholder": "Choisissez un mot de passe (8 caractères min.)",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères.",
+    "submit": "Créer mon compte",
+    "created": "Compte créé, bienvenue !",
+    "error": "La création du compte a échoué.",
+    "backToLogin": "Retour à la connexion"
   }
 }

@@ -23,7 +23,62 @@
     "removeError": "Could not remove this member.",
     "emptyMembers": "No members yet.",
     "roleOwner": "Owner",
-    "roleMember": "Member"
+    "roleMember": "Member",
+    "addTitle": "Add a member",
+    "addSubtitle": "Invite a teammate by email or create a sub-account for them directly.",
+    "modeInvite": "Invite by email",
+    "modeCreate": "Create a sub-account",
+    "emailLabel": "Email",
+    "nameLabel": "Name",
+    "namePlaceholderMember": "Teammate name",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "At least 8 characters",
+    "passwordTooShort": "Password must be at least 8 characters.",
+    "inviteButton": "Send invitation",
+    "invited": "Invitation sent.",
+    "inviteError": "The invitation failed.",
+    "createSubButton": "Create sub-account",
+    "editPerms": "Permissions",
+    "editPermsTitle": "Member permissions",
+    "savePerms": "Save",
+    "permsSaved": "Permissions updated.",
+    "permsError": "Could not save permissions.",
+    "grantedCount": "{count}/{total} rights",
+    "pendingTitle": "Pending invitations",
+    "pendingSubtitle": "These people haven't created their account yet.",
+    "revokeButton": "Revoke",
+    "revoked": "Invitation revoked.",
+    "revokeError": "Could not revoke the invitation.",
+    "permissions": {
+      "canGenerateArticles": {
+        "label": "Generate content",
+        "hint": "Ideas, writing and AI rewrites."
+      },
+      "canEditArticles": {
+        "label": "Edit articles",
+        "hint": "Save and edit their articles."
+      },
+      "canDeleteArticles": {
+        "label": "Delete articles",
+        "hint": "Permanently delete an article."
+      },
+      "canExport": {
+        "label": "Export",
+        "hint": "PDF and Markdown export."
+      },
+      "canManageNotion": {
+        "label": "Notion",
+        "hint": "Connect and export to Notion."
+      },
+      "canSchedule": {
+        "label": "Schedule / publish",
+        "hint": "Schedule and publish articles."
+      },
+      "canInviteUsers": {
+        "label": "Invite members",
+        "hint": "Manage the team and invitations."
+      }
+    }
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -945,5 +1000,22 @@
         "userAgent": "User agent"
       }
     }
+  },
+  "acceptInvite": {
+    "title": "Join the organization",
+    "subtitle": "You've been invited to join {org}.",
+    "loading": "Checking your invitation…",
+    "errorTitle": "Invalid invitation",
+    "errorDescription": "This link is invalid, expired, or an account already exists for this email.",
+    "emailLabel": "Email",
+    "nameLabel": "Name",
+    "namePlaceholder": "Your name",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Choose a password (8 chars min.)",
+    "passwordTooShort": "Password must be at least 8 characters.",
+    "submit": "Create my account",
+    "created": "Account created, welcome!",
+    "error": "Account creation failed.",
+    "backToLogin": "Back to login"
   }
 }

@@ -8,6 +8,8 @@ export const Urls = {
       google: '/auth/google',
       magicLink: '/auth/magic-link',
       magicLogin: '/auth/magic-login',
+      invitationLookup: (token) => `/auth/invitation?token=${encodeURIComponent(token)}`,
+      acceptInvitation: '/auth/accept-invitation',
   },
   user: {
       ips: '/user/ips',
@@ -33,6 +35,8 @@ export const Urls = {
       create: '/organization',
       members: '/organization/members',
       member: (userId) => `/organization/members/${userId}`,
+      invitations: '/organization/invitations',
+      invitation: (id) => `/organization/invitations/${id}`,
   },
   integrations: {
       notion: '/integrations/notion',
