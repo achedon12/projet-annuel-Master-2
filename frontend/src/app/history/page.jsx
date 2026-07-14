@@ -225,7 +225,7 @@ const PublicationsHistory = () => {
                             />
                         </div>
                         <Select value={filterStatus} onValueChange={setFilterStatus}>
-                            <SelectTrigger className="w-[150px]">
+                            <SelectTrigger className="w-full sm:w-[150px]">
                                 <Filter className="mr-2 h-4 w-4 text-slate-400 dark:text-slate-500" />
                                 <SelectValue />
                             </SelectTrigger>
@@ -238,7 +238,7 @@ const PublicationsHistory = () => {
                             </SelectContent>
                         </Select>
                         <Select value={filterType} onValueChange={setFilterType}>
-                            <SelectTrigger className="w-[150px]">
+                            <SelectTrigger className="w-full sm:w-[150px]">
                                 <Filter className="mr-2 h-4 w-4 text-slate-400 dark:text-slate-500" />
                                 <SelectValue />
                             </SelectTrigger>

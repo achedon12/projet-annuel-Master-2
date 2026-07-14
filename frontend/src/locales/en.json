@@ -38,7 +38,8 @@
     "pricing": "Pricing",
     "testimonials": "Testimonials",
     "login": "Log in",
-    "start": "Get started"
+    "start": "Get started",
+    "toggleMenu": "Open menu"
   },
   "common": {
     "loading": "Loading...",

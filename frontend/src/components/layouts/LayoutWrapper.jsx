@@ -23,7 +23,7 @@ export const LayoutWrapper = ({ children }) => {
     return (
         <div className="flex flex-col md:flex-row max-h-screen">
             {showSidebar && (
-                <div className="md:hidden flex items-center gap-4 bg-slate-900 text-white p-4 border-b border-slate-700">
+                <div className="md:hidden flex h-16 items-center gap-4 bg-slate-900 text-white px-4 border-b border-slate-700">
                     <button
                         onClick={toggleSidebar}
                         className="p-2 hover:bg-slate-800 rounded-lg transition-colors"

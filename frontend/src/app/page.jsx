@@ -15,13 +15,18 @@ import {
     BarChart3,
     Rocket,
     PenTool,
+    Menu,
+    X,
 } from "lucide-react";
 import { ImageWithFallback } from "../utils/Image";
 import Link from "next/link";
+import { useState } from "react";
 import { useTranslation } from "@/hooks/useI18n";
 
 const HomePage = ({ onGetStarted }) => {
     const { t } = useTranslation();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const closeMobileMenu = () => setMobileMenuOpen(false);
 
     const features = [
         { icon: Sparkles, key: "ai", tone: "emerald" },
@@ -113,8 +118,38 @@ const HomePage = ({ onGetStarted }) => {
                                 <Link href="/auth">{t("nav.start")}</Link>
                             </Button>
                         </div>
+                        <button
+                            type="button"
+                            onClick={() => setMobileMenuOpen((open) => !open)}
+                            aria-label={t("nav.toggleMenu")}
+                            aria-expanded={mobileMenuOpen}
+                            className="md:hidden grid h-9 w-9 place-items-center rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        >
+                            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                        </button>
                     </div>
                 </div>
+                {mobileMenuOpen && (
+                    <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white/95 backdrop-blur-md dark:bg-slate-950/95">
+                        <div className="mx-auto max-w-7xl px-4 py-4 flex flex-col gap-1">
+                            <a href="#features" onClick={closeMobileMenu} className="rounded-lg px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                {t("nav.features")}
+                            </a>
+                            <a href="#pricing" onClick={closeMobileMenu} className="rounded-lg px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                {t("nav.pricing")}
+                            </a>
+                            <a href="#testimonials" onClick={closeMobileMenu} className="rounded-lg px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                {t("nav.testimonials")}
+                            </a>
+                            <Link href="/auth" onClick={closeMobileMenu} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                {t("nav.login")}
+                            </Link>
+                            <Button asChild className="mt-1 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
+                                <Link href="/auth" onClick={closeMobileMenu}>{t("nav.start")}</Link>
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </nav>
 
             {/* Hero */}

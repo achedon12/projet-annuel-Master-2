@@ -38,7 +38,8 @@
     "pricing": "Tarifs",
     "testimonials": "Témoignages",
     "login": "Connexion",
-    "start": "Commencer"
+    "start": "Commencer",
+    "toggleMenu": "Ouvrir le menu"
   },
   "common": {
     "loading": "Chargement...",
