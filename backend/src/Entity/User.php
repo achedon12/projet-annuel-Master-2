@@ -108,6 +108,10 @@ class User
     #[ORM\OneToMany(targetEntity: UserLoginIp::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $loginIps;
 
+    #[ORM\ManyToOne(targetEntity: Organization::class, inversedBy: 'members')]
+    #[ORM\JoinColumn(name: 'organization_id', nullable: true, onDelete: 'SET NULL')]
+    private ?Organization $organization = null;
+
     public function __construct()
     {
         $this->integrations = new ArrayCollection();
@@ -466,6 +470,17 @@ class User
                 $loginIp->setUser(null);
             }
         }
+        return $this;
+    }
+
+    public function getOrganization(): ?Organization
+    {
+        return $this->organization;
+    }
+
+    public function setOrganization(?Organization $organization): static
+    {
+        $this->organization = $organization;
         return $this;
     }
 }

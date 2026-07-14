@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Lightbulb, PenTool, History, Settings, ShieldCheck, LogOut } from "lucide-react";
+import { Home, Lightbulb, PenTool, History, Settings, ShieldCheck, LogOut, Building2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -24,6 +24,7 @@ export const Sidebar = ({ onNavigate }) => {
     { name: t('nav.ideas'), href: "/ideas", icon: Lightbulb },
     { name: t('nav.editor'), href: "/editor", icon: PenTool },
     { name: t('nav.history'), href: "/history", icon: History },
+    { name: t('nav.organization'), href: "/organization", icon: Building2 },
     { name: t('nav.settings'), href: "/settings", icon: Settings },
     ...(isAdmin ? [{ name: t('nav.admin'), href: "/admin", icon: ShieldCheck }] : []),
   ];

@@ -26,6 +26,12 @@ export const Urls = {
       schedule: (id) => `/articles/${id}/schedule`,
       reminder: (id) => `/articles/${id}/reminder`,
   },
+  organization: {
+      get: '/organization',
+      create: '/organization',
+      members: '/organization/members',
+      member: (userId) => `/organization/members/${userId}`,
+  },
   integrations: {
       notion: '/integrations/notion',
       google: '/integrations/google',

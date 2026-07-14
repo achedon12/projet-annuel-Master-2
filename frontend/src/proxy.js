@@ -14,6 +14,7 @@ export const config = {
         "/ideas/:path*",
         "/settings/:path*",
         "/editor/:path*",
+        "/organization/:path*",
         "/admin/:path*",
     ],
 };
