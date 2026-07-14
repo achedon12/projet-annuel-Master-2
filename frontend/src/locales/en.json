@@ -451,6 +451,7 @@
     },
     "aiConfig": "AI configuration",
     "targetWords": "Target word count",
+    "wordRange": "Word count range (min – max)",
     "quickActions": "Quick actions",
     "improveStyle": "Improve style",
     "addIntro": "Add an intro",

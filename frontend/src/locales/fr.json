@@ -451,6 +451,7 @@
     },
     "aiConfig": "Configuration IA",
     "targetWords": "Nombre de mots cible",
+    "wordRange": "Fourchette de mots (min – max)",
     "quickActions": "Actions rapides",
     "improveStyle": "Améliorer le style",
     "addIntro": "Ajouter une intro",

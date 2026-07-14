@@ -40,15 +40,17 @@ class MistralArticleService
         string $title,
         ?string $tone,
         ?string $audience,
-        int $targetWords,
+        int $minWords,
+        int $maxWords,
         string $locale,
     ): string {
         $this->assertConfigured();
-        $targetWords = max(100, min(self::MAX_TARGET_WORDS, $targetWords));
+        $minWords = max(100, min(self::MAX_TARGET_WORDS, $minWords));
+        $maxWords = max($minWords, min(self::MAX_TARGET_WORDS, $maxWords));
 
         return $this->callMistral(
             $this->buildContentSystemPrompt($locale),
-            $this->buildContentUserPrompt($title, $tone, $audience, $targetWords, $locale),
+            $this->buildContentUserPrompt($title, $tone, $audience, $minWords, $maxWords, $locale),
         );
     }
 
@@ -193,7 +195,7 @@ class MistralArticleService
         if ($locale === 'en') {
             return <<<PROMPT
 You are an experienced SEO content writer. Produce a full article in Markdown,
-respecting the user's target word count, tone, and target audience.
+staying within the requested word-count range, tone, and target audience.
 Structure: H1 title, an introduction, several H2/H3 sections, and a short conclusion.
 Use natural keyword placement. Output ONLY the Markdown body — no preamble, no code fences.
 PROMPT;
@@ -201,18 +203,20 @@ PROMPT;
 
         return <<<PROMPT
 Tu es un rédacteur SEO expérimenté. Produis un article complet en Markdown,
-en respectant le nombre de mots cible, le ton et l'audience demandés.
+en restant dans la fourchette de mots demandée, le ton et l'audience demandés.
 Structure : titre H1, introduction, plusieurs sections H2/H3, courte conclusion.
 Place les mots-clés naturellement. Renvoie UNIQUEMENT le corps Markdown — pas de préambule, pas de bloc de code.
 PROMPT;
     }
 
-    private function buildContentUserPrompt(string $title, ?string $tone, ?string $audience, int $targetWords, string $locale): string
+    private function buildContentUserPrompt(string $title, ?string $tone, ?string $audience, int $minWords, int $maxWords, string $locale): string
     {
         $isEn = $locale === 'en';
         $lines = [];
         $lines[] = $isEn ? 'Article title: ' . $title : 'Titre de l\'article : ' . $title;
-        $lines[] = $isEn ? 'Target word count: approximately ' . $targetWords : 'Nombre de mots cible : environ ' . $targetWords;
+        $lines[] = $isEn
+            ? 'Word count: between ' . $minWords . ' and ' . $maxWords . ' words'
+            : 'Nombre de mots : entre ' . $minWords . ' et ' . $maxWords . ' mots';
         if ($tone !== null && $tone !== '') {
             $lines[] = $isEn ? 'Tone: ' . $tone : 'Ton : ' . $tone;
         }

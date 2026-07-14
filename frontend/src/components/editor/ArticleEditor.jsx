@@ -57,7 +57,7 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
     const [wordCount, setWordCount] = useState(
         initialArticle?.wordCount ?? countWords(initialArticle?.content ?? ""),
     );
-    const [targetWords, setTargetWords] = useState([800]);
+    const [wordRange, setWordRange] = useState([400, 1200]);
     const [tone, setTone] = useState(initialArticle?.tone ?? "");
     const [audience, setAudience] = useState(initialArticle?.audience ?? "");
     const [status, setStatus] = useState(initialArticle?.status ?? "draft");
@@ -201,7 +201,8 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                     title: title.trim(),
                     tone: tone || null,
                     audience: audience || null,
-                    targetWords: targetWords[0],
+                    minWords: wordRange[0],
+                    maxWords: wordRange[1],
                     locale,
                 }),
             });
@@ -511,8 +512,8 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
     };
 
     const seoAnalysis = useMemo(
-        () => analyzeSeo({ title, content, targetWords: targetWords[0] }),
-        [title, content, targetWords],
+        () => analyzeSeo({ title, content, targetWords: Math.round((wordRange[0] + wordRange[1]) / 2) }),
+        [title, content, wordRange],
     );
     const statusLabelKey = `history.status.${status}`;
     const statusLabel = (() => {
@@ -694,15 +695,16 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                                     <CardContent className="space-y-4">
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between">
-                                                <Label className="text-sm">{t("editor.targetWords")}</Label>
-                                                <span className="text-sm">{targetWords[0]}</span>
+                                                <Label className="text-sm">{t("editor.wordRange")}</Label>
+                                                <span className="text-sm">{wordRange[0]} – {wordRange[1]}</span>
                                             </div>
                                             <Slider
-                                                value={targetWords}
-                                                onValueChange={setTargetWords}
+                                                value={wordRange}
+                                                onValueChange={setWordRange}
                                                 min={200}
                                                 max={3000}
                                                 step={100}
+                                                minStepsBetweenThumbs={1}
                                             />
                                         </div>
 

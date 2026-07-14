@@ -118,11 +118,12 @@ class ArticleController extends ApiAbstractController
 
         $tone = $this->stringOrNull($data['tone'] ?? null, self::TONE_MAX);
         $audience = $this->stringOrNull($data['audience'] ?? null, self::AUDIENCE_MAX);
-        $targetWords = isset($data['targetWords']) && is_int($data['targetWords']) ? $data['targetWords'] : 800;
+        $minWords = isset($data['minWords']) && is_int($data['minWords']) ? $data['minWords'] : 400;
+        $maxWords = isset($data['maxWords']) && is_int($data['maxWords']) ? $data['maxWords'] : 1200;
         $locale = $this->parseLocale($data['locale'] ?? null);
 
         try {
-            $content = $this->generator->generateContent($title, $tone, $audience, $targetWords, $locale);
+            $content = $this->generator->generateContent($title, $tone, $audience, $minWords, $maxWords, $locale);
         } catch (MistralGenerationException $e) {
             $status = $this->mapHttpStatus($e->getCode());
             return $this->json(['error' => $e->getMessage()], $status);
