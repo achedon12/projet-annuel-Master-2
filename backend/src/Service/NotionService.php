@@ -94,6 +94,25 @@ class NotionService
     }
 
     /**
+     * Crée une entrée « calendrier » dans Notion : une page datée enfant de
+     * parentPageId représentant la publication planifiée d'un article.
+     *
+     * @return string l'identifiant Notion de la page créée (sans dashes)
+     * @throws \RuntimeException si l'appel Notion échoue
+     */
+    public function createSchedulePage(string $token, string $parentPageId, string $title, \DateTimeInterface $date, string $locale = 'fr'): string
+    {
+        $isEn = $locale === 'en';
+        $dateStr = $date->format('Y-m-d H:i');
+        $pageTitle = ($isEn ? '📅 Publish: ' : '📅 Publication : ') . $title . ' — ' . $dateStr;
+        $body = $isEn
+            ? "Scheduled publication date: {$dateStr}"
+            : "Date de publication planifiée : {$dateStr}";
+
+        return $this->createPage($token, $parentPageId, $pageTitle, $body);
+    }
+
+    /**
      * Met à jour le titre et le contenu d'une page Notion existante.
      * On vide tous les blocs enfants existants puis on re-append.
      *

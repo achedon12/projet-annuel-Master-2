@@ -493,9 +493,12 @@
     },
     "scheduleDialog": {
       "title": "Schedule publication",
-      "description": "Creates a Google Calendar event for this article. Reopening this dialog updates the event instead of duplicating it.",
+      "description": "Pushes the publication date to the chosen calendar (Google Calendar or a dated page in Notion).",
       "label": "Publication date and time",
       "hint": "Event lasts 30 minutes by default. Calendar: primary.",
+      "provider": "Calendar",
+      "providerGoogle": "Google Calendar",
+      "providerNotion": "Notion",
       "submit": "Schedule"
     },
     "reminderDialog": {

@@ -422,8 +422,9 @@ class ArticleController extends ApiAbstractController
     }
 
     /**
-     * Planifie la publication d'un article : crée (ou met à jour) un event
-     * Google Calendar et persiste scheduledAt + googleEventId.
+     * Planifie la publication d'un article dans le calendrier de l'utilisateur.
+     * Le fournisseur est au choix : 'google' (Google Calendar) ou 'notion'
+     * (page datée dans le Notion de l'utilisateur). Persiste scheduledAt.
      */
     #[Route('/{id}/schedule', name: 'api_articles_schedule', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function schedule(int $id, Request $request): JsonResponse
@@ -438,14 +439,14 @@ class ArticleController extends ApiAbstractController
             return $this->json(['error' => 'Article introuvable.'], Response::HTTP_NOT_FOUND);
         }
 
-        $integration = $this->integrationRepository->findOneByUserAndType($user, 'google');
-        if ($integration === null || !$integration->isActive()) {
-            return $this->json(['error' => 'Connectez d\'abord Google Calendar dans les paramètres.'], Response::HTTP_BAD_REQUEST);
-        }
-
         $data = $this->decodeBody($request);
         if ($data === null) {
             return $this->json(['error' => 'Corps de requête JSON invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $provider = is_string($data['provider'] ?? null) ? $data['provider'] : 'google';
+        if (!in_array($provider, ['google', 'notion'], true)) {
+            return $this->json(['error' => 'Fournisseur de calendrier invalide.'], Response::HTTP_BAD_REQUEST);
         }
 
         $scheduledAt = $this->parseFutureDateTime($data['scheduledAt'] ?? null);
@@ -456,6 +457,15 @@ class ArticleController extends ApiAbstractController
         $title = (string) ($article->getTitle() ?? '');
         if (trim($title) === '') {
             return $this->json(['error' => 'Donnez un titre à l\'article avant de planifier sa publication.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if ($provider === 'notion') {
+            return $this->scheduleOnNotion($article, $user, $scheduledAt, $title, $this->parseLocale($data['locale'] ?? null));
+        }
+
+        $integration = $this->integrationRepository->findOneByUserAndType($user, 'google');
+        if ($integration === null || !$integration->isActive()) {
+            return $this->json(['error' => 'Connectez d\'abord Google Calendar dans les paramètres.'], Response::HTTP_BAD_REQUEST);
         }
 
         $summary = 'Publication : ' . $title;
@@ -497,6 +507,46 @@ class ArticleController extends ApiAbstractController
         return $this->json([
             'scheduledAt' => $article->getScheduledAt()?->format('c'),
             'googleEventId' => $article->getGoogleEventId(),
+            'provider' => 'google',
+        ]);
+    }
+
+    /**
+     * Planifie la publication en créant une page datée dans le Notion de l'user.
+     */
+    private function scheduleOnNotion(Article $article, User $user, \DateTimeInterface $scheduledAt, string $title, string $locale): JsonResponse
+    {
+        $integration = $this->integrationRepository->findOneByUserAndType($user, 'notion');
+        if ($integration === null || !$integration->isActive()) {
+            return $this->json(['error' => 'Connectez d\'abord Notion dans les paramètres.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $token = (string) $integration->getApiKey();
+        $parentPageId = (string) $integration->getUrl();
+        if ($token === '' || $parentPageId === '') {
+            return $this->json(['error' => 'Intégration Notion incomplète (token ou page parente manquant).'], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $pageId = $this->notion->createSchedulePage($token, $parentPageId, $title, $scheduledAt, $locale);
+            $article->setScheduledAt($scheduledAt instanceof \DateTime ? $scheduledAt : \DateTime::createFromInterface($scheduledAt));
+            $article->setUpdatedAt(new \DateTime());
+            $integration->setLastSync(new \DateTime());
+            $this->em->flush();
+        } catch (\RuntimeException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_GATEWAY);
+        } catch (\Throwable $e) {
+            $this->logger->error('Erreur inattendue lors du schedule Notion.', [
+                'articleId' => $article->getId(),
+                'exception' => $e->getMessage(),
+            ]);
+            return $this->json(['error' => 'Impossible de planifier la publication dans Notion.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return $this->json([
+            'scheduledAt' => $article->getScheduledAt()?->format('c'),
+            'notionEventId' => $pageId,
+            'provider' => 'notion',
         ]);
     }
 

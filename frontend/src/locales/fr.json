@@ -493,9 +493,12 @@
     },
     "scheduleDialog": {
       "title": "Planifier la publication",
-      "description": "Crée un event Google Calendar lié à cet article. Si tu reviens, la date sera modifiée au lieu de dupliquer.",
+      "description": "Pousse la date de publication vers le calendrier choisi (Google Calendar ou une page datée dans Notion).",
       "label": "Date et heure de publication",
       "hint": "L'event durera 30 minutes par défaut. Calendrier : principal.",
+      "provider": "Calendrier",
+      "providerGoogle": "Google Calendar",
+      "providerNotion": "Notion",
       "submit": "Planifier"
     },
     "reminderDialog": {

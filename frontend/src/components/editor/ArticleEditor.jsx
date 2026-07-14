@@ -75,6 +75,7 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
     const [notionPageId, setNotionPageId] = useState(initialArticle?.notionPageId ?? null);
     const [scheduledAt, setScheduledAt] = useState(initialArticle?.scheduledAt ?? null);
     const [scheduleInput, setScheduleInput] = useState("");
+    const [scheduleProvider, setScheduleProvider] = useState("google");
     const [reminderInput, setReminderInput] = useState("");
     const [isScheduling, setIsScheduling] = useState(false);
     const [isReminding, setIsReminding] = useState(false);
@@ -458,7 +459,11 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
             const res = await fetch(`${API_URL}${Urls.articles.schedule(articleId)}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ scheduledAt: new Date(scheduleInput).toISOString() }),
+                body: JSON.stringify({
+                    scheduledAt: new Date(scheduleInput).toISOString(),
+                    provider: scheduleProvider,
+                    locale,
+                }),
             });
             if (!res.ok) {
                 const message = await extractError(res, t("editor.toast.scheduleError"));
@@ -1070,17 +1075,31 @@ export const ArticleEditor = ({ initialArticle = null, articleId = null }) => {
                         <DialogTitle>{t("editor.scheduleDialog.title")}</DialogTitle>
                         <DialogDescription>{t("editor.scheduleDialog.description")}</DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-2 py-2">
-                        <Label htmlFor="schedule-input">{t("editor.scheduleDialog.label")}</Label>
-                        <Input
-                            id="schedule-input"
-                            type="datetime-local"
-                            value={scheduleInput}
-                            onChange={(e) => setScheduleInput(e.target.value)}
-                        />
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                            {t("editor.scheduleDialog.hint")}
-                        </p>
+                    <div className="space-y-4 py-2">
+                        <div className="space-y-2">
+                            <Label htmlFor="schedule-provider">{t("editor.scheduleDialog.provider")}</Label>
+                            <Select value={scheduleProvider} onValueChange={setScheduleProvider}>
+                                <SelectTrigger id="schedule-provider">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="google">{t("editor.scheduleDialog.providerGoogle")}</SelectItem>
+                                    <SelectItem value="notion">{t("editor.scheduleDialog.providerNotion")}</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="schedule-input">{t("editor.scheduleDialog.label")}</Label>
+                            <Input
+                                id="schedule-input"
+                                type="datetime-local"
+                                value={scheduleInput}
+                                onChange={(e) => setScheduleInput(e.target.value)}
+                            />
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                {t("editor.scheduleDialog.hint")}
+                            </p>
+                        </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setScheduleDialogOpen(false)} disabled={isScheduling}>
