@@ -99,29 +99,133 @@ export const exportArticleAsMarkdown = (title, content) => {
 };
 
 /**
- * Génère un PDF client-side via html2pdf.js (import dynamique pour éviter le SSR).
+ * Génère un PDF client-side avec jsPDF en rendu texte natif (import dynamique
+ * pour éviter le SSR). On n'utilise volontairement PAS html2canvas : celui-ci
+ * lève « Attempting to parse an unsupported color function "oklch" » sur les
+ * couleurs Tailwind v4, ce qui faisait échouer tout l'export. Le rendu texte
+ * est en prime plus léger et laisse le texte sélectionnable.
  */
 export const exportArticleAsPdf = async (title, content) => {
     const safeTitle = (title || "article").trim() || "article";
     const filename = slugify(safeTitle) + ".pdf";
 
-    const container = document.createElement("div");
-    container.style.padding = "40px";
-    container.style.fontFamily = "Inter, Helvetica, Arial, sans-serif";
-    container.style.color = "#0f172a";
-    container.style.maxWidth = "720px";
-    container.innerHTML = renderMarkdownToHtml(safeTitle, content || "");
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
 
-    const { default: html2pdf } = await import("html2pdf.js");
-    await html2pdf()
-        .from(container)
-        .set({
-            margin: 10,
-            filename,
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        })
-        .save();
+    const PT_TO_MM = 0.3527777778;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    const contentWidth = pageWidth - margin * 2;
+    const bottom = pageHeight - margin;
+    let y = margin;
+
+    doc.setTextColor(15, 23, 42); // slate-900
+
+    const applyStyle = (seg, size) => {
+        doc.setFontSize(size);
+        if (seg.code) {
+            doc.setFont("courier", seg.bold ? "bold" : "normal");
+        } else if (seg.bold && seg.italic) {
+            doc.setFont("helvetica", "bolditalic");
+        } else if (seg.bold) {
+            doc.setFont("helvetica", "bold");
+        } else if (seg.italic) {
+            doc.setFont("helvetica", "italic");
+        } else {
+            doc.setFont("helvetica", "normal");
+        }
+    };
+
+    // Pose un bloc de segments stylés avec retour à la ligne mot à mot et saut
+    // de page automatique. `indent` décale le bloc (utile pour les puces).
+    const writeBlock = (segments, { size, bold = false, spacingAfter = 2.5, indent = 0 } = {}) => {
+        const lineHeight = size * PT_TO_MM * 1.45;
+        const left = margin + indent;
+        const right = margin + contentWidth;
+
+        const words = [];
+        for (const seg of segments) {
+            for (const w of seg.text.split(/\s+/).filter((part) => part.length > 0)) {
+                words.push({ text: w, bold: seg.bold || bold, italic: seg.italic, code: seg.code });
+            }
+        }
+        if (words.length === 0) {
+            y += lineHeight + spacingAfter;
+            return;
+        }
+
+        if (y + lineHeight > bottom) { doc.addPage(); y = margin; }
+        let x = left;
+        let atLineStart = true;
+        for (const w of words) {
+            applyStyle(w, size);
+            const wordWidth = doc.getTextWidth(w.text);
+            const spaceWidth = atLineStart ? 0 : doc.getTextWidth(" ");
+            if (!atLineStart && x + spaceWidth + wordWidth > right) {
+                y += lineHeight;
+                if (y + lineHeight > bottom) { doc.addPage(); y = margin; }
+                x = left;
+                atLineStart = true;
+            }
+            if (!atLineStart) x += spaceWidth;
+            doc.text(w.text, x, y, { baseline: "top" });
+            x += wordWidth;
+            atLineStart = false;
+        }
+        y += lineHeight + spacingAfter;
+    };
+
+    writeBlock(tokenizeInline(safeTitle), { size: 22, bold: true, spacingAfter: 4 });
+
+    let pendingBlank = false;
+    for (const rawLine of (content || "").split("\n")) {
+        const line = rawLine.replace(/\s+$/g, "");
+        if (line.trim() === "") { pendingBlank = true; continue; }
+        if (pendingBlank) { y += 1.5; pendingBlank = false; }
+
+        if (line.startsWith("### ")) {
+            writeBlock(tokenizeInline(line.slice(4)), { size: 13, bold: true, spacingAfter: 1.5 });
+        } else if (line.startsWith("## ")) {
+            writeBlock(tokenizeInline(line.slice(3)), { size: 15, bold: true, spacingAfter: 2 });
+        } else if (line.startsWith("# ")) {
+            writeBlock(tokenizeInline(line.slice(2)), { size: 18, bold: true, spacingAfter: 2.5 });
+        } else if (/^\s*[-*]\s+/.test(line)) {
+            const item = line.replace(/^\s*[-*]\s+/, "");
+            writeBlock([{ text: "•  ", bold: false, italic: false, code: false }, ...tokenizeInline(item)], {
+                size: 11,
+                spacingAfter: 1,
+                indent: 2,
+            });
+        } else {
+            writeBlock(tokenizeInline(line), { size: 11 });
+        }
+    }
+
+    doc.save(filename);
+};
+
+/**
+ * Découpe une ligne markdown en segments stylés : `code`, **gras**, *italique*.
+ */
+const tokenizeInline = (text) => {
+    const tokens = [];
+    const re = /(`[^`]+`)|(\*\*[^*]+\*\*)|(\*[^*]+\*)/g;
+    let last = 0;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+        if (m.index > last) {
+            tokens.push({ text: text.slice(last, m.index), bold: false, italic: false, code: false });
+        }
+        if (m[1]) tokens.push({ text: m[1].slice(1, -1), bold: false, italic: false, code: true });
+        else if (m[2]) tokens.push({ text: m[2].slice(2, -2), bold: true, italic: false, code: false });
+        else if (m[3]) tokens.push({ text: m[3].slice(1, -1), bold: false, italic: true, code: false });
+        last = re.lastIndex;
+    }
+    if (last < text.length) {
+        tokens.push({ text: text.slice(last), bold: false, italic: false, code: false });
+    }
+    return tokens.length ? tokens : [{ text, bold: false, italic: false, code: false }];
 };
 
 const slugify = (s) =>
@@ -132,57 +236,6 @@ const slugify = (s) =>
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "")
         .slice(0, 60) || "article";
-
-const escapeHtml = (s) =>
-    s
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-
-/**
- * Convertit le markdown en HTML minimal pour le rendu PDF.
- * Volontairement simple : H1/H2/H3, paragraphes, listes, gras/italique, code inline.
- */
-const renderMarkdownToHtml = (title, body) => {
-    const lines = body.split("\n");
-    const html = [];
-    html.push(`<h1 style="font-size:28px;margin-bottom:24px">${escapeHtml(title)}</h1>`);
-    let inList = false;
-    for (const rawLine of lines) {
-        const line = rawLine.replace(/\s+$/g, "");
-        if (line.startsWith("### ")) {
-            if (inList) { html.push("</ul>"); inList = false; }
-            html.push(`<h3 style="font-size:18px;margin-top:18px">${formatInline(line.slice(4))}</h3>`);
-        } else if (line.startsWith("## ")) {
-            if (inList) { html.push("</ul>"); inList = false; }
-            html.push(`<h2 style="font-size:22px;margin-top:22px">${formatInline(line.slice(3))}</h2>`);
-        } else if (line.startsWith("# ")) {
-            if (inList) { html.push("</ul>"); inList = false; }
-            html.push(`<h1 style="font-size:26px;margin-top:24px">${formatInline(line.slice(2))}</h1>`);
-        } else if (/^\s*[-*]\s+/.test(line)) {
-            if (!inList) { html.push("<ul>"); inList = true; }
-            html.push(`<li>${formatInline(line.replace(/^\s*[-*]\s+/, ""))}</li>`);
-        } else if (line.trim() === "") {
-            if (inList) { html.push("</ul>"); inList = false; }
-            html.push("");
-        } else {
-            if (inList) { html.push("</ul>"); inList = false; }
-            html.push(`<p style="line-height:1.6;margin:8px 0">${formatInline(line)}</p>`);
-        }
-    }
-    if (inList) html.push("</ul>");
-    return html.join("\n");
-};
-
-const formatInline = (s) => {
-    let out = escapeHtml(s);
-    out = out.replace(/`([^`]+)`/g, "<code style=\"background:#f1f5f9;padding:1px 4px;border-radius:3px\">$1</code>");
-    out = out.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    out = out.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    return out;
-};
 
 const triggerDownload = (blob, filename) => {
     const url = URL.createObjectURL(blob);
