@@ -1,0 +1,7 @@
+vendor
+var
+.git
+.env.local
+.env*.local
+Dockerfile
+.dockerignore

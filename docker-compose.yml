@@ -1,3 +1,6 @@
+# Development stack — infra only (MySQL + phpMyAdmin + MailHog).
+# The two apps run on the host in dev (Symfony CLI + Doctrine migrations).
+# For a fully containerised deployment see docker-compose.prod.yml.
 services:
 
   database:
