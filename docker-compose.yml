@@ -64,7 +64,7 @@ services:
     # https://<domaine>/api. Empêche de joindre l'API en clair sur http://<IP>:8000
     # et de contourner le TLS. Mettre 0.0.0.0 ici rouvrirait ce trou.
     ports:
-      - "127.0.0.1:8000:8000"
+      - "8000:8000"
     networks:
       - app-network
 
@@ -104,7 +104,7 @@ services:
     # find no production build.
     # Loopback uniquement : nginx (hôte) proxy https://<domaine>/ vers ce port.
     ports:
-      - "127.0.0.1:3000:3000"
+      - "3000:3000"
     networks:
       - app-network
 
