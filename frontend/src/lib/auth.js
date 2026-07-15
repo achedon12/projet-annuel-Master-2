@@ -1,6 +1,8 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { API_URL, Urls } from "@/utils/Api";
+// SERVER_API_URL et non API_URL : authorize() et l'échange Google tournent
+// côté serveur (dans le conteneur frontend en Docker), jamais dans le navigateur.
+import { SERVER_API_URL, Urls } from "@/utils/Api";
 
 export const LOGIN_INVALID = "LOGIN_INVALID";
 export const LOGIN_NETWORK = "LOGIN_NETWORK";
@@ -11,7 +13,7 @@ export const LOGIN_GOOGLE_REJECTED = "LOGIN_GOOGLE_REJECTED";
  * Le backend vérifie la signature via JWKS Google et crée/retrouve le user.
  */
 const exchangeGoogleIdToken = async (idToken) => {
-    const res = await fetch(`${API_URL}${Urls.auth.google}`, {
+    const res = await fetch(`${SERVER_API_URL}${Urls.auth.google}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ idToken }),
@@ -43,7 +45,7 @@ export const authOptions = {
                 if (credentials?.magicToken) {
                     let magicRes;
                     try {
-                        magicRes = await fetch(`${API_URL}${Urls.auth.magicLogin}`, {
+                        magicRes = await fetch(`${SERVER_API_URL}${Urls.auth.magicLogin}`, {
                             method: "POST",
                             headers: { "content-type": "application/json" },
                             body: JSON.stringify({ token: credentials.magicToken }),
@@ -74,7 +76,7 @@ export const authOptions = {
 
                 let res;
                 try {
-                    res = await fetch(`${API_URL}${Urls.auth.login}`, {
+                    res = await fetch(`${SERVER_API_URL}${Urls.auth.login}`, {
                         method: "POST",
                         headers: { "content-type": "application/json" },
                         body: JSON.stringify({ email, password }),

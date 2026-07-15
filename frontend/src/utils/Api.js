@@ -1,5 +1,13 @@
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost') + '/api';
 
+// Pour le code qui tourne côté serveur (authorize() de NextAuth, route handlers).
+// En Docker, NEXT_PUBLIC_API_URL vaut localhost:8000 : valable depuis le
+// navigateur, mais depuis le conteneur frontend localhost désigne ce conteneur
+// lui-même, pas le backend. INTERNAL_API_URL pointe sur le nom de service Docker.
+// Hors Docker la variable est absente et on retombe sur l'URL publique.
+export const SERVER_API_URL =
+    (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost') + '/api';
+
 export const Urls = {
   auth: {
       login: '/auth/login',

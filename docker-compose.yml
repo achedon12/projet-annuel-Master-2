@@ -1,12 +1,17 @@
-# Development stack — infra only (MySQL + phpMyAdmin + MailHog).
-# The two apps run on the host in dev (Symfony CLI + Doctrine migrations).
-# For a fully containerised deployment see docker-compose.prod.yml.
+# Production stack — builds and runs backend + frontend + database as containers.
+#
+#   docker compose up -d --build
+#
+# The dev stack (docker-compose.dev.yml) only brings up infra (MySQL + phpMyAdmin
+# + MailHog) because in dev the two apps run on the host. This file is the full
+# containerised deployment: no phpMyAdmin, no MailHog, restart policies and prod
+# env vars. Rebuild after changing app code — nothing is bind-mounted.
 services:
 
-  database:
+  pjr_database:
     env_file:
       - .env
-    container_name: database
+    container_name: pjr_database
     image: mysql:9.1
     restart: always
     environment:
@@ -18,51 +23,71 @@ services:
     ports:
       - ${DOCKER_MYSQL_PORT}:3306
     volumes:
-      - ./db:/var/lib/mysql:delegated
+      - ./db:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_PASSWORD}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     networks:
       - app-network
 
-#  php:
-#    build:
-#      context: ./backend
-#      dockerfile: Dockerfile
-#    container_name: php
-#    restart: always
-#    ports:
-#      - "8001:8000"
-#    volumes:
-#      - ./backend:/var/www/html
-#    environment:
-#      - DATABASE_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@database:3306/${MYSQL_DATABASE}?serverVersion=9.1&charset=utf8mb4
-#    depends_on:
-#      - database
-#    networks:
-#      - app-network
-#    working_dir: /var/www/html
-#    command: php -S 0.0.0.0:8000 -t public
-
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin
+  pjr_backend:
+    container_name: pjr_backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     restart: always
-    ports:
-      - "8080:80"
+    env_file:
+      - ./backend/.env.local
     environment:
-      PMA_HOST: database
-      PMA_PORT: 3306
-      PMA_USER: ${MYSQL_USER}
-      PMA_PASSWORD: ${MYSQL_PASSWORD}
+      APP_ENV: prod
+      APP_DEBUG: "0"
+      DATABASE_URL: "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@pjr_database:3306/${MYSQL_DATABASE}?serverVersion=9.1&charset=utf8mb4"
+      CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN:-^https?://localhost(:[0-9]+)?$$}
     depends_on:
-      - database
+      pjr_database:
+        condition: service_healthy
+    # No source bind mount: the image already contains the code and vendor/.
+    # Mounting ./backend here would shadow both and break the container.
+    # Deps are baked into the image, so this only migrates and serves. `php -S`
+    # is fine for a small deployment; front a real FPM+nginx here if you scale up.
+    command: >
+      sh -c "php bin/console doctrine:migrations:migrate --no-interaction &&
+             php -S 0.0.0.0:8000 -t public"
+    ports:
+      - "8000:8000"
     networks:
       - app-network
 
-  mailer:
-    image: mailhog/mailhog
-    container_name: mailer
+  pjr_frontend:
+    container_name: pjr_frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    restart: always
+    # .env is NOT baked into the image (the runner stage only copies the build
+    # output), so it must be injected here or NextAuth aborts with NO_SECRET.
+    # .env.local comes last: it overrides .env, same precedence as on the host.
+    env_file:
+      - ./frontend/.env
+      - ./frontend/.env.local
+    environment:
+      NODE_ENV: production
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      # NEXT_PUBLIC_API_URL (localhost:8000) est l'URL vue par le navigateur.
+      # Le code serveur (authorize() de NextAuth) tourne dans ce conteneur, où
+      # localhost n'est pas le backend : il lui faut le nom de service Docker.
+      INTERNAL_API_URL: http://pjr_backend:8000
+    depends_on:
+      - pjr_backend
+    # No source bind mount: `next build` already produced .next/ inside the
+    # image. Mounting ./frontend here would shadow it and `next start` would
+    # find no production build.
     ports:
-      - "8025:8025"
-      - "1025:1025"
+      - "3000:3000"
     networks:
       - app-network
 
