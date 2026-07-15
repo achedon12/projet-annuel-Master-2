@@ -60,11 +60,11 @@ services:
     command: >
       sh -c "php bin/console doctrine:migrations:migrate --no-interaction &&
              php -S 0.0.0.0:8000 -t public"
-    # Publié sur la loopback uniquement : seul nginx (sur l'hôte) y accède, via
-    # https://<domaine>/api. Empêche de joindre l'API en clair sur http://<IP>:8000
-    # et de contourner le TLS. Mettre 0.0.0.0 ici rouvrirait ce trou.
+    # Publié sur la loopback uniquement : seul nginx (sur l'hôte) y accède, et
+    # doit donc proxy_pass vers 127.0.0.1:8000. Empêche de joindre l'API en clair
+    # sur http://<IP>:8000 en contournant le TLS. "8000:8000" rouvrirait ce trou.
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     networks:
       - app-network
 
@@ -104,7 +104,7 @@ services:
     # find no production build.
     # Loopback uniquement : nginx (hôte) proxy https://<domaine>/ vers ce port.
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     networks:
       - app-network
 
