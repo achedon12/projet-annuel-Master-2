@@ -20,8 +20,11 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ALLOW_EMPTY_PASSWORD: "no"
+    # Loopback uniquement : les conteneurs joignent la base par le réseau Docker
+    # interne (pjr_database:3306), pas par ce mapping. Il ne sert qu'à un client
+    # SQL depuis le serveur lui-même. DOCKER_MYSQL_PORT = un simple numéro.
     ports:
-      - ${DOCKER_MYSQL_PORT}:3306
+      - "127.0.0.1:${DOCKER_MYSQL_PORT}:3306"
     volumes:
       - ./db:/var/lib/mysql
     healthcheck:
