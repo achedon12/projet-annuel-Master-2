@@ -38,8 +38,13 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: always
+    # Override de dev, gitignoré donc absent du serveur : optionnel, sinon le
+    # déploiement échoue sur un fichier manquant. Les secrets prod passent par
+    # `environment` / le .env racine.
     env_file:
-      - ./backend/.env.local
+      - ./backend/.env
+      - path: ./backend/.env.local
+        required: false
     environment:
       APP_ENV: prod
       APP_DEBUG: "0"
@@ -55,8 +60,11 @@ services:
     command: >
       sh -c "php bin/console doctrine:migrations:migrate --no-interaction &&
              php -S 0.0.0.0:8000 -t public"
+    # Publié sur la loopback uniquement : seul nginx (sur l'hôte) y accède, via
+    # https://<domaine>/api. Empêche de joindre l'API en clair sur http://<IP>:8000
+    # et de contourner le TLS. Mettre 0.0.0.0 ici rouvrirait ce trou.
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     networks:
       - app-network
 
@@ -71,23 +79,32 @@ services:
     # .env is NOT baked into the image (the runner stage only copies the build
     # output), so it must be injected here or NextAuth aborts with NO_SECRET.
     # .env.local comes last: it overrides .env, same precedence as on the host.
+    # Il est `required: false` car c'est un fichier d'override de dev, absent
+    # en prod (gitignoré) : sans ça, le déploiement échouerait sur son absence.
     env_file:
-      - ./frontend/.env
-      - ./frontend/.env.local
+      - path: ./frontend/.env
+        required: true
+      - path: ./frontend/.env.local
+        required: false
     environment:
       NODE_ENV: production
+      # Doit valoir la même chose que le build arg ci-dessus : sinon le rendu
+      # serveur et le bundle navigateur viseraient deux URL différentes.
+      # (`environment` a la priorité sur `env_file`, qui fixe localhost.)
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
-      # NEXT_PUBLIC_API_URL (localhost:8000) est l'URL vue par le navigateur.
-      # Le code serveur (authorize() de NextAuth) tourne dans ce conteneur, où
-      # localhost n'est pas le backend : il lui faut le nom de service Docker.
+      # NEXT_PUBLIC_API_URL est l'URL vue par le navigateur. Le code serveur
+      # (authorize() de NextAuth) tourne dans ce conteneur, où localhost n'est
+      # pas le backend : il lui faut le nom de service Docker.
       INTERNAL_API_URL: http://pjr_backend:8000
     depends_on:
       - pjr_backend
     # No source bind mount: `next build` already produced .next/ inside the
     # image. Mounting ./frontend here would shadow it and `next start` would
     # find no production build.
+    # Loopback uniquement : nginx (hôte) proxy https://<domaine>/ vers ce port.
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     networks:
       - app-network
 
