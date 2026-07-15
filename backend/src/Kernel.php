@@ -4,61 +4,16 @@ namespace App;
 
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpFoundation\Response;
 
-class Kernel extends BaseKernel implements EventSubscriberInterface
+/**
+ * Le CORS est géré par nelmio/cors-bundle (config/packages/nelmio_cors.yaml),
+ * piloté par la variable d'environnement CORS_ALLOW_ORIGIN.
+ *
+ * Il ne faut PAS le réimplémenter ici : un subscriber sur RequestEvent
+ * intercepterait les OPTIONS avant le listener de nelmio et court-circuiterait
+ * la config, avec une liste d'origines forcément codée en dur.
+ */
+class Kernel extends BaseKernel
 {
     use MicroKernelTrait;
-
-    public static function getSubscribedEvents(): array
-    {
-        return [
-            RequestEvent::class => ['onRequest', 512],
-            ResponseEvent::class => 'onResponse',
-        ];
-    }
-
-    public function onRequest(RequestEvent $event): void
-    {
-        if (!$event->isMainRequest()) {
-            return;
-        }
-
-        $request = $event->getRequest();
-
-        // Handle preflight requests
-        if ($request->getMethod() === 'OPTIONS') {
-            $response = new Response('', 200);
-            $this->addCorsHeaders($response, $request);
-            $event->setResponse($response);
-        }
-    }
-
-    public function onResponse(ResponseEvent $event): void
-    {
-        $response = $event->getResponse();
-        $request = $event->getRequest();
-        $this->addCorsHeaders($response, $request);
-    }
-
-    private function addCorsHeaders(Response $response, $request): void
-    {
-        $origin = $request->headers->get('Origin');
-        $allowedOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
-
-        if (in_array($origin, $allowedOrigins) || !$origin) {
-            if ($origin) {
-                $response->headers->set('Access-Control-Allow-Origin', $origin);
-            } else {
-                $response->headers->set('Access-Control-Allow-Origin', 'http://localhost:3000');
-            }
-            $response->headers->set('Access-Control-Allow-Credentials', 'true');
-            $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-            $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-            $response->headers->set('Access-Control-Max-Age', '3600');
-        }
-    }
 }
